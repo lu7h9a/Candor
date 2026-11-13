@@ -111,10 +111,11 @@ impl Dump {
         let mut events = Vec::new();
         let mut stats = Vec::new();
         for line in text.lines() {
-            if line.starts_with("{\"sysstat\"") {
+            if line.starts_with("{\"sysstat\"") || line.starts_with("{\"budget\"") {
+                // Kept whole: {"sysstat": {...}} or {"budget": {...}}.
                 let v: serde_json::Value =
                     serde_json::from_str(line).map_err(|e| format!("{e}: {line}"))?;
-                stats.push(v.get("sysstat").cloned().unwrap_or_default());
+                stats.push(v);
                 continue;
             }
             let ev: Event = serde_json::from_str(line).map_err(|e| format!("{e}: {line}"))?;
@@ -188,11 +189,77 @@ pub fn run_wl_sys(actions: &[&str]) -> Result<(Manifest, Vec<serde_json::Value>)
     let manifest = wl(actions)?;
     let (_, stats) = dump.stop_full()?;
     let tgid = wl_key(&manifest).tgid;
-    let mine = stats
-        .into_iter()
+    Ok((manifest, sysstats_of(&stats, tgid)))
+}
+
+/// The `sysstat` objects for one tgid from `Dump::stop_full` output.
+pub fn sysstats_of(stats: &[serde_json::Value], tgid: u32) -> Vec<serde_json::Value> {
+    stats
+        .iter()
+        .filter_map(|v| v.get("sysstat"))
         .filter(|s| s["tgid"].as_u64() == Some(u64::from(tgid)))
-        .collect();
-    Ok((manifest, mine))
+        .cloned()
+        .collect()
+}
+
+/// (budget dropped, ring-buffer dropped) for one tgid (0, 0 if absent).
+pub fn drops_of(stats: &[serde_json::Value], tgid: u32) -> (u64, u64) {
+    stats
+        .iter()
+        .filter_map(|v| v.get("budget"))
+        .find(|b| b["tgid"].as_u64() == Some(u64::from(tgid)))
+        .map(|b| {
+            (
+                b["dropped"].as_u64().unwrap_or(0),
+                b["rb_dropped"].as_u64().unwrap_or(0),
+            )
+        })
+        .unwrap_or((0, 0))
+}
+
+/// A wl started with --wait-stdin: it does nothing until `release`.
+pub struct PausedWl {
+    child: Child,
+    dir: PathBuf,
+}
+
+impl PausedWl {
+    /// Starts wl paused; its pid is known before it does anything.
+    pub fn start(actions: &[&str]) -> Result<PausedWl, String> {
+        let dir = std::env::temp_dir().join(format!(
+            "sysscope-wlp-{}-{}",
+            std::process::id(),
+            actions.len()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        let child = Command::new(bin_dir().join("sysscope-wl"))
+            .arg("--dir")
+            .arg(&dir)
+            .arg("--wait-stdin")
+            .args(actions)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("running wl: {e}"))?;
+        Ok(PausedWl { child, dir })
+    }
+
+    /// Process id of the paused wl.
+    pub fn pid(&self) -> u32 {
+        self.child.id()
+    }
+
+    /// Lets it run and waits for its manifest.
+    pub fn release(mut self) -> Result<Manifest, String> {
+        use std::io::Write;
+        if let Some(mut stdin) = self.child.stdin.take() {
+            stdin.write_all(b"x").map_err(|e| e.to_string())?;
+        }
+        let out = self.child.wait_with_output().map_err(|e| e.to_string())?;
+        std::thread::sleep(Duration::from_millis(300));
+        let _ = std::fs::remove_dir_all(&self.dir);
+        serde_json::from_slice(&out.stdout).map_err(|e| format!("wl manifest: {e}"))
+    }
 }
 
 /// Short name of an event kind, for counting.

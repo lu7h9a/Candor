@@ -13,7 +13,8 @@
  *          connect-tcp N, connect-tcp6 N, connect-fail N, connect-udp N,
  *          listen N, threads N, syscalls getppid N, flood N, longpath,
  *          badname, memfd-exec, leader-exits-first, open-relative,
- *          open-symlink, uring-open
+ *          open-symlink, uring-open, gen3, sleep MS, nanosleep N
+ * option: wl --dir DIR --wait-stdin ... waits for one byte on stdin first
  *
  * Built statically (make wl) so the same binary runs in every test VM.
  */
@@ -586,6 +587,68 @@ static void act_uring_open(void)
 	close(ring);
 }
 
+/* Three generations below wl; the last one is a daemon made by a double
+ * fork with setsid. Each generation opens DIR/gen-<n> once. */
+static void open_gen(int n)
+{
+	char path[4096];
+	snprintf(path, sizeof(path), "%s/gen-%d", dir, n);
+	int fd = raw_open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600);
+	if (fd >= 0)
+		raw_close(fd);
+}
+
+static void act_gen3(void)
+{
+	begin_action("gen3", 3);
+	end_action();
+	pid_t c = (pid_t)syscall(SYS_fork);
+	if (c == 0) {
+		open_gen(1);
+		pid_t g = (pid_t)syscall(SYS_fork);
+		if (g == 0) {
+			open_gen(2);
+			pid_t mid = (pid_t)syscall(SYS_fork);
+			if (mid == 0) {
+				setsid();
+				if (syscall(SYS_fork) == 0) {
+					struct timespec ts = {0, 100 * 1000 * 1000};
+					nanosleep(&ts, NULL);
+					open_gen(3);
+					syscall(SYS_exit_group, 0);
+				}
+				syscall(SYS_exit_group, 0);
+			}
+			waitpid(mid, NULL, 0);
+			syscall(SYS_exit_group, 0);
+		}
+		waitpid(g, NULL, 0);
+		syscall(SYS_exit_group, 0);
+	}
+	waitpid(c, NULL, 0);
+	struct timespec ts = {0, 500 * 1000 * 1000};
+	nanosleep(&ts, NULL); /* let the daemon finish */
+}
+
+static void act_sleep(long ms)
+{
+	begin_action("sleep", ms);
+	end_action();
+	struct timespec ts = {ms / 1000, (ms % 1000) * 1000 * 1000};
+	nanosleep(&ts, NULL);
+}
+
+/* N raw nanosleep(1 ms) syscalls, for latency measurement. */
+static void act_nanosleep(long n)
+{
+	begin_action("nanosleep", n);
+	mput(",\"nr\":%d", SYS_nanosleep);
+	struct timespec ts = {0, 1000 * 1000};
+	for (long i = 0; i < n; i++)
+		syscall(SYS_nanosleep, &ts, NULL);
+	end_action();
+}
+
 static void act_leader_exits_first(void)
 {
 	begin_action("leader-exits-first", 1);
@@ -633,6 +696,14 @@ int main(int argc, char **argv)
 	dir = argv[2];
 	if (mkdir(dir, 0700) != 0 && errno != EEXIST)
 		die(dir);
+	/* --wait-stdin: block until one byte arrives (tests start tracing first). */
+	if (argc > 3 && !strcmp(argv[3], "--wait-stdin")) {
+		char b;
+		if (read(0, &b, 1) < 0)
+			die("read stdin");
+		argv++;
+		argc--;
+	}
 	print_manifest_header();
 	for (i = 3; i < argc; i++) {
 		const char *a = argv[i];
@@ -675,6 +746,12 @@ int main(int argc, char **argv)
 			act_badname();
 		else if (!strcmp(a, "memfd-exec"))
 			act_memfd_exec();
+		else if (!strcmp(a, "gen3"))
+			act_gen3();
+		else if (!strcmp(a, "sleep"))
+			act_sleep(need_n(argc, argv, &i));
+		else if (!strcmp(a, "nanosleep"))
+			act_nanosleep(need_n(argc, argv, &i));
 		else if (!strcmp(a, "open-relative"))
 			act_open_relative();
 		else if (!strcmp(a, "open-symlink"))
