@@ -16,3 +16,14 @@ Exactly what to do:
 How to check it worked: `sudo -n true && echo OK` prints `OK` (option A), or `dpkg -s libelf-dev | grep Status` prints `Status: install ok installed` (option B).
 Options (if it is a choice): A) passwordless sudo for user lu7h9a  B) install the packages yourself, keep the password prompt   My recommendation: A, because without it no eBPF code can ever be loaded or tested, which is most of the project.
 If I hear nothing: I keep building and testing everything that does not need root (scaffold, protocol, VM harness, core state, rule engine, GUI model and views from replay data). Root work packages stay blocked.
+
+## Q2 - Not enough free memory to start test virtual machines reliably            (case E5, raised 2026-11-13 06:40)
+Blocks: VM steps of WP03 (fedora, arch), WP04-WP10 VM verification, WP23-WP26, WP30-WP31 (they all boot a 2 GiB test VM).
+What I need from you: choose A or B.
+Why I need it: the plan says not to start a VM when less than 6 GB of RAM is free. Free RAM on this machine moves between 5.2 and 6.2 GB depending on what you have open (Brave and the Claude apps use about 6 GB together). Debian 12, Ubuntu 22.04 and Ubuntu 24.04 VMs booted fine; Fedora and Arch were refused by the 6 GB check at 5.2-5.6 GB free.
+Exactly what to do:
+  Option A: reply "A" (lets me start a VM when at least guest RAM + 2 GiB = 4 GiB is free; the VM uses 2 GiB, so the host keeps at least 2 GiB plus 19 GiB swap).
+  Option B: close browser windows you do not need while I work, so more than 6 GB stays free.
+How to check it worked: `free -m` shows an "available" value above 6144 (option B).
+Options (if it is a choice): A) lower the VM start line to 4 GiB free  B) keep 6 GB and free memory   My recommendation: A, because a 2 GiB guest with 4 GiB free leaves the desktop comfortable and VM tests are needed for every kernel work package.
+If I hear nothing: I keep the 6 GB line, retry the check each time a VM step starts, and run VM steps only when 6 GB happens to be free. Nothing is lowered without your answer.

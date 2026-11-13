@@ -2,9 +2,9 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP03 VM harness   Status: IN_PROGRESS
-Next action: re-check free RAM against the E5 line, then write vm/up.sh, run.sh, down.sh
-Open questions for owner: Q1
+Milestone: M0   Current WP: WP04 BPF skeleton + lifecycle   Status: IN_PROGRESS
+Next action: unpack libelf/libzstd dev files into target/sysroot (scripts/sysroot.sh), build the BPF skeleton, verify in the debian12 VM
+Open questions for owner: Q1, Q2
 Tree state: clean after WP00 commit
 Last green gate: none yet
 
@@ -14,7 +14,7 @@ Last green gate: none yet
 | WP00 | Preflight | BLOCKED(E1) | host (non-root parts) | see log | Verify PASS; apt package install pending Q1 (no passwordless sudo) |
 | WP01 | Scaffold | DONE | host + GitHub CI | WP01 commit | CI run 43337978651 green; libbpf dep deferred to WP04 (needs libelf-dev, Q1) |
 | WP02 | Protocol crate | DONE | host | | | |
-| WP03 | VM harness | TODO | | | |
+| WP03 | VM harness | DONE | debian12, ubuntu2204, ubuntu2404 | WP03 commit | fedora/arch refused by E5 RAM guard (Q2), in UNVERIFIED.md |
 | WP04 | BPF skeleton + lifecycle | TODO | | | needs root (Q1) |
 | WP05 | Ground-truth workload + harness | TODO | | | needs root (Q1) |
 | WP06 | File events | TODO | | | needs root (Q1) |
@@ -53,13 +53,15 @@ Last green gate: none yet
 - 2026-11-13 WP00: installed rustup with the official installer (plan section 2 authorises it, SKILL.md section 2 exempts it from the curl-pipe ban). It writes to `~/.cargo` and `~/.rustup`, which are not in SKILL.md's write allowlist; plan wins, recorded here. Debian's `/usr/bin/cargo` 1.94.1 is shadowed by prepending `$HOME/.cargo/bin` in the Makefile - to reverse: `rustup self uninstall`.
 - 2026-11-13 WP00: system `libbpf-dev` is not installed (Q1), so BPF C is compiled against the libbpf headers vendored in the `libbpf-sys` crate. That is also what libbpf-cargo does, so nothing changes once libbpf-dev is installed.
 
+- 2026-11-13 WP03: E5 says "free RAM below 6 GB"; read as 6 GB decimal = 5722 MiB of MemAvailable, enforced in vm/lib.sh (also >= guest RAM + 2 GiB) - asked to relax it in Q2 - to reverse: edit preflight_kvm.
+- 2026-11-13 WP03: cloud-init seed ISO is built with genisoimage (cloud-localds is not installed) - standard equivalent, volume id cidata.
 - 2026-11-13 WP02: plan 4.5 leaves the JSON shape of `Event.kind` open; chose an object tagged by `"k"` (`"kind":{"k":"Open","path":...}`) - readable with socat/jq - pinned by fixtures/proto/v1.
 - 2026-11-13 WP02: plan names `FileStat`, `ConnStat`, `SysStat`, `MapRow`, `GhReport` without fields; defined them from plan 6.3 and 4.3 (see crates/sysscope-proto/src/types.rs). Adding fields later is additive (no proto bump).
 - 2026-11-13 WP02: Rust field `ProcKey.start_ticks` is sent as `"start"` on the wire, matching 4.5 while keeping the I4 name in code.
 - 2026-11-13 WP02: the 4.5 escaping leaves valid-UTF-8 C1 controls (U+0080-U+009F) and bidi overrides (U+202A-U+202E, U+2066-U+2069) unescaped. Wire format kept exactly as specified; terminal/GUI display code must additionally neutralise these (to do in WP13/WP20, tracked in docs/UNVERIFIED.md once it exists).
 
 ## Deviations from the plan
-- none
+- 2026-11-13 WP03: plan says images are verified by SHA256 -> Debian only publishes SHA512SUMS for its cloud images, so debian12 is verified with SHA-512; the others with SHA-256 - published checksum files, fetched over HTTPS from the official origin - allowed: the intent (verify against the published checksum) is met
 
 ## Log
 ### 2026-11-13 05:58 WP00 Preflight
@@ -119,3 +121,25 @@ test result: ok. 11 passed; 0 failed; 0 ignored; finished in 1.57s
 ```
 `make lint` and `make test` green.
 Result: PASS
+
+### 2026-11-13 06:42 WP03 VM harness
+Did: vm/lib.sh, up.sh, run.sh, down.sh. Images cached in ~/.cache/sysscope-vm/images and verified against the distro's published checksum file; per-boot qcow2 overlay plus `-snapshot`; cloud-init seed (genisoimage) creates user `sysscope` with a fresh ed25519 key and /etc/sysscope-test-vm; SSH forwarded on 127.0.0.1 only; KVM required; refuses if a VirtualBox VM runs or free RAM is under the E5 line. run.sh copies target/release/sysscope* into /opt/sysscope/bin and runs the command as root, returning its exit code.
+Verify command: `vm/run.sh <distro> 'uname -r && test -f /sys/kernel/btf/vmlinux && echo OK'` for each distro
+Verify output (trimmed, real):
+```
+vm: downloading https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-generic-amd64.qcow2
+vm: debian12 up
+6.1.0-54-amd64
+OK                      rc=0
+=== ubuntu2204
+5.15.0-203-generic
+OK                      rc=0
+=== ubuntu2404
+6.8.0-147-generic
+OK                      rc=0
+=== fedora
+vm: only 5616 MiB RAM available; need 5722 (escalate E5)   rc=1   (retry: 5194 MiB)
+=== arch
+vm: only 5614 MiB RAM available; need 5722 (escalate E5)   rc=1   (retry: 5188 MiB)
+```
+Result: PASS for debian12 (the hard requirement) and both Ubuntu releases. fedora/arch not booted: E5 guard, NEEDS_USER Q2, recorded in docs/UNVERIFIED.md.
