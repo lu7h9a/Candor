@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP06 File events   Status: IN_PROGRESS
-Next action: OPEN/RENAME/UNLINK programs, wl-based itests, verify in the debian12 VM (host pending Q1). Order after that: WP07-WP10, WP12, then M1 gate slice (make vm-test) + adversarial review
+Milestone: M0   Current WP: WP09 Follow mode + budgets   Status: IN_PROGRESS
+Next action: follow/budget itests (3 generations + double fork, flood identity, 64 KiB ring), WP08 latency check in follow mode; then WP10, WP12, M1 gate slice + adversarial review
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
@@ -17,9 +17,9 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 | WP03 | VM harness | DONE | debian12, ubuntu2204, ubuntu2404 | WP03 commit | fedora/arch refused by E5 RAM guard (Q2), in UNVERIFIED.md |
 | WP04 | BPF skeleton + lifecycle | BLOCKED(E1) | debian12 | WP04 commit | debian12 verify PASS; host pending Q1; ubuntu2204 refused by E5 guard |
 | WP05 | Ground-truth workload + harness | BLOCKED(E1) | debian12 | WP17 commit | debian12 itests 5/5 PASS; host `make test-root` pending Q1 |
-| WP06 | File events | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
-| WP07 | Network events | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
-| WP08 | Syscall stats | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
+| WP06 | File events | BLOCKED(E1) | debian12, ubuntu2204 | WP06-08 commit | VM verify PASS on 6.1 and 5.15; host pending Q1 |
+| WP07 | Network events | BLOCKED(E1) | debian12, ubuntu2204 | WP06-08 commit | VM verify PASS on 6.1 and 5.15; host pending Q1 |
+| WP08 | Syscall stats | IN_PROGRESS | debian12, ubuntu2204 (counts) | WP06-08 commit | count exact on 6.1/5.15; followed-latency check runs with WP09 follow |
 | WP09 | Follow mode + budgets | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
 | WP10 | /proc sampler + identity | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
@@ -71,7 +71,13 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 - 2026-11-13 WP15: core input `ExeMeta {proc, trusted, system_dir, home}` carries what the daemon checked about an executable (5.3 ownership condition, R001 confidence, "~/" expansion); a new Exec resets trust until the next ExeMeta.
 - 2026-11-13 WP15: path pattern semantics: "*" never crosses "/"; a pattern without "/" matches the file name only (so "*.kdbx" and "wallet.dat" match anywhere). Config files use deny_unknown_fields (the protocol does not).
 
+- 2026-11-13 WP06: RENAME/UNLINK paths: leaf-first NUL-separated dentry walk (<= 16 components, 768-byte buffer so the verifier can bound each 256-byte component copy), mount point from /proc/self/mountinfo by dev (root mount preferred), always marked approx. Preferring a path already seen in an OPEN for the same (dev,ino) is left to the WP12 daemon state.
+- 2026-11-13 WP07: CONNECT copies a constant 128 bytes of the kernel sockaddr (the syscall path keeps it in a 128-byte sockaddr_storage) and records min(addrlen,128) as its length: a computed-length copy was rejected by the 6.1 and 5.15 verifiers after clang dropped the mask.
+- 2026-11-13 WP09: the budget map value also counts ring-buffer-full drops per tgid (`rb_dropped`), so the loss identity can be checked per process system-wide and ProcRow.ev_dropped can include both reasons.
+- 2026-11-13 setup: .cargo/config.toml sets C_INCLUDE_PATH / LIBBPF_SYS_LIBRARY_PATH to target/sysroot (relative) so plain `cargo` works, not only `make`.
+
 ## Deviations from the plan
+- 2026-11-13 WP06: OPEN events are not emitted for exec-opens (`__FMODE_EXEC`: the binary, its interpreter, ld.so); they feed the exec-path stash and are represented by the EXEC event - plan silent; avoids double counting exec as open
 - 2026-11-13 WP17: limits.rs gained MAX_EVIDENCE_IDS (1000), WINDOW_ENTRIES (4096), BEACON_POINTS (64) - new caps required by I8 for finding evidence lists and rule windows; no existing value changed - allowed: plan 4.6 is silent on these
 - 2026-11-13 WP17: PLAN CONFLICT (not resolved, recorded): 5.7(2) says network simulators talk only to 127.0.0.0/8 and WP17 specifies `sim/beacon.py` with a local listener, but R006 (5.4) only counts non-loopback destinations, so that simulator cannot trigger R006. Kept R006 exactly as specified; beacon.py is loopback-only as specified; R006 positives are covered by replay fixtures with 10.1.2.3 / 93.184.216.34. The end-to-end R006 check (blocked by Q1 anyway) needs an owner decision or a test-only rules override that allows loopback - raised as NEEDS_USER Q3 (E6).
 - 2026-11-13 WP17: R005 "for one process tree" implemented as: each event counts for its process and for that process's direct parent (bounded; avoids flagging systemd for unrelated services). R005 simulator files live in its own dir, so the end-to-end test must add that dir to R005 `roots` via a test rules override (like R004).
@@ -254,3 +260,19 @@ test result: ok. 2 passed; 0 failed; finished in 1.00s   (windows.rs caps)
 ```
 `make lint` and `make test` green.
 Result: PASS for fixtures and caps; simulator end-to-end BLOCKED(E1) (needs the live daemon).
+
+### 2026-11-13 10:30 WP06 File events / WP07 Network events / WP08 Syscall stats (counts)
+Did: WP06: fentry/security_file_open (bpf_d_path, leaf + PATH_TRUNCATED fallback, kthreads skipped), fentry/security_inode_rename and _unlink (bounded dentry walks), daemon decode, mount-table prefix, f_mode/f_flags -> read/write/create/trunc, kernel dev_t -> st_dev; wl gained open-relative, open-symlink, uring-open (raw io_uring syscalls). WP07: fentry/security_socket_connect (raw sockaddr), fentry/security_socket_listen (bound addr from the sock), daemon sockaddr parser (inet, inet6, v4-mapped -> inet, unix path / @abstract escaped, garbage -> other). WP08: raw_tp/sys_enter per-CPU LRU counts per (tgid, nr) behind the cheap gate and a cfg flag (`--syscalls count|off`), sys_exit latency in follow mode only, syscall names generated at build time from unistd_64.h, dump prints final `sysstat` lines. Bug found and fixed in the VM: on_connect rejected by the verifier ("R2 unbounded memory access") on 6.1 and 5.15.
+Prototype check inside the guests (bpftool on the guest BTF): 6.1.0-54 and 5.15.0-203 have the same argument lists as the host 6.19 for security_file_open(file), security_inode_rename(old_dir, old_dentry, new_dir, new_dentry, flags), security_inode_unlink(dir, dentry), security_socket_connect(sock, address, addrlen), security_socket_listen(sock, backlog).
+Verify command: `make itest-bin && vm/run.sh debian12 "$(cat vm/tests/wp05_itest.sh)"`, same for ubuntu2204
+Verify output (trimmed, real):
+```
+== debian12 (6.1.0-54-amd64)
+== sysscope-itest-files       test result: ok. 5 passed; 0 failed   (1000 reads, 500 writes, 200 renames, 200 unlinks exact; (dev,ino)==lstat; paths; longpath -> PATH_TRUNCATED + "leaf-file"; badname bytes round-trip; relative + symlink resolved; io_uring open observed)
+== sysscope-itest-lifecycle   test result: ok. 5 passed; 0 failed
+== sysscope-itest-network     test result: ok. 1 passed; 0 failed   (300 v4 + 300 v6 connects, 50 refused, 1 udp, 13 listens exact)
+== sysscope-itest-syscalls    test result: ok. 1 passed; 0 failed   (getppid count == 100000 exactly)
+dmesg: no new bpf/BUG/WARNING/RCU lines
+== ubuntu2204 (5.15.0-203-generic): files 5/5, lifecycle 5/5, network 1/1, syscalls 1/1 ok; dmesg clean
+```
+Result: WP06 PASS (debian12 + ubuntu2204), WP07 PASS (debian12 + ubuntu2204), WP08 count part PASS; WP08 followed-latency check pending (needs WP09 follow). Host for all: BLOCKED(E1).

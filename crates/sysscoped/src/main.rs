@@ -12,6 +12,7 @@
 mod abi;
 mod collector;
 mod convert;
+mod follow;
 mod mounts;
 mod sockaddr;
 mod startup;
@@ -27,6 +28,9 @@ struct Opts {
     dump: bool,
     ringbuf_bytes: Option<u32>,
     syscalls: bool,
+    follow: Option<u32>,
+    budget_rate: u32,
+    budget_burst: u32,
 }
 
 fn parse_args() -> Result<Opts> {
@@ -35,6 +39,9 @@ fn parse_args() -> Result<Opts> {
         dump: false,
         ringbuf_bytes: None,
         syscalls: true,
+        follow: None,
+        budget_rate: collector::BUDGET_RATE,
+        budget_burst: collector::BUDGET_BURST,
     };
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
@@ -50,6 +57,16 @@ fn parse_args() -> Result<Opts> {
                 Some("off") => opts.syscalls = false,
                 _ => bail!("--syscalls must be \"count\" or \"off\""),
             },
+            "--follow" => {
+                let v = args.next().context("--follow needs a pid")?;
+                opts.follow = Some(v.parse().context("--follow must be a pid")?);
+            }
+            "--budget" => {
+                let v = args.next().context("--budget needs RATE/BURST")?;
+                let (r, b) = v.split_once('/').context("--budget must be RATE/BURST")?;
+                opts.budget_rate = r.parse().context("budget rate")?;
+                opts.budget_burst = b.parse().context("budget burst")?;
+            }
             "--version" => {
                 println!("sysscoped {}", env!("CARGO_PKG_VERSION"));
                 std::process::exit(0);
@@ -86,7 +103,16 @@ fn run(opts: &Opts) -> Result<()> {
     let stop = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(signal_hook::consts::SIGINT, Arc::clone(&stop))?;
     signal_hook::flag::register(signal_hook::consts::SIGTERM, Arc::clone(&stop))?;
-    collector::dump(opts.ringbuf_bytes, opts.syscalls, &stop)?;
+    collector::dump(
+        &collector::DumpOpts {
+            ringbuf_bytes: opts.ringbuf_bytes,
+            syscalls: opts.syscalls,
+            follow: opts.follow,
+            budget_rate: opts.budget_rate,
+            budget_burst: opts.budget_burst,
+        },
+        &stop,
+    )?;
     let _ = stop.load(Ordering::Relaxed);
     Ok(())
 }

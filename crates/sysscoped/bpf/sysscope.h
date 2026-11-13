@@ -179,6 +179,17 @@ struct ev_listen {
 };
 _Static_assert(sizeof(struct ev_listen) == 56, "ev_listen size");
 
+/* Per-tgid token bucket (plan 4.3 step 3) and per-process loss counters.
+ * Updated from several CPUs without a lock: an update may be lost, but
+ * tokens never go below zero (compare-and-swap on take). */
+struct budget {
+	__u64 tokens;
+	__u64 last_refill_ns;
+	__u64 dropped;	  /* events refused by the budget */
+	__u64 rb_dropped; /* events lost because the ring buffer was full */
+};
+_Static_assert(sizeof(struct budget) == 32, "budget size");
+
 /* Syscall statistics keys and values (no events: aggregated in maps, D8). */
 struct sys_key {
 	__u32 tgid;

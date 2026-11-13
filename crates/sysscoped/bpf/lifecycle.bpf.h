@@ -37,13 +37,13 @@ int BPF_PROG(on_exec, struct task_struct *p, pid_t old_pid, struct linux_binprm 
 		._pad = 0,
 	};
 
-	if (!gate_pass(tgid)) {
+	if (!gate_emit(tgid)) {
 		bpf_map_delete_elem(&exec_stash, &k);
 		return 0;
 	}
 	struct ev_exec *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
 		bpf_map_delete_elem(&exec_stash, &k);
 		return 0;
 	}
@@ -104,12 +104,20 @@ int BPF_PROG(on_fork, struct task_struct *parent, struct task_struct *child)
 	if (child_pid != child_tgid)
 		return 0; /* a new thread, not a new process */
 
-	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
-	if (!gate_pass(tgid))
+	/* Follow inheritance (D9) happens at fork time, keyed on the parent's
+	 * tgid (not the forking thread), before any gate, so a daemonising
+	 * double fork stays followed. */
+	__u32 tgid = BPF_CORE_READ(parent, tgid);
+	__u32 *fid = bpf_map_lookup_elem(&followed_tgid, &tgid);
+	if (fid) {
+		__u32 id = *fid;
+		bpf_map_update_elem(&followed_tgid, &child_tgid, &id, BPF_ANY);
+	}
+	if (!gate_emit(tgid))
 		return 0;
 	struct ev_fork *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
 		return 0;
 	}
 	fill_hdr(&e->h, parent, EV_FORK);
@@ -127,16 +135,20 @@ int BPF_PROG(on_exit, struct task_struct *p)
 	if (BPF_CORE_READ(p, signal, live.counter) != 0)
 		return 0;
 	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
-	if (!gate_pass(tgid))
+	if (!gate_emit(tgid)) {
+		bpf_map_delete_elem(&followed_tgid, &tgid);
 		return 0;
+	}
 	struct ev_exit *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
+		bpf_map_delete_elem(&followed_tgid, &tgid);
 		return 0;
 	}
 	fill_hdr(&e->h, p, EV_EXIT);
 	e->exit_code = BPF_CORE_READ(p, exit_code);
 	e->_pad = 0;
 	bpf_ringbuf_submit(e, 0);
+	bpf_map_delete_elem(&followed_tgid, &tgid);
 	return 0;
 }

@@ -63,11 +63,11 @@ int BPF_PROG(on_file_open, struct file *file)
 	if (is_kthread())
 		return 0;
 	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
-	if (!gate_pass(tgid))
+	if (!gate_emit(tgid))
 		return 0;
 	struct ev_open *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
 		return 0;
 	}
 	fill_hdr(&e->h, bpf_get_current_task_btf(), EV_OPEN);
@@ -129,11 +129,11 @@ int BPF_PROG(on_rename, struct inode *old_dir, struct dentry *old_dentry, struct
 	if (is_kthread())
 		return 0;
 	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
-	if (!gate_pass(tgid))
+	if (!gate_emit(tgid))
 		return 0;
 	struct ev_rename *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
 		return 0;
 	}
 	fill_hdr(&e->h, bpf_get_current_task_btf(), EV_RENAME);
@@ -155,11 +155,11 @@ int BPF_PROG(on_unlink, struct inode *dir, struct dentry *dentry)
 	if (is_kthread())
 		return 0;
 	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
-	if (!gate_pass(tgid))
+	if (!gate_emit(tgid))
 		return 0;
 	struct ev_unlink *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
 		return 0;
 	}
 	fill_hdr(&e->h, bpf_get_current_task_btf(), EV_UNLINK);

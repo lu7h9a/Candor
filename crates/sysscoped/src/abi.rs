@@ -63,6 +63,11 @@ pub const F_KTHREAD: u16 = 1 << 3;
 #[allow(dead_code)] // used by the process table (WP11)
 pub const F_PATH_FROM_ARG: u16 = 1 << 4;
 
+/// cfg.mode: trace everything.
+pub const MODE_SYSTEM: u32 = 0;
+/// cfg.mode: trace followed processes only.
+pub const MODE_FOLLOW: u32 = 1;
+
 /// cfg.flags bit: count syscalls (CFG_SYSCALLS_COUNT).
 pub const CFG_SYSCALLS_COUNT: u32 = 1 << 0;
 

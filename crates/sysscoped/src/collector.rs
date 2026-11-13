@@ -41,9 +41,25 @@ fn read_drop(map: &dyn MapCore, reason: u32) -> Result<u64> {
 }
 
 /// Runs dump mode until `stop` is set.
+/// Options of dump mode.
+pub struct DumpOpts {
+    /// Ring buffer size override (tests).
+    pub ringbuf_bytes: Option<u32>,
+    /// Count syscalls.
+    pub syscalls: bool,
+    /// Follow this pid's tree instead of tracing everything.
+    pub follow: Option<u32>,
+    /// Budget events/s per tgid (0 = off).
+    pub budget_rate: u32,
+    /// Budget burst.
+    pub budget_burst: u32,
+}
+
 /// Dump mode also prints, at exit, one `{"sysstat": ...}` line per
-/// (tgid, syscall) with the final counters (WP08).
-pub fn dump(ringbuf_bytes: Option<u32>, syscalls: bool, stop: &AtomicBool) -> Result<()> {
+/// (tgid, syscall) and one `{"budget": ...}` line per tgid with its loss
+/// counters (WP08, WP09).
+pub fn dump(o: &DumpOpts, stop: &AtomicBool) -> Result<()> {
+    let (ringbuf_bytes, syscalls) = (o.ringbuf_bytes, o.syscalls);
     let builder = skel::SysscopeSkelBuilder::default();
     let mut storage = MaybeUninit::uninit();
     let mut open = builder.open(&mut storage).context("opening BPF object")?;
@@ -62,9 +78,9 @@ pub fn dump(ringbuf_bytes: Option<u32>, syscalls: bool, stop: &AtomicBool) -> Re
         .update(&me.to_le_bytes(), &1u32.to_le_bytes(), MapFlags::ANY)
         .context("adding the daemon to ignored_tgid")?;
     let cfg = abi::Cfg {
-        mode: 0,
-        budget_rate: BUDGET_RATE,
-        budget_burst: BUDGET_BURST,
+        mode: abi::MODE_SYSTEM,
+        budget_rate: o.budget_rate,
+        budget_burst: o.budget_burst,
         flags: if syscalls { abi::CFG_SYSCALLS_COUNT } else { 0 },
     };
     loaded
@@ -73,6 +89,10 @@ pub fn dump(ringbuf_bytes: Option<u32>, syscalls: bool, stop: &AtomicBool) -> Re
         .update(&0u32.to_le_bytes(), &cfg.to_bytes(), MapFlags::ANY)
         .context("writing cfg")?;
     loaded.attach().context("attaching BPF programs")?;
+    if let Some(root) = o.follow {
+        let n = crate::follow::start(&loaded, root, cfg)?;
+        eprintln!("sysscoped: following pid {root} ({n} processes)");
+    }
 
     // SYSSCOPE_DEBUG_RAW=1 prints every decoded kernel record to stderr.
     let debug_raw = std::env::var_os("SYSSCOPE_DEBUG_RAW").is_some();
@@ -116,6 +136,24 @@ pub fn dump(ringbuf_bytes: Option<u32>, syscalls: bool, stop: &AtomicBool) -> Re
             "lat_count": t.lat_count, "lat_total_ns": t.lat_total_ns, "lat_max_ns": t.lat_max_ns,
         }});
         let _ = writeln!(out.borrow_mut(), "{line}");
+    }
+    for k in loaded.maps.budget.keys() {
+        if let Some(v) = loaded.maps.budget.lookup(&k, MapFlags::ANY)? {
+            let field = |off: usize| {
+                v.get(off..off + 8)
+                    .and_then(|s| s.try_into().ok())
+                    .map(u64::from_le_bytes)
+                    .unwrap_or(0)
+            };
+            let tgid = k
+                .get(..4)
+                .and_then(|s| s.try_into().ok())
+                .map(u32::from_le_bytes);
+            let line = serde_json::json!({"budget": {
+                "tgid": tgid, "dropped": field(16), "rb_dropped": field(24),
+            }});
+            let _ = writeln!(out.borrow_mut(), "{line}");
+        }
     }
     let _ = out.borrow_mut().flush();
     let ringbuf = read_drop(&loaded.maps.drops, abi::DROP_RINGBUF)?;

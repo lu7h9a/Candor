@@ -24,11 +24,11 @@ int BPF_PROG(on_connect, struct socket *sock, void *address, int addrlen)
 	if (is_kthread())
 		return 0;
 	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
-	if (!gate_pass(tgid))
+	if (!gate_emit(tgid))
 		return 0;
 	struct ev_connect *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
 		return 0;
 	}
 	fill_hdr(&e->h, bpf_get_current_task_btf(), EV_CONNECT);
@@ -51,11 +51,11 @@ int BPF_PROG(on_listen, struct socket *sock, int backlog)
 	if (is_kthread())
 		return 0;
 	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
-	if (!gate_pass(tgid))
+	if (!gate_emit(tgid))
 		return 0;
 	struct ev_listen *e = bpf_ringbuf_reserve(&events, sizeof(*e), 0);
 	if (!e) {
-		count_drop(DROP_RINGBUF);
+		count_rb_drop(tgid);
 		return 0;
 	}
 	fill_hdr(&e->h, bpf_get_current_task_btf(), EV_LISTEN);

@@ -38,6 +38,13 @@ struct {
 	__type(value, __u32);
 } ignored_tgid SEC(".maps");
 
+struct {
+	__uint(type, BPF_MAP_TYPE_LRU_HASH);
+	__uint(max_entries, BUDGET_MAX);
+	__type(key, __u32);
+	__type(value, struct budget);
+} budget SEC(".maps");
+
 /* Lost-event counters by reason (DROP_*). Per-CPU, summed by the daemon. */
 struct {
 	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
