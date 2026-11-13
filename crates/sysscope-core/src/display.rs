@@ -9,6 +9,24 @@
 
 use sysscope_proto::BStr;
 
+/// JSON text with every character a terminal could interpret (C1, bidi,
+/// zero-width, tags; JSON already escapes C0) written as \uXXXX, so a JSON
+/// file or stream can be printed safely (I10).
+pub fn json_safe(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    for c in text.chars() {
+        if dangerous(c) && (c as u32) > 0x1F {
+            let mut buf = [0u16; 2];
+            for u in c.encode_utf16(&mut buf) {
+                out.push_str(&format!("\\u{:04x}", u));
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
 fn dangerous(c: char) -> bool {
     matches!(c as u32,
         0x00..=0x1F | 0x7F..=0x9F       // C0 and C1 controls
@@ -40,6 +58,15 @@ pub fn safe(b: &BStr) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn json_safe_escapes_c1_bidi_and_tags_but_stays_json() {
+        let raw = serde_json::to_string(&"a\u{85}b\u{202e}c\u{e0041}d").unwrap();
+        let safe = json_safe(&raw);
+        assert!(safe.chars().all(|c| !dangerous(c)), "{safe}");
+        let back: String = serde_json::from_str(&safe).unwrap();
+        assert_eq!(back, "a\u{85}b\u{202e}c\u{e0041}d");
+    }
 
     #[test]
     fn c1_and_bidi_are_neutralised() {

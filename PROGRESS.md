@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M4   Current WP: WP25   Status: IN_PROGRESS
-Next action: Gate M4 - read the fresh-subagent Glasshouse attack review (started), fix findings, re-run vm-hostile + WP24 VM checks; then WP26
+Milestone: M4   Current WP: WP26   Status: IN_PROGRESS
+Next action: WP26 - real-sample detonation VM (docs/REAL_SAMPLES.md, vm/detonate.sh; never fetch samples)
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -36,7 +36,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP22 | Decoys + manifest | DONE | host | WP22 commit | 42 decoys per plan 6.2 |
 | WP23 | Launcher | BLOCKED(E1) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run pending Q1 |
 | WP24 | Trace integration, differ, report, UI | BLOCKED(E1) | debian12 + ubuntu2204 exact demo report and attribution; ubuntu2404 correctly unavailable | WP24 commit | host run pending Q1 |
-| WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204; ubuntu2404 refusal | WP25 commit | Gate M4 review in progress |
+| WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204 (after M4 fixes); ubuntu2404 refusal | WP25 + M4 commits | |
 | WP26 | Real-sample protocol | TODO | | | |
 | WP27 | Act mode (experimental) | TODO | | | |
 | WP28 | R009, R011, R100 | TODO | | | |
@@ -575,3 +575,37 @@ WP24 re-run debian12: REPORT PASS x2, "ran 0.2 s, exited with code 0", 120 data 
 ```
 Honest gap: the memory bomb is OOM-killed in under 1 s, so the 2 s SSH sampling never landed inside it. The membomb responsiveness bar is not directly measured; the fork bomb's is (178/197 ms).
 Result: PASS (VMs). The Gate M4 adversarial review is running; its findings are still to be fixed.
+
+### 2026-11-14 01:30 Gate M4 (Glasshouse) - adversarial review and fixes
+Did: a fresh subagent reviewed Glasshouse as an attacker (read-only). Every finding was checked against the code and handled:
+1. HIGH, fixed. A sample could hang the helper for good: the differ's output was unbounded and was read before `wait()`, so a full pipe deadlocked; there was also no daemon timeout. Now:
+   - the differ walks re-opened directories by a name tree (no fd pile-up), keeps paths of at most 1 KiB, lists at most 1000 created entries plus a note, and keeps output under 4 MiB in a test with 3000 long non-UTF-8 names;
+   - the helper drains the differ's output on a thread, with a 12 MiB cap and a 60 s kill;
+   - the helper unit has MemoryMax=1G and RuntimeMaxSec=timeout+300;
+   - a daemon watchdog kills both units after timeout+300 s and frees the slot.
+2. HIGH, fixed. A Fork event dropped by the budget or a full ring buffer hid whole box processes. While the sample runs (from Go to the new helper `Ended` message, sent before the differ starts), the daemon adopts events from the sandbox uid whose /proc cgroup is the box unit. The report notes adopted processes and the budget drops of box processes. VM: the flood probe's child really lost its Fork event on debian12, was adopted, and its decoy read is in the report.
+3. MEDIUM, fixed. The differ silently skipped directories it could not open or list. Every open, list or stat error now makes the walk incomplete, with a note. Directories and files the sample set to chmod 000 get owner access restored (noted). An unreadable decoy is "unknown", never "modified". Hard links to decoys are noted, not reported as renames.
+4. MEDIUM, fixed. The list of box processes was unbounded (fork chains). It is capped at 10 000 (overflow noted), reports list 1000 children, `fit_report` also cuts children and findings, the saved copy is the fitted report, and reports are rotated (200).
+5. MEDIUM/LOW, fixed. Every error path after systemd-run starts now kills the box unit and reaps systemd-run. umount falls back to `--lazy`. The daemon sweeps stale units, mounts and files at start. The runner's leftover check now includes helper units.
+6. LOW, fixed. The FIFO is opened O_NONBLOCK (ENXIO if stage2 died) instead of blocking forever.
+7. LOW, partly fixed. The 256 MiB `sync_all` on the core thread is removed, and a stalled upload is dropped after 60 s. Accepted: chunk writes (at most 64 KiB) and the report save stay on the core thread.
+8. LOW, fixed. Saved reports and the GUI JSON export go through `display::json_safe` (moved to core: C1, bidi, zero-width and tag characters). The torture check now greps all outputs for C1/bidi bytes.
+9. LOW, fixed. Box executables are never stat'ed on the host; they are untrusted.
+10. LOW, fixed. The probes were too weak:
+    - syscalls and tamper now require `Seccomp: 2` and 3 filters, and 15 more syscalls are tried (including clone with NEWNS, NEWNET and NEWPID);
+    - torture adds 20 000 long non-UTF-8 names, a 64-deep chain of 255-byte names, chmod-000 directories and decoys, and a hard link;
+    - flood adds the fork-after-flood attribution check.
+11. Half wrong. The CLI already stops on a daemon Error: `recv` turns Error into Err and `?` propagates it. `quotactl_fd` is now denied as well (an addition to the plan's list).
+Verify command: `make lint && make test && make release`, the WP24 VM check on debian12, then `vm/hostile.sh` on debian12, ubuntu2204 and ubuntu2404.
+Verify output (trimmed, real):
+```
+WP24 debian12: REPORT PASS x2; strace 134 successful, 14 O_PATH, 120 data opens = 120 traced   WP24 GLASSHOUSE PASS
+debian12:  HOSTILE SUMMARY: 20 contained, 0 escaped; forkbomb SSH 166 ms   VM-HOSTILE debian12 PASS
+  PROBE flood: CONTAINED budget drops counted: 3653592, R008: True, child read after flood: ['read'], notes: ...; 1 box process(es) were recognised by their user and cgroup because their start was not recorded
+  PROBE torture: CONTAINED took 1s; notes: differ stopped at 20000 entries; ...; 2 file(s) or directories had been made unreadable inside the box; the differ restored owner access ...; decoy /home/victim/passwords.txt has 1 extra name(s) (hard links) ...; 19920 new entries; the first 1000 by name are listed
+  PROBE membomb: CONTAINED ended: exit None ['the sample was stopped by the 1 GiB memory limit (oom-kill)']
+ubuntu2204: HOSTILE SUMMARY: 20 contained, 0 escaped; forkbomb SSH 214 ms   VM-HOSTILE ubuntu2204 PASS
+ubuntu2404: HOSTILE UNAVAILABLE-CORRECTLY PASS   VM-HOSTILE ubuntu2404 PASS
+make lint: clean; make test: all ok (glasshouse lib 13 incl. hostile_trees_stay_bounded_and_honest, core display json_safe test)
+```
+Result: Gate M4 slice PASS (lint, tests, VM functional and adversarial runs, review fixed). The full gate (host `make test-root`) and the host Glasshouse run stay BLOCKED(E1) on Q1.

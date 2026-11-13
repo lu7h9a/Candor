@@ -36,6 +36,17 @@ pub const MAX_SAMPLE: u64 = 256 * 1024 * 1024;
 pub const MAX_CHUNK: usize = 64 * 1024;
 /// Events kept in a report's timeline.
 pub const TIMELINE_CAP: usize = 20_000;
+/// Box processes tracked per run (a fork chain cannot grow this forever).
+pub const MAX_BOX_PROCS: usize = 10_000;
+/// Processes listed in a report.
+pub const MAX_CHILDREN_LISTED: usize = 1_000;
+/// Reports kept in REPORTS (oldest removed first).
+pub const MAX_REPORTS: usize = 200;
+/// An upload with no progress for this long is dropped (frees the slot).
+const UPLOAD_IDLE: Duration = Duration::from_secs(60);
+/// A started run may take timeout + this long before the daemon gives up
+/// on the helper (kills its unit and frees the slot).
+const RUN_GRACE: Duration = Duration::from_secs(300);
 /// Live decoy updates at most this often.
 const LIVE_EVERY: Duration = Duration::from_millis(300);
 
@@ -108,6 +119,17 @@ pub struct Run {
     last_live: Instant,
     diff: Option<HelperOut>,
     failed: Option<String>,
+    /// Last client progress (upload) or the start of the run.
+    last_activity: Instant,
+    /// Between Go and the helper's Ended: events of the sandbox user are
+    /// the box's even if their Fork event was lost.
+    sample_running: bool,
+    /// Box processes adopted that way.
+    adopted: u64,
+    /// Box processes not tracked because of MAX_BOX_PROCS.
+    procs_overflow: u64,
+    /// Events of box processes dropped by the kernel budget.
+    box_drops: u64,
 }
 
 /// The daemon's Glasshouse state (owned by the core thread).
@@ -117,6 +139,35 @@ pub struct Glasshouse {
     tx: Sender<GhEvent>,
     counter: u64,
     helper: PathBuf,
+    box_uid: Option<u32>,
+}
+
+/// Adds a process to the box set unless the cap is reached.
+fn track(run: &mut Run, k: ProcKey) -> bool {
+    if run.box_procs.len() >= MAX_BOX_PROCS && !run.box_procs.contains(&k) {
+        run.procs_overflow += 1;
+        return false;
+    }
+    run.box_procs.insert(k);
+    true
+}
+
+/// True unless /proc says the process is in another cgroup (a process
+/// that is already gone cannot be checked and is accepted on its uid).
+fn in_unit(pid: u32, unit: &str) -> bool {
+    match std::fs::read_to_string(format!("/proc/{pid}/cgroup")) {
+        Ok(t) => t.lines().any(|l| l.ends_with(&format!("/{unit}"))),
+        Err(_) => true,
+    }
+}
+
+/// uid of a user from /etc/passwd.
+fn user_id(name: &str) -> Option<u32> {
+    let text = std::fs::read_to_string("/etc/passwd").ok()?;
+    text.lines().find_map(|l| {
+        let mut f = l.split(':');
+        (f.next() == Some(name)).then(|| f.nth(1).and_then(|u| u.parse().ok()))?
+    })
 }
 
 /// Turns a client-supplied name into a safe file name inside the box.
@@ -174,6 +225,7 @@ fn job_path(run_id: &str) -> PathBuf {
 fn spawn_helper(
     helper: &std::path::Path,
     run_id: &str,
+    timeout_s: u32,
     tx: Sender<GhEvent>,
 ) -> std::io::Result<Sender<HelperIn>> {
     let mut child = Command::new("systemd-run")
@@ -183,7 +235,15 @@ fn spawn_helper(
             "--quiet",
             "--collect",
             "--service-type=exec",
+            // The helper (and the differ it starts) is bounded too.
+            "-p",
+            "MemoryMax=1G",
         ])
+        .arg("-p")
+        .arg(format!(
+            "RuntimeMaxSec={}",
+            u64::from(timeout_s) + RUN_GRACE.as_secs()
+        ))
         .arg(format!("--unit=sysscope-ghh-{run_id}"))
         .arg(helper)
         .arg("run")
@@ -284,6 +344,7 @@ impl Glasshouse {
                 tx,
                 counter: 0,
                 helper,
+                box_uid: user_id("sysscope-box"),
             },
             rx,
         )
@@ -345,6 +406,11 @@ impl Glasshouse {
             last_live: Instant::now(),
             diff: None,
             failed: None,
+            last_activity: Instant::now(),
+            sample_running: false,
+            adopted: 0,
+            procs_overflow: 0,
+            box_drops: 0,
         });
         vec![status(
             GhState::Uploading,
@@ -383,8 +449,8 @@ impl Glasshouse {
         }
         up.got += data.len() as u64;
         up.next_seq += 1;
+        run.last_activity = Instant::now();
         if up.got == up.size {
-            let _ = up.file.sync_all();
             run.stage = Stage::Uploaded;
             return vec![status(GhState::Uploading, &run.run_id, "sample received")];
         }
@@ -444,9 +510,10 @@ impl Glasshouse {
             self.abort_upload();
             return vec![err("glasshouse_failed", format!("writing the job: {e}"))];
         }
-        match spawn_helper(&helper, &run_id, tx) {
+        match spawn_helper(&helper, &run_id, timeout_s, tx) {
             Ok(to_helper) => {
                 run.stage = Stage::Started { to_helper };
+                run.last_activity = Instant::now();
                 vec![status(GhState::Starting, &run_id, "starting the sandbox")]
             }
             Err(e) => {
@@ -496,12 +563,26 @@ impl Glasshouse {
     /// Looks at one event before the engine does: attribution, timeline,
     /// live decoy states.
     pub fn observe(&mut self, ev: &Event) {
+        let box_uid = self.box_uid;
         let Some(run) = self.run.as_mut() else { return };
-        if run.root.is_none() || !run.box_procs.contains(&ev.proc) {
+        if run.root.is_none() {
             return;
         }
+        if !run.box_procs.contains(&ev.proc) {
+            // A box process whose Fork event the kernel dropped (budget or
+            // full ring buffer): while the sample runs, only box processes
+            // run as the sandbox user; the cgroup confirms it when the
+            // process still exists.
+            let adopt = run.sample_running
+                && box_uid == Some(ev.uid)
+                && in_unit(ev.proc.tgid, &format!("sysscope-gh-{}.service", run.run_id));
+            if !adopt || !track(run, ev.proc) {
+                return;
+            }
+            run.adopted += 1;
+        }
         if let EventKind::Fork { child } = &ev.kind {
-            run.box_procs.insert(*child);
+            track(run, *child);
         }
         let touched = match &ev.kind {
             EventKind::Open {
@@ -638,6 +719,7 @@ impl Glasshouse {
                     }
                 }
             }
+            Some(HelperOut::Ended {}) => run.sample_running = false,
             Some(HelperOut::Diff { .. }) => {
                 run.diff = out;
                 fx.finish = true;
@@ -652,13 +734,61 @@ impl Glasshouse {
 
     /// The poller has the box cgroup and path rewrites: release the box.
     pub fn ready(&mut self) {
-        if let Some(Run {
-            stage: Stage::Started { to_helper },
-            ..
-        }) = &self.run
+        if let Some(run) = self.run.as_mut()
+            && let Stage::Started { to_helper } = &run.stage
         {
+            run.sample_running = true;
             let _ = to_helper.try_send(HelperIn::Go {});
         }
+    }
+
+    /// Kernel budget drops per process: counted for the report when they
+    /// hit box processes.
+    pub fn drops(&mut self, per_proc: &[(ProcKey, u64)]) {
+        if let Some(run) = self.run.as_mut() {
+            for (k, n) in per_proc {
+                if run.box_procs.contains(k) {
+                    run.box_drops = run.box_drops.saturating_add(*n);
+                }
+            }
+        }
+    }
+
+    /// Once a second: frees the slot from an abandoned upload or a helper
+    /// that never finishes (its unit is killed).
+    pub fn watchdog(&mut self) -> Effects {
+        let mut fx = Effects::default();
+        let Some(run) = self.run.as_mut() else {
+            return fx;
+        };
+        let started = matches!(run.stage, Stage::Started { .. });
+        let limit = if started {
+            Duration::from_secs(u64::from(run.timeout_s)) + RUN_GRACE
+        } else {
+            UPLOAD_IDLE
+        };
+        if run.last_activity.elapsed() < limit {
+            return fx;
+        }
+        if started {
+            let _ = Command::new("systemctl")
+                .args(["kill", "--signal=SIGKILL"])
+                .arg(format!("sysscope-ghh-{}.service", run.run_id))
+                .arg(format!("sysscope-gh-{}.service", run.run_id))
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status();
+            run.diff = None;
+            run.failed = Some("the run did not finish in time; it was stopped".into());
+        } else {
+            run.failed = Some("the upload stalled; the sample was discarded".into());
+        }
+        let owner = run.owner;
+        let rid = run.run_id.clone();
+        let msg = run.failed.clone().unwrap_or_default();
+        fx.replies.push((owner, status(GhState::Failed, &rid, msg)));
+        self.cleanup(&mut fx);
+        fx
     }
 
     /// Ends the run after the helper exited: report or failure.
@@ -767,6 +897,30 @@ impl Glasshouse {
         if cancelled {
             notes.push("the run was cancelled".into());
         }
+        if run.box_drops > 0 {
+            notes.push(format!(
+                "{} events of box processes were dropped by the per-process budget; their activity is incomplete",
+                run.box_drops
+            ));
+        }
+        if run.adopted > 0 {
+            notes.push(format!(
+                "{} box process(es) were recognised by their user and cgroup because their start was not recorded",
+                run.adopted
+            ));
+        }
+        if run.procs_overflow > 0 {
+            notes.push(format!(
+                "more than {MAX_BOX_PROCS} processes ran in the box; {} later ones were not followed",
+                run.procs_overflow
+            ));
+        }
+        if run.box_procs.len() > MAX_CHILDREN_LISTED {
+            notes.push(format!(
+                "{} processes ran in the box; the first {MAX_CHILDREN_LISTED} are listed",
+                run.box_procs.len()
+            ));
+        }
         if run.timeline_dropped > 0 {
             notes.push(format!(
                 "the timeline keeps the first {TIMELINE_CAP} events; {} later events are counted but not listed",
@@ -794,7 +948,12 @@ impl Glasshouse {
             created,
             timeline: std::mem::take(&mut run.timeline),
             connections: conns.into_values().collect(),
-            children: run.box_procs.iter().copied().collect(),
+            children: run
+                .box_procs
+                .iter()
+                .take(MAX_CHILDREN_LISTED)
+                .copied()
+                .collect(),
             findings: findings
                 .into_iter()
                 .filter(|f| run.box_procs.contains(&f.proc))
@@ -830,7 +989,12 @@ pub fn available() -> bool {
 pub fn save_report(r: &GhReport) -> std::io::Result<PathBuf> {
     std::fs::create_dir_all(REPORTS)?;
     let path = PathBuf::from(REPORTS).join(format!("{}.json", r.run_id));
-    let body = serde_json::to_vec_pretty(r).map_err(std::io::Error::other)?;
+    // Sample-chosen names may hold bidi or C1 characters: escaped (I10).
+    let body = sysscope_core::display::json_safe(
+        &serde_json::to_string_pretty(r).map_err(std::io::Error::other)?,
+    )
+    .into_bytes();
+    rotate_reports(MAX_REPORTS.saturating_sub(1));
     let mut f = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -841,6 +1005,60 @@ pub fn save_report(r: &GhReport) -> std::io::Result<PathBuf> {
         let _ = rustix::fs::fchown(&f, None, Some(rustix::fs::Gid::from_raw(gid)));
     }
     Ok(path)
+}
+
+/// Keeps at most `keep` reports (names start with the run's unix time).
+fn rotate_reports(keep: usize) {
+    let Ok(rd) = std::fs::read_dir(REPORTS) else {
+        return;
+    };
+    let mut names: Vec<std::ffi::OsString> = rd
+        .flatten()
+        .map(|e| e.file_name())
+        .filter(|n| n.to_string_lossy().ends_with(".json"))
+        .collect();
+    names.sort();
+    let excess = names.len().saturating_sub(keep);
+    for n in names.into_iter().take(excess) {
+        let _ = std::fs::remove_file(PathBuf::from(REPORTS).join(n));
+    }
+}
+
+/// Removes what an earlier daemon or helper left behind (daemon start):
+/// run tmpfs mounts, run directories, uploads, job files, units.
+pub fn sweep() {
+    let _ = Command::new("systemctl")
+        .args([
+            "kill",
+            "--signal=SIGKILL",
+            "sysscope-gh-*",
+            "sysscope-ghh-*",
+        ])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status();
+    let Ok(rd) = std::fs::read_dir(RUNS) else {
+        return;
+    };
+    for e in rd.flatten() {
+        let p = e.path();
+        if e.file_type().is_ok_and(|t| t.is_dir()) {
+            let _ = Command::new("umount")
+                .arg("--lazy")
+                .arg(&p)
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status();
+            if std::fs::remove_dir(&p).is_err() {
+                eprintln!(
+                    "sysscoped: could not remove a stale Glasshouse run directory {}",
+                    p.display()
+                );
+            }
+        } else {
+            let _ = std::fs::remove_file(&p);
+        }
+    }
 }
 
 fn group_id(name: &str) -> Option<u32> {
@@ -925,6 +1143,11 @@ mod tests {
             last_live: Instant::now() - Duration::from_secs(1),
             diff: None,
             failed: None,
+            last_activity: Instant::now(),
+            sample_running: false,
+            adopted: 0,
+            procs_overflow: 0,
+            box_drops: 0,
         });
         let open = |p: ProcKey, id| {
             ev(

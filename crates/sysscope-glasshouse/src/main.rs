@@ -488,7 +488,7 @@ impl Bridge for LocalBridge {
             HelperOut::Failed { message } => {
                 eprintln!("glasshouse: {}", escape_lines(message.as_bytes()))
             }
-            HelperOut::Diff { .. } => {}
+            HelperOut::Diff { .. } | HelperOut::Ended {} => {}
         }
         if matches!(m, HelperOut::Diff { .. }) {
             self.diff = Some(m);
@@ -544,6 +544,8 @@ fn main_pid(unit: &str) -> u32 {
 
 /// Runs the differ as the sandbox user (never root) and returns its result.
 fn run_differ(run: &Path, input: &differ::DiffInput) -> Result<differ::DiffOutput> {
+    const MAX_OUT: u64 = 12 * 1024 * 1024; // below the daemon's helper line cap
+    const MAX_TIME: Duration = Duration::from_secs(60); // the differ stops itself at 30 s
     let (uid, gid) = uid_gid_of(BOX_USER)?;
     let mut child = Command::new("setpriv")
         .args([
@@ -563,14 +565,40 @@ fn run_differ(run: &Path, input: &differ::DiffInput) -> Result<differ::DiffOutpu
     if let Some(mut si) = child.stdin.take() {
         si.write_all(&body)?;
     }
-    let mut out = Vec::new();
-    if let Some(so) = child.stdout.take() {
-        std::io::Read::read_to_end(
-            &mut std::io::Read::take(so, sysscope_proto::helper::MAX_HELPER_LINE as u64),
-            &mut out,
-        )?;
+    // Drained on its own thread so a large output can never block the
+    // differ while this thread waits; anything over the cap is discarded.
+    let so = child.stdout.take();
+    let reader = std::thread::spawn(move || {
+        let mut out = Vec::new();
+        let mut over = false;
+        if let Some(mut so) = so {
+            let _ = std::io::Read::read_to_end(
+                &mut std::io::Read::take(&mut so, MAX_OUT + 1),
+                &mut out,
+            );
+            over = out.len() as u64 > MAX_OUT;
+            let _ = std::io::copy(&mut so, &mut std::io::sink());
+        }
+        (out, over)
+    });
+    let deadline = Instant::now() + MAX_TIME;
+    let st = loop {
+        if let Some(st) = child.try_wait()? {
+            break st;
+        }
+        if Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            bail!("the differ did not finish within {} s", MAX_TIME.as_secs());
+        }
+        std::thread::sleep(Duration::from_millis(50));
+    };
+    let (out, over) = reader
+        .join()
+        .map_err(|_| anyhow::anyhow!("differ reader failed"))?;
+    if over {
+        bail!("the differ's result was larger than {} MiB", MAX_OUT >> 20);
     }
-    let st = child.wait()?;
     if !st.success() {
         bail!("the differ failed ({st})");
     }
@@ -598,8 +626,21 @@ fn run_box(run_id: &str, job: &GhJob, sample: &Path, bridge: &mut dyn Bridge) ->
         bail!("mounting the run tmpfs failed");
     }
     let result = run_in(&run, run_id, job, sample, bridge);
-    let _ = Command::new("umount").arg(&run).status();
-    let _ = std::fs::remove_dir(&run);
+    let unmounted = Command::new("umount")
+        .arg(&run)
+        .status()
+        .is_ok_and(|s| s.success())
+        || Command::new("umount")
+            .arg("--lazy")
+            .arg(&run)
+            .status()
+            .is_ok_and(|s| s.success());
+    if !unmounted || std::fs::remove_dir(&run).is_err() {
+        eprintln!(
+            "sysscope-glasshouse: could not remove the run directory {}",
+            run.display()
+        );
+    }
     result
 }
 
@@ -658,133 +699,152 @@ fn run_in(
     cmd.stdout(std::process::Stdio::null());
     cmd.stderr(std::process::Stdio::piped());
     let mut child = cmd.spawn().context("systemd-run")?;
-    // The unit's cgroup id is the inode of its cgroup directory.
-    let cg = PathBuf::from(format!("/sys/fs/cgroup/system.slice/{unit}.service"));
-    let mut cg_ino = None;
-    let mut pid = 0;
-    for _ in 0..200 {
-        if cg_ino.is_none()
-            && let Ok(m) = std::fs::metadata(&cg)
-        {
-            cg_ino = Some(m.ino());
-        }
-        if cg_ino.is_some() {
-            pid = main_pid(&unit);
-            if pid != 0 {
-                break;
+    // From here on every error path must stop the box: a helper that
+    // returns early must not leave the unit (and stage2 holding the run dir).
+    let r = (|| -> Result<Outcome> {
+        // The unit's cgroup id is the inode of its cgroup directory.
+        let cg = PathBuf::from(format!("/sys/fs/cgroup/system.slice/{unit}.service"));
+        let mut cg_ino = None;
+        let mut pid = 0;
+        for _ in 0..200 {
+            if cg_ino.is_none()
+                && let Ok(m) = std::fs::metadata(&cg)
+            {
+                cg_ino = Some(m.ino());
             }
+            if cg_ino.is_some() {
+                pid = main_pid(&unit);
+                if pid != 0 {
+                    break;
+                }
+            }
+            if let Ok(Some(st)) = child.try_wait() {
+                bail!(
+                    "the sandbox unit exited before starting (systemd-run status {st}); a required property may be unsupported"
+                );
+            }
+            std::thread::sleep(Duration::from_millis(50));
         }
-        if let Ok(Some(st)) = child.try_wait() {
-            bail!(
-                "the sandbox unit exited before starting (systemd-run status {st}); a required property may be unsupported"
-            );
-        }
-        std::thread::sleep(Duration::from_millis(50));
-    }
-    let (Some(cgroup_id), true) = (cg_ino, pid != 0) else {
-        kill_unit(&unit);
-        let _ = child.wait();
-        bail!("the sandbox unit did not start");
-    };
-    let manifest: decoys::Manifest =
-        serde_json::from_slice(&std::fs::read(run.join("manifest.json"))?)?;
-    bridge.send(HelperOut::Need {
-        cgroup_id,
-        pid,
-        run_dev: std::fs::metadata(run)?.dev(),
-        run_dir: run.display().to_string(),
-        decoys: differ::initial_status(&manifest),
-    });
-    match bridge.recv(Duration::from_secs(15)) {
-        Some(HelperIn::Go {}) => {}
-        other => {
+        let (Some(cgroup_id), true) = (cg_ino, pid != 0) else {
             kill_unit(&unit);
             let _ = child.wait();
-            let why = match other {
-                Some(HelperIn::Refuse { message }) => message,
-                Some(HelperIn::Cancel {}) => "cancelled".into(),
-                _ => "the daemon did not confirm that tracing is set up".into(),
-            };
-            bail!("not started: {why}");
+            bail!("the sandbox unit did not start");
+        };
+        let manifest: decoys::Manifest =
+            serde_json::from_slice(&std::fs::read(run.join("manifest.json"))?)?;
+        bridge.send(HelperOut::Need {
+            cgroup_id,
+            pid,
+            run_dev: std::fs::metadata(run)?.dev(),
+            run_dir: run.display().to_string(),
+            decoys: differ::initial_status(&manifest),
+        });
+        match bridge.recv(Duration::from_secs(15)) {
+            Some(HelperIn::Go {}) => {}
+            other => {
+                kill_unit(&unit);
+                let _ = child.wait();
+                let why = match other {
+                    Some(HelperIn::Refuse { message }) => message,
+                    Some(HelperIn::Cancel {}) => "cancelled".into(),
+                    _ => "the daemon did not confirm that tracing is set up".into(),
+                };
+                bail!("not started: {why}");
+            }
         }
-    }
-    std::fs::OpenOptions::new()
-        .write(true)
-        .open(&fifo)?
-        .write_all(b"g")?;
-    bridge.send(HelperOut::Status {
-        state: GhState::Running,
-        message: "sample started".into(),
-    });
-    let deadline = Instant::now() + Duration::from_secs(u64::from(job.timeout_s));
-    let (mut timed_out, mut cancelled) = (false, false);
-    let mut killed_at: Option<Instant> = None;
-    let status = loop {
-        if let Some(st) = child.try_wait()? {
-            break st;
-        }
-        if killed_at.is_none() && Instant::now() >= deadline {
-            timed_out = true;
-            kill_unit(&unit);
-            killed_at = Some(Instant::now());
-        }
-        if let Some(HelperIn::Cancel {}) = bridge.recv(Duration::from_millis(100))
-            && killed_at.is_none()
+        // Non-blocking: if stage2 already died there is no reader, and a
+        // blocking open would wait forever (ENXIO instead).
         {
-            cancelled = true;
-            kill_unit(&unit);
-            killed_at = Some(Instant::now());
+            use std::os::unix::fs::OpenOptionsExt;
+            std::fs::OpenOptions::new()
+                .write(true)
+                .custom_flags(libc::O_NONBLOCK)
+                .open(&fifo)
+                .context("the sandbox is no longer waiting to start")?
+                .write_all(b"g")?;
         }
-        if killed_at.is_some_and(|t| t.elapsed() > Duration::from_secs(15)) {
-            let _ = child.kill(); // systemd-run itself is stuck
+        bridge.send(HelperOut::Status {
+            state: GhState::Running,
+            message: "sample started".into(),
+        });
+        let deadline = Instant::now() + Duration::from_secs(u64::from(job.timeout_s));
+        let (mut timed_out, mut cancelled) = (false, false);
+        let mut killed_at: Option<Instant> = None;
+        let status = loop {
+            if let Some(st) = child.try_wait()? {
+                break st;
+            }
+            if killed_at.is_none() && Instant::now() >= deadline {
+                timed_out = true;
+                kill_unit(&unit);
+                killed_at = Some(Instant::now());
+            }
+            if let Some(HelperIn::Cancel {}) = bridge.recv(Duration::from_millis(100))
+                && killed_at.is_none()
+            {
+                cancelled = true;
+                kill_unit(&unit);
+                killed_at = Some(Instant::now());
+            }
+            if killed_at.is_some_and(|t| t.elapsed() > Duration::from_secs(15)) {
+                let _ = child.kill(); // systemd-run itself is stuck
+            }
+        };
+        // KillMode=control-group: the unit is stopped only once every process
+        // in it is gone, after which its cgroup directory is removed.
+        let mut notes = Vec::new();
+        let empty_by = Instant::now() + Duration::from_secs(10);
+        while cg.exists() && Instant::now() < empty_by {
+            std::thread::sleep(Duration::from_millis(50));
         }
-    };
-    // KillMode=control-group: the unit is stopped only once every process
-    // in it is gone, after which its cgroup directory is removed.
-    let mut notes = Vec::new();
-    let empty_by = Instant::now() + Duration::from_secs(10);
-    while cg.exists() && Instant::now() < empty_by {
-        std::thread::sleep(Duration::from_millis(50));
+        if cg.exists() {
+            notes.push("the sandbox cgroup still existed 10 s after the run ended".to_string());
+        }
+        bridge.send(HelperOut::Ended {});
+        bridge.send(HelperOut::Status {
+            state: GhState::Running,
+            message: "sample ended; comparing files".into(),
+        });
+        let baseline: Vec<differ::BaselineEntry> =
+            serde_json::from_slice(&std::fs::read(run.join("baseline.json"))?)?;
+        let d = run_differ(run, &differ::DiffInput { manifest, baseline })?;
+        notes.extend(d.notes);
+        let _ = status;
+        let mut said = Vec::new();
+        if let Some(mut e) = child.stderr.take() {
+            let _ =
+                std::io::Read::read_to_end(&mut std::io::Read::take(&mut e, 64 * 1024), &mut said);
+        }
+        let end = unit_end(&String::from_utf8_lossy(&said));
+        let exit_code = if timed_out || cancelled {
+            None
+        } else {
+            end.exit_code
+        };
+        if let Some(n) = end.note(timed_out || cancelled) {
+            notes.push(n);
+        }
+        bridge.send(HelperOut::Diff {
+            exit_code,
+            timed_out,
+            cancelled,
+            decoys: d.decoys,
+            created: d.created,
+            notes,
+        });
+        Ok(Outcome {
+            exit_code,
+            stdout: read_capped(&run.join("stdout"), 1 << 20),
+            stderr: read_capped(&run.join("stderr"), 1 << 20),
+            strace: read_capped(&run.join("strace.out"), 1 << 20),
+        })
+    })();
+    if r.is_err() {
+        kill_unit(&unit);
+        let _ = child.kill();
+        let _ = child.wait();
     }
-    if cg.exists() {
-        notes.push("the sandbox cgroup still existed 10 s after the run ended".to_string());
-    }
-    bridge.send(HelperOut::Status {
-        state: GhState::Running,
-        message: "sample ended; comparing files".into(),
-    });
-    let baseline: Vec<differ::BaselineEntry> =
-        serde_json::from_slice(&std::fs::read(run.join("baseline.json"))?)?;
-    let d = run_differ(run, &differ::DiffInput { manifest, baseline })?;
-    notes.extend(d.notes);
-    let _ = status;
-    let mut said = Vec::new();
-    if let Some(mut e) = child.stderr.take() {
-        let _ = std::io::Read::read_to_end(&mut std::io::Read::take(&mut e, 64 * 1024), &mut said);
-    }
-    let end = unit_end(&String::from_utf8_lossy(&said));
-    let exit_code = if timed_out || cancelled {
-        None
-    } else {
-        end.exit_code
-    };
-    if let Some(n) = end.note(timed_out || cancelled) {
-        notes.push(n);
-    }
-    bridge.send(HelperOut::Diff {
-        exit_code,
-        timed_out,
-        cancelled,
-        decoys: d.decoys,
-        created: d.created,
-        notes,
-    });
-    Ok(Outcome {
-        exit_code,
-        stdout: read_capped(&run.join("stdout"), 1 << 20),
-        stderr: read_capped(&run.join("stderr"), 1 << 20),
-        strace: read_capped(&run.join("strace.out"), 1 << 20),
-    })
+    r
 }
 
 /// How the box unit ended, from systemd-run's closing lines.

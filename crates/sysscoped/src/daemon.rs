@@ -134,8 +134,13 @@ impl Core {
                 let (key, uid) = (ev.proc, ev.uid);
                 self.apply(Input::RawEvent { event: ev });
                 if let Some(exe) = exec {
-                    let (trusted, system_dir, world_writable_dir) =
-                        hostinfo::exe_facts(key, &exe, crate::follow::start_of(key.tgid));
+                    // A box process's exe path names a file in the sandbox's
+                    // view: never stat it on the host; it is untrusted.
+                    let (trusted, system_dir, world_writable_dir) = if self.gh.in_box(&key) {
+                        (false, false, false)
+                    } else {
+                        hostinfo::exe_facts(key, &exe, crate::follow::start_of(key.tgid))
+                    };
                     // Inside the Glasshouse box "~" is the sandbox home.
                     let home = if self.gh.in_box(&key) {
                         b"/home/victim".to_vec()
@@ -156,6 +161,7 @@ impl Core {
                 self.apply(Input::Loss { loss });
             }
             PollerMsg::Drops { ts_ns, per_proc } => {
+                self.gh.drops(&per_proc);
                 self.apply(Input::BudgetDrops {
                     ts_ns,
                     drops: per_proc,
@@ -380,15 +386,17 @@ impl Core {
                 .filter(|f| procs.contains(&f.proc))
                 .cloned()
                 .collect();
-            if let Some((owner, report)) = self.gh.report(findings, self.last_loss, now) {
+            if let Some((owner, report)) = self.gh.report(findings, self.last_loss, now)
+                // Fitted first, so the saved copy is the one the client gets.
+                && let DaemonMsg::GhReport { report } = fit_report(DaemonMsg::GhReport { report })
+            {
                 let saved = match crate::glasshouse::save_report(&report) {
                     Ok(p) => format!("report saved to {}", p.display()),
                     Err(e) => format!("the report could not be saved: {e}"),
                 };
                 let run_id = report.run_id.clone();
                 if let Some(c) = self.clients.get(&owner) {
-                    c.queue
-                        .put_reply(fit_report(DaemonMsg::GhReport { report }));
+                    c.queue.put_reply(DaemonMsg::GhReport { report });
                     c.queue.put_reply(DaemonMsg::GhStatus {
                         state: sysscope_proto::GhState::Finished,
                         run_id,
@@ -486,10 +494,27 @@ fn fit_report(mut msg: DaemonMsg) -> DaemonMsg {
             break;
         };
         if report.timeline.is_empty() {
-            report.created.truncate(report.created.len() / 2);
-            if report.created.is_empty() {
+            // Then the other lists, largest first; the report says so.
+            let lens = [
+                report.created.len(),
+                report.children.len(),
+                report.findings.len(),
+            ];
+            let Some(&max) = lens.iter().max().filter(|m| **m > 0) else {
+                report.notes.truncate(50);
                 break;
+            };
+            if max == report.created.len() {
+                report.created.truncate(max / 2);
+            } else if max == report.children.len() {
+                report.children.truncate(max / 2);
+            } else {
+                report.findings.truncate(max / 2);
             }
+            report
+                .notes
+                .push("parts of the report were left out so it fits one message".into());
+            report.notes.dedup();
             continue;
         }
         let keep = report.timeline.len() / 2;
@@ -609,6 +634,13 @@ fn core_loop(
             core.apply(Input::Tick {
                 ts_ns: crate::sampler::boot_ns(),
             });
+            let fx = core.gh.watchdog();
+            core.gh_effects(&fx);
+            for (owner, msg) in fx.replies {
+                if let Some(c) = core.clients.get(&owner) {
+                    c.queue.put_reply(msg);
+                }
+            }
             if let Some(w) = core.record.as_mut() {
                 let _ = w.flush();
             }
@@ -702,6 +734,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     let (cmd_tx, cmd_rx) = crossbeam_channel::bounded::<PollerCmd>(16);
     let (smp_tx, smp_rx) = crossbeam_channel::bounded::<Vec<ProcSample>>(64);
     let (cli_tx, cli_rx) = crossbeam_channel::bounded::<ClientCmd>(1024);
+    crate::glasshouse::sweep();
     let (gh, gh_rx) = crate::glasshouse::Glasshouse::new();
     let core = Core {
         gh,

@@ -62,6 +62,9 @@ const DENIED: &[i64] = &[
     libc::SYS_adjtimex,
     libc::SYS_acct,
     libc::SYS_quotactl,
+    // Not in the plan's list: the fd-based twin of quotactl (Linux 5.14+),
+    // added after the M4 review.
+    libc::SYS_quotactl_fd,
     libc::SYS_iopl,
     libc::SYS_ioperm,
     libc::SYS_modify_ldt,

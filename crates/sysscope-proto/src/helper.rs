@@ -52,6 +52,9 @@ pub enum HelperOut {
         /// Every decoy, state untouched.
         decoys: Vec<DecoyStatus>,
     },
+    /// The box is empty; the differ (running as the sandbox user) starts
+    /// now, so the daemon stops attributing that user's events to the run.
+    Ended {},
     /// The differ result after the box is empty.
     Diff {
         /// Exit code of the box unit, if it exited normally.

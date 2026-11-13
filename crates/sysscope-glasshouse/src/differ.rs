@@ -82,6 +82,8 @@ pub struct DiffOutput {
 #[derive(Clone, Debug)]
 struct Found {
     rel: Vec<u8>,
+    /// Other names of the same inode (hard links), at most a few.
+    alt: Vec<Vec<u8>>,
     kind: &'static str,
     size: u64,
     sha: Option<String>,
@@ -116,18 +118,55 @@ fn kind_of(t: FileType) -> &'static str {
     }
 }
 
-/// Hashes up to `max` bytes of a regular file opened beneath `dir`.
+/// Longest path kept per entry (deeper paths are cut and marked).
+pub const MAX_PATH_KEPT: usize = 1024;
+/// New entries listed in a report (the rest are counted in a note).
+pub const MAX_CREATED: usize = 1000;
+
+/// Opens `name` beneath `dir` without following links; if the sample made
+/// it unreadable (it owns everything in the box home), restores owner
+/// access once and says so in `repaired`.
+fn open_beneath(
+    dir: &OwnedFd,
+    name: &std::ffi::CStr,
+    flags: OFlags,
+    owner_mode: u32,
+    repaired: &mut usize,
+) -> rustix::io::Result<OwnedFd> {
+    let f = flags | OFlags::NOFOLLOW | OFlags::CLOEXEC | OFlags::NOCTTY;
+    match rustix::fs::openat(dir, name, f, Mode::empty()) {
+        Err(rustix::io::Errno::ACCESS) => {
+            // chmodat never follows a final symlink for us: the entry was
+            // lstat'ed as a directory or regular file just before.
+            let st = rustix::fs::statat(dir, name, AtFlags::SYMLINK_NOFOLLOW)?;
+            let t = FileType::from_raw_mode(st.st_mode);
+            if t != FileType::Directory && t != FileType::RegularFile {
+                return Err(rustix::io::Errno::ACCESS);
+            }
+            let mode = (st.st_mode & 0o7777) | owner_mode;
+            rustix::fs::chmodat(dir, name, Mode::from_raw_mode(mode), AtFlags::empty())?;
+            *repaired += 1;
+            rustix::fs::openat(dir, name, f, Mode::empty())
+        }
+        other => other,
+    }
+}
+
+/// Hashes up to `max` bytes of a regular file beneath `dir`. None if it
+/// could not be read (it is then reported as unreadable, never "modified").
 fn hash_file(
     dir: &OwnedFd,
     name: &std::ffi::CStr,
     ino: u64,
     max: u64,
+    repaired: &mut usize,
 ) -> Option<(String, f64, Vec<u8>, bool)> {
-    let fd = rustix::fs::openat(
+    let fd = open_beneath(
         dir,
         name,
-        OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC | OFlags::NOCTTY,
-        Mode::empty(),
+        OFlags::RDONLY | OFlags::NONBLOCK,
+        0o400,
+        repaired,
     )
     .ok()?;
     let st = rustix::fs::fstat(&fd).ok()?;
@@ -145,7 +184,66 @@ fn hash_file(
     Some((sha, entropy(&data), head, partial))
 }
 
-/// Walks `<run>/home`. Returns found entries by inode and notes.
+/// One directory still to visit: its name and its parent (an index into
+/// the node list). Directories are re-opened from the run root by this
+/// chain, so the walk never holds more than a few descriptors at a time.
+struct Node {
+    parent: Option<usize>,
+    name: Vec<u8>,
+    depth: usize,
+}
+
+fn chain(nodes: &[Node], mut i: usize) -> Vec<&[u8]> {
+    let mut v = Vec::new();
+    while let Some(n) = nodes.get(i) {
+        v.push(n.name.as_slice());
+        match n.parent {
+            Some(p) => i = p,
+            None => break,
+        }
+    }
+    v.reverse();
+    v
+}
+
+/// "home/a/b/…" from a chain plus a leaf, cut at MAX_PATH_KEPT.
+fn rel_of(comps: &[&[u8]], leaf: Option<&[u8]>) -> Vec<u8> {
+    let mut r = Vec::new();
+    for c in comps.iter().copied().chain(leaf) {
+        if !r.is_empty() {
+            r.push(b'/');
+        }
+        r.extend_from_slice(c);
+        if r.len() > MAX_PATH_KEPT {
+            r.truncate(MAX_PATH_KEPT);
+            r.extend_from_slice("…".as_bytes());
+            break;
+        }
+    }
+    r
+}
+
+/// Opens the directory a node names, component by component from the run
+/// root, never following a link.
+fn open_node(run: &OwnedFd, comps: &[&[u8]], repaired: &mut usize) -> rustix::io::Result<OwnedFd> {
+    let mut cur: Option<OwnedFd> = None;
+    for c in comps {
+        let name = std::ffi::CString::new(c.to_vec()).map_err(|_| rustix::io::Errno::INVAL)?;
+        let base = cur.as_ref().unwrap_or(run);
+        let next = open_beneath(
+            base,
+            &name,
+            OFlags::RDONLY | OFlags::DIRECTORY,
+            0o700,
+            repaired,
+        )?;
+        cur = Some(next);
+    }
+    cur.ok_or(rustix::io::Errno::INVAL)
+}
+
+/// Walks `<run>/home`. Returns found entries by inode and whether the walk
+/// saw everything (any error or cap makes it incomplete, with a note).
 fn walk(
     run: &std::path::Path,
     lim: Limits,
@@ -162,28 +260,68 @@ fn walk(
         notes.push("the run directory could not be opened".into());
         return (found, false);
     };
-    let Ok(home) = rustix::fs::openat(
-        &run_fd,
-        c"home",
-        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
-        Mode::empty(),
-    ) else {
-        notes.push("the sandbox home directory is missing or was replaced".into());
-        return (found, false);
-    };
-    let mut stack: Vec<(OwnedFd, Vec<u8>, usize)> = vec![(home, b"home".to_vec(), 0)];
+    let mut nodes = vec![Node {
+        parent: None,
+        name: b"home".to_vec(),
+        depth: 0,
+    }];
+    let mut stack = vec![0usize];
     let mut entries = 0usize;
     let mut partial_hashes = 0usize;
-    'outer: while let Some((dir, rel, depth)) = stack.pop() {
+    let mut repaired = 0usize;
+    let mut problems = 0usize;
+    let mut problem = |what: String, notes: &mut Vec<String>| {
+        problems += 1;
+        if problems <= 5 {
+            notes.push(what);
+        }
+    };
+    'outer: while let Some(ni) = stack.pop() {
+        let owned: Vec<Vec<u8>> = chain(&nodes, ni).into_iter().map(<[u8]>::to_vec).collect();
+        let comps: Vec<&[u8]> = owned.iter().map(Vec::as_slice).collect();
+        let depth = nodes.get(ni).map(|n| n.depth).unwrap_or(0);
+        let dir_rel = rel_of(&comps, None);
+        let dir = match open_node(&run_fd, &comps, &mut repaired) {
+            Ok(d) => d,
+            Err(e) => {
+                complete = false;
+                problem(
+                    format!(
+                        "a directory could not be opened ({e}): {}",
+                        BStr(sandbox_path(&dir_rel))
+                    ),
+                    notes,
+                );
+                continue;
+            }
+        };
         let Ok(mut it) = Dir::read_from(&dir) else {
-            notes.push(format!(
-                "a directory could not be listed: {}",
-                BStr(sandbox_path(&rel))
-            ));
             complete = false;
+            problem(
+                format!(
+                    "a directory could not be listed: {}",
+                    BStr(sandbox_path(&dir_rel))
+                ),
+                notes,
+            );
             continue;
         };
-        while let Some(Ok(e)) = it.next() {
+        loop {
+            let e = match it.next() {
+                None => break,
+                Some(Ok(e)) => e,
+                Some(Err(e)) => {
+                    complete = false;
+                    problem(
+                        format!(
+                            "listing stopped early ({e}): {}",
+                            BStr(sandbox_path(&dir_rel))
+                        ),
+                        notes,
+                    );
+                    break;
+                }
+            };
             let name = e.file_name();
             let nb = name.to_bytes();
             if nb == b"." || nb == b".." {
@@ -206,46 +344,65 @@ fn walk(
                 complete = false;
                 break 'outer;
             }
-            let Ok(st) = rustix::fs::statat(&dir, name, AtFlags::SYMLINK_NOFOLLOW) else {
-                continue; // vanished
+            let st = match rustix::fs::statat(&dir, name, AtFlags::SYMLINK_NOFOLLOW) {
+                Ok(st) => st,
+                Err(rustix::io::Errno::NOENT) => continue,
+                Err(e) => {
+                    complete = false;
+                    problem(
+                        format!(
+                            "an entry could not be examined ({e}) in {}",
+                            BStr(sandbox_path(&dir_rel))
+                        ),
+                        notes,
+                    );
+                    continue;
+                }
             };
             let t = FileType::from_raw_mode(st.st_mode);
-            let mut child_rel = rel.clone();
-            child_rel.push(b'/');
-            child_rel.extend_from_slice(nb);
             match t {
                 FileType::Directory => {
                     if depth + 1 > lim.max_depth {
-                        notes.push(format!(
-                            "directories deeper than {} levels were not examined",
-                            lim.max_depth
-                        ));
+                        problem(
+                            format!(
+                                "directories deeper than {} levels were not examined",
+                                lim.max_depth
+                            ),
+                            notes,
+                        );
                         complete = false;
                         continue;
                     }
-                    if let Ok(sub) = rustix::fs::openat(
-                        &dir,
-                        name,
-                        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::CLOEXEC,
-                        Mode::empty(),
-                    ) {
-                        stack.push((sub, child_rel, depth + 1));
-                    }
+                    nodes.push(Node {
+                        parent: Some(ni),
+                        name: nb.to_vec(),
+                        depth: depth + 1,
+                    });
+                    stack.push(nodes.len() - 1);
                 }
                 FileType::RegularFile => {
-                    let (sha, ent, head) = match hash_file(&dir, name, st.st_ino, lim.max_hash) {
-                        Some((s, e, h, partial)) => {
-                            if partial {
-                                partial_hashes += 1;
-                            }
-                            (Some(s), e, h)
+                    if let Some(f) = found.get_mut(&st.st_ino) {
+                        // A hard link to an inode already seen.
+                        if f.alt.len() < 4 {
+                            f.alt.push(rel_of(&comps, Some(nb)));
                         }
-                        None => (None, 0.0, Vec::new()),
-                    };
+                        continue;
+                    }
+                    let (sha, ent, head) =
+                        match hash_file(&dir, name, st.st_ino, lim.max_hash, &mut repaired) {
+                            Some((s, e, h, partial)) => {
+                                if partial {
+                                    partial_hashes += 1;
+                                }
+                                (Some(s), e, h)
+                            }
+                            None => (None, 0.0, Vec::new()),
+                        };
                     found.insert(
                         st.st_ino,
                         Found {
-                            rel: child_rel,
+                            rel: rel_of(&comps, Some(nb)),
+                            alt: Vec::new(),
                             kind: "file",
                             size: st.st_size as u64,
                             sha,
@@ -258,7 +415,8 @@ fn walk(
                     found.insert(
                         st.st_ino,
                         Found {
-                            rel: child_rel,
+                            rel: rel_of(&comps, Some(nb)),
+                            alt: Vec::new(),
                             kind: kind_of(other),
                             size: st.st_size as u64,
                             sha: None,
@@ -269,6 +427,17 @@ fn walk(
                 }
             }
         }
+    }
+    if problems > 5 {
+        notes.push(format!(
+            "{} more problems while walking were not listed",
+            problems - 5
+        ));
+    }
+    if repaired > 0 {
+        notes.push(format!(
+            "{repaired} file(s) or directories had been made unreadable inside the box; the differ restored owner access to examine them"
+        ));
     }
     if partial_hashes > 0 {
         notes.push(format!(
@@ -312,17 +481,27 @@ fn status_of(d: &DecoyEntry, found: &BTreeMap<u64, Found>, complete: bool) -> De
     }
     match found.get(&d.ino) {
         Some(f) if f.kind == "file" => {
-            if f.rel != d.path.as_bytes() {
+            let same_name = std::iter::once(&f.rel)
+                .chain(f.alt.iter())
+                .any(|n| n.as_slice() == d.path.as_bytes());
+            if !same_name {
                 s.states.push(DecoyState::Renamed);
                 s.new_path = Some(BStr(sandbox_path(&f.rel)));
             }
-            if f.sha.as_deref() != Some(d.sha256.as_str()) {
-                s.states.insert(0, DecoyState::Modified);
-            }
-            s.size_after = Some(f.size);
-            s.entropy_after = Some(f32_of(f.entropy));
-            if s.states.is_empty() {
-                s.states.push(DecoyState::Untouched);
+            match f.sha.as_deref() {
+                // Unreadable: the content is unknown, so never "modified";
+                // with no other state the decoy's state is unknown (empty).
+                None => {}
+                Some(h) => {
+                    if h != d.sha256 {
+                        s.states.insert(0, DecoyState::Modified);
+                    }
+                    s.size_after = Some(f.size);
+                    s.entropy_after = Some(f32_of(f.entropy));
+                    if s.states.is_empty() {
+                        s.states.push(DecoyState::Untouched);
+                    }
+                }
             }
         }
         // Same inode number but no longer a regular file: the decoy is gone.
@@ -348,8 +527,24 @@ pub fn diff(run: &std::path::Path, input: &DiffInput, lim: Limits) -> DiffOutput
     let unknown = out.decoys.iter().filter(|d| d.states.is_empty()).count();
     if unknown > 0 {
         out.notes.push(format!(
-            "{unknown} decoy(s) were not found before the differ stopped; their state is unknown"
+            "{unknown} decoy(s) could not be fully examined (walk stopped early or file unreadable); their state is unknown"
         ));
+    }
+    for d in &input.manifest.decoys {
+        if let Some(f) = found.get(&d.ino)
+            && !f.alt.is_empty()
+        {
+            let other = std::iter::once(&f.rel)
+                .chain(f.alt.iter())
+                .find(|a| a.as_slice() != d.path.as_bytes())
+                .unwrap_or(&f.rel);
+            out.notes.push(format!(
+                "decoy {} has {} extra name(s) (hard links), e.g. {}",
+                BStr(d.sandbox_path.as_bytes().to_vec()),
+                f.alt.len(),
+                BStr(sandbox_path(other))
+            ));
+        }
     }
     let baseline: BTreeMap<u64, &BaselineEntry> =
         input.baseline.iter().map(|b| (b.ino, b)).collect();
@@ -384,6 +579,13 @@ pub fn diff(run: &std::path::Path, input: &DiffInput, lim: Limits) -> DiffOutput
     }
     out.created
         .sort_by(|a, b| a.path.as_bytes().cmp(b.path.as_bytes()));
+    if out.created.len() > MAX_CREATED {
+        out.notes.push(format!(
+            "{} new entries; the first {MAX_CREATED} by name are listed",
+            out.created.len()
+        ));
+        out.created.truncate(MAX_CREATED);
+    }
     out
 }
 
@@ -525,6 +727,88 @@ mod tests {
         assert_eq!(
             o.notes,
             vec!["pre-existing non-decoy file changed: /home/victim/.bashrc".to_string()]
+        );
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn hostile_trees_stay_bounded_and_honest() {
+        use std::os::unix::ffi::OsStrExt;
+        use std::os::unix::fs::PermissionsExt;
+        let d = tmp("hostile");
+        let m = decoys::generate(&d, Some(11)).unwrap();
+        let input = DiffInput {
+            baseline: Vec::new(),
+            manifest: m,
+        };
+        let h = d.join("home");
+        // 3000 files with 255-byte non-UTF-8 names (5x larger when escaped).
+        let many = h.join("many");
+        std::fs::create_dir(&many).unwrap();
+        for i in 0..3000u32 {
+            let mut n = vec![0xffu8; 247];
+            n.extend_from_slice(format!("{i:08}").as_bytes());
+            std::fs::write(many.join(std::ffi::OsStr::from_bytes(&n)), "x").unwrap();
+        }
+        // A deep chain of 255-byte directory names (as deep as this test
+        // process can create; the differ itself walks relative to parents).
+        let mut deep = h.join("deep");
+        std::fs::create_dir(&deep).unwrap();
+        for _ in 0..40 {
+            deep = deep.join("d".repeat(255));
+            if std::fs::create_dir(&deep).is_err() {
+                break;
+            }
+        }
+        // A hard link to a decoy: a second name, not a rename.
+        std::fs::hard_link(h.join("passwords.txt"), h.join("zz-link")).unwrap();
+        // A directory and a decoy made unreadable by the sample.
+        let docs = h.join("Documents");
+        std::fs::set_permissions(
+            h.join("Pictures/photo00.jpg"),
+            std::fs::Permissions::from_mode(0o000),
+        )
+        .unwrap();
+        std::fs::set_permissions(&docs, std::fs::Permissions::from_mode(0o000)).unwrap();
+        let o = diff(&d, &input, Limits::default());
+        let json = serde_json::to_vec(&o).unwrap();
+        assert!(json.len() < 4 << 20, "differ output {} bytes", json.len());
+        assert_eq!(o.created.len(), MAX_CREATED);
+        assert!(
+            o.created
+                .iter()
+                .all(|c| c.path.as_bytes().len() <= MAX_PATH_KEPT + 32)
+        );
+        assert!(
+            o.notes
+                .iter()
+                .any(|n| n.contains("the first 1000 by name are listed")),
+            "{:?}",
+            o.notes
+        );
+        assert!(
+            o.notes.iter().any(|n| n.contains("restored owner access")),
+            "{:?}",
+            o.notes
+        );
+        assert!(
+            o.notes
+                .iter()
+                .any(|n| n.contains("extra name(s) (hard links)")),
+            "{:?}",
+            o.notes
+        );
+        // Examined after the repair: nothing falsely "deleted" or "modified".
+        assert!(
+            !o.decoys
+                .iter()
+                .any(|s| s.states.contains(&DecoyState::Deleted)
+                    || s.states.contains(&DecoyState::Modified)),
+            "{:?}",
+            o.decoys
+                .iter()
+                .map(|s| (&s.path, &s.states))
+                .collect::<Vec<_>>()
         );
         let _ = std::fs::remove_dir_all(&d);
     }

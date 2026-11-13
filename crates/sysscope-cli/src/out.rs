@@ -10,21 +10,7 @@ use sysscope_core::display::{safe, safe_str};
 use sysscope_core::explain::{self, ExplainCtx};
 use sysscope_proto::{DaemonMsg, Event, Finding, ProcKey, ProcRow};
 
-/// JSON text with characters a terminal could interpret escaped as \uXXXX.
-pub fn json_safe(text: &str) -> String {
-    let mut out = String::with_capacity(text.len());
-    for c in text.chars() {
-        let u = c as u32;
-        if (0x7F..=0x9F).contains(&u)
-            || matches!(u, 0x200E | 0x200F | 0x202A..=0x202E | 0x2066..=0x2069 | 0x061C)
-        {
-            out.push_str(&format!("\\u{u:04x}"));
-        } else {
-            out.push(c);
-        }
-    }
-    out
-}
+pub use sysscope_core::display::json_safe;
 
 /// Pretty JSON of any message, terminal-safe.
 pub fn json<T: serde::Serialize>(v: &T) -> String {

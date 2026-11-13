@@ -115,12 +115,34 @@ DENIED = {  # name: (nr, args)
     "ioperm": (173, (0, 1, 1)), "modify_ldt": (154, (0, 0, 0)),
     "syslog": (103, (3, 0, 0)), "kcmp": (312, (1, 1, 0, 0, 0)),
     "personality(READ_IMPLIES_EXEC)": (135, (0x0400000,)),
+    "process_vm_writev": (311, (1, 0, 0, 0, 0, 0)), "io_uring_enter": (426, (-1, 0, 0, 0, 0, 0)),
+    "io_uring_register": (427, (-1, 0, 0, 0)), "fsconfig": (431, (-1, 0, 0, 0, 0)),
+    "mount_setattr": (442, (-1, 0, 0, 0, 0)), "kexec_file_load": (320, (-1, -1, 0, 0, 0)),
+    "swapoff": (168, (0,)), "clock_adjtime": (305, (0, 0)), "quotactl": (179, (0, 0, 0, 0)),
+    "quotactl_fd": (443, (-1, 0, 0, 0)), "vhangup": (153, ()), "lookup_dcookie": (212, (0, 0, 0)),
+    "clone(CLONE_NEWNS)": (56, (0x00020000 | 17, 0, 0, 0, 0)),
+    "clone(CLONE_NEWNET)": (56, (0x40000000 | 17, 0, 0, 0, 0)),
+    "clone(CLONE_NEWPID)": (56, (0x20000000 | 17, 0, 0, 0, 0)),
     "clone(CLONE_NEWUSER)": (56, (0x10000000 | 17, 0, 0, 0, 0)),
 }
 
 
+def seccomp_status(v):
+    """EPERM alone does not prove the filter (the kernel refuses many of
+    these to an unprivileged user anyway): the filters must be installed."""
+    st = dict(l.split(":", 1) for l in open("/proc/self/status").read().splitlines() if ":" in l)
+    mode = st.get("Seccomp", "").strip()
+    filters = st.get("Seccomp_filters", "").strip()
+    if mode != "2":
+        v.escaped("Seccomp mode is %r, not 2 (filter)" % mode)
+    if filters and int(filters) < 3:
+        v.escaped("only %s seccomp filters installed, expected 3" % filters)
+    v.note("Seccomp %s, filters %s" % (mode, filters or "n/a"))
+
+
 def probe_syscalls():
     v = Verdict("syscalls")
+    seccomp_status(v)
     for name, (nr, args) in DENIED.items():
         r, e = sc(nr, *args)
         if r == 0 and name.startswith("clone"):
@@ -423,13 +445,23 @@ def probe_flood():
         for _ in range(1000):
             os.close(os.open(p, os.O_RDONLY))
         n += 1000
-    v.note("%d opens in 6 s; run_all.sh checks budget drops are counted and R008 raised" % n)
+    # After exhausting its budget, fork: the child's Fork event may be
+    # dropped. The child reads a decoy; run_all.sh checks the report still
+    # shows that read (attribution survives a flood).
+    pid = os.fork()
+    if pid == 0:
+        with open(os.path.join(HOME, ".ssh/known_hosts"), "rb") as f:
+            f.read()
+        os._exit(0)
+    os.waitpid(pid, 0)
+    v.note("%d opens in 6 s, then a child read ~/.ssh/known_hosts; run_all.sh checks drops, R008 and that read" % n)
     v.done()
 
 
 # ---- 12. tamper with the tracer ----------------------------------------------
 def probe_tamper():
     v = Verdict("tamper")
+    seccomp_status(v)
     for name in ("bpf", "perf_event_open", "ptrace", "process_vm_readv"):
         nr, args = DENIED[name]
         r, e = sc(nr, *args)
@@ -509,6 +541,34 @@ def probe_torture():
             break
         except OSError:
             continue
+    # Hard link to a decoy (same inode, second name).
+    try:
+        os.link(os.path.join(HOME, "passwords.txt"), os.path.join(d, "hardlink"))
+    except OSError:
+        pass
+    # 20 000 long non-UTF-8 names (inflate the differ's output 5x).
+    longn = os.path.join(d, "long").encode()
+    os.makedirs(longn, exist_ok=True)
+    for i in range(20000):
+        open(longn + b"/" + b"\xff" * 240 + b"%08d" % i, "w").close()
+    # A 64-deep chain of 255-byte names, with files at the bottom.
+    deep2 = os.path.join(d, "deep64")
+    os.makedirs(deep2, exist_ok=True)
+    fd = os.open(deep2, os.O_RDONLY)
+    for _ in range(64):
+        os.mkdir("e" * 255, dir_fd=fd)
+        nfd = os.open("e" * 255, os.O_RDONLY, dir_fd=fd)
+        os.close(fd)
+        fd = nfd
+    for i in range(500):
+        os.close(os.open("f%04d" % i, os.O_CREAT | os.O_WRONLY, 0o644, dir_fd=fd))
+    os.close(fd)
+    # Hide things from the differ: unreadable directories and a decoy.
+    os.makedirs(os.path.join(d, "hidden"), exist_ok=True)
+    open(os.path.join(d, "hidden", "payload"), "w").write("x")
+    os.chmod(os.path.join(d, "hidden"), 0)
+    os.chmod(os.path.join(HOME, "Documents"), 0)
+    os.chmod(os.path.join(HOME, "wallet.dat"), 0)
     many = os.path.join(d, "many")
     os.makedirs(many, exist_ok=True)
     for i in range(100000):

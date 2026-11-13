@@ -256,7 +256,10 @@ impl App {
                 .map(|()| p)
         };
         let text = sysscope_core::ghreport::render_text(r);
-        let json = serde_json::to_vec_pretty(r).unwrap_or_default();
+        // Sample-chosen names may hold bidi or C1 characters: escaped (I10).
+        let json =
+            sysscope_core::display::json_safe(&serde_json::to_string_pretty(r).unwrap_or_default())
+                .into_bytes();
         self.model.notice = Some(
             match (write("txt", text.as_bytes()), write("json", &json)) {
                 (Ok(t), Ok(_)) => format!("Report saved to {} (and .json)", t.display()),

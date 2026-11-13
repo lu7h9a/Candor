@@ -65,7 +65,7 @@ PY
 report_field() { python3 -c "import json,sys;r=json.load(open(sys.argv[1]));print(eval(sys.argv[2]))" "$1" "$2" 2>/dev/null; }
 leftovers() {
     for _ in $(seq 1 20); do
-        if ! pgrep -u sysscope-box > /dev/null && [ -z "$(systemctl list-units --all 'sysscope-gh*' --no-legend --plain | grep -v 'sysscope-ghh')" ] \
+        if ! pgrep -u sysscope-box > /dev/null && [ -z "$(systemctl list-units --all 'sysscope-gh*' --no-legend --plain)" ] \
             && ! mount | grep -q /var/lib/sysscope/glasshouse/; then
             echo none; return
         fi
@@ -102,7 +102,9 @@ for spec in syscalls:30 hostfiles:30 procs:30 network:30 sockets:30 setuid:30 us
             r8=$(report_field "/tmp/h-$p.json" '"R008" in {f["rule"] for f in r["findings"]}')
             "$BIN/sysscope" status > /dev/null || verdict="ESCAPED:daemon unhealthy after the flood"
             { [ "${b:-0}" -gt 0 ] && [ "$r8" = True ]; } || verdict="ESCAPED:flood not reported (budget drops ${b:-?}, R008 $r8)"
-            extra="budget drops counted: $b, R008: $r8" ;;
+            kh=$(report_field "/tmp/h-$p.json" '[d["states"] for d in r["decoys"] if d["path"].endswith("/.ssh/known_hosts")][0]')
+            case $kh in *read*) ;; *) verdict="ESCAPED:a box child's decoy read after the flood is missing (known_hosts $kh)" ;; esac
+            extra="budget drops counted: $b, R008: $r8, child read after flood: $kh, notes: $(report_field "/tmp/h-$p.json" '"; ".join(r["notes"])')" ;;
         coredump)
             if ls /var/tmp/core-caught-* > /dev/null 2>&1; then
                 verdict="ESCAPED:the host core handler ran for a box process ($(cat /var/tmp/core-caught-* | tr '\n' ' '))"
@@ -113,6 +115,13 @@ for spec in syscalls:30 hostfiles:30 procs:30 network:30 sockets:30 setuid:30 us
             ctl=$(LC_ALL=C grep -c -P '[\x00-\x08\x0b-\x1f\x7f]' /tmp/h-torture.txt)
             [ "$ctl" -eq 0 ] || verdict="ESCAPED:$ctl report lines contain raw control bytes"
             LC_ALL=C grep -q -P '[\x00-\x08\x0b-\x1f\x7f]' "/tmp/h-$p.json" && verdict="ESCAPED:raw control bytes in the JSON report"
+            # C1 controls and bidi/zero-width characters (UTF-8) in either
+            # output, or in the saved report.
+            for f in /tmp/h-torture.txt "/tmp/h-$p.json" /var/lib/sysscope/reports/*.json; do
+                LC_ALL=C grep -q -P '\xc2[\x80-\x9f]|\xe2\x80[\x8b-\x8f\xaa-\xae]|\xe2\x81[\xa6-\xa9]' "$f" && verdict="ESCAPED:C1/bidi characters unescaped in $f"
+            done
+            unread=$(report_field "/tmp/h-$p.json" '[d["path"] for d in r["decoys"] if "deleted" in d["states"] or "modified" in d["states"]]')
+            [ "$unread" = "[]" ] || verdict="ESCAPED:decoys the sample made unreadable were misreported: $unread"
             [ "$took" -le $((t + 90)) ] || verdict="ESCAPED:run + differ took $took s"
             extra="took ${took}s; notes: $(report_field "/tmp/h-$p.json" '"; ".join(r["notes"])'); created listed: $(report_field "/tmp/h-$p.json" 'len(r["created"])')" ;;
     esac
