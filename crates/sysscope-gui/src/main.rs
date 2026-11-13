@@ -5,6 +5,7 @@
 //! (`net.rs`) feeds that model from the socket or from a replay file.
 #![forbid(unsafe_code)]
 
+
 fn main() {
     println!(
         "sysscope-gui {}: not implemented yet",

@@ -874,6 +874,12 @@ version = "0.0.1"
 [[package]]
 name = "sysscope-gui"
 version = "0.0.1"
+dependencies = [
+ "crossbeam-channel",
+ "serde_json",
+ "sysscope-core",
+ "sysscope-proto",
+]
 
 [[package]]
 name = "sysscope-itest"

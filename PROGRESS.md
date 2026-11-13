@@ -30,7 +30,7 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 | WP16 | Rules R001-R004, R012 | BLOCKED(E1) | host (fixtures) | WP16 commit | 40 replay fixtures PASS; simulator end-to-end needs the live daemon (WP12, root) |
 | WP17 | Rules R005-R008 | BLOCKED(E1) | host (fixtures) | WP17 commit | 36 new fixtures PASS; simulator end-to-end needs live daemon; R006 simulator conflict noted |
 | WP18 | False-positive evaluation | BLOCKED(E1) | | | needs recordings from the live daemon (WP12, root) |
-| WP19 | GUI model + transport | TODO | | | |
+| WP19 | GUI model + transport | DONE | host | WP19 commit | 9 unit tests (model + net) |
 | WP20 | GUI views | TODO | | | |
 | WP21 | Follow UX, loss, robustness | TODO | | | |
 | WP22 | Decoys + manifest | TODO | | | |
@@ -341,4 +341,19 @@ Verify output (trimmed, real):
    replay_of_a_recording_finds_the_same_rules         (daemon --record, then `sysscope replay` shows R001 and R002)
 cli 5/5, files 5/5, follow 4/4, lifecycle 5/5, network 1/1, proc 3/3, server 6/6, syscalls 1/1; dmesg clean
 ```
+Result: PASS
+
+### 2026-11-13 13:15 WP19 GUI model + transport
+Did: crates/sysscope-gui is now lib + thin bin. model.rs: pure view-model (connection state incl. daemon-down / permission / proto mismatch / replay, displayed snapshot, pause keeping only the newest snapshot and counting skipped ones, sort column + direction with key tie-break, case-insensitive filter over exe/pid/uid/rule, selection by key or pid with Detail requests, tabs, bounded detail cache (16) and alert list (256, newest first, click selects + opens Findings), tree with missing parents as roots and loop protection, multi-user detection for the 9.1 notice, all text escaped with core display::safe). net.rs: live reader thread (Hello, Subscribe, forward to a bounded channel, request writer thread, reconnect with 0.5-5 s backoff) and replay of *.frames.jsonl (recorded / fixed / max pace, garbage lines skipped, frame size cap).
+Verify command: `cargo test -p sysscope-gui`
+Verify output (trimmed, real):
+```
+running 9 tests
+model: sort_is_stable_and_toggles, filter_matches_exe_pid_uid_and_rule_case_insensitively, pause_freezes_display_but_keeps_only_the_latest,
+       selection_survives_resort_and_clears_on_eviction, tree_nests_children_and_handles_missing_parents,
+       alerts_are_bounded_newest_first_and_clickable, hostile_names_are_escaped_and_states_tracked ... ok
+net:   live_reports_down_then_connects_and_reconnects (fake daemon socket), replay_skips_garbage_and_delivers_messages ... ok
+test result: ok. 9 passed; 0 failed; 0 ignored
+```
+`make lint` green.
 Result: PASS

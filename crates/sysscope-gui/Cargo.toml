@@ -11,3 +11,7 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+crossbeam-channel = "0.5.17"
+serde_json = "1.0.154"
+sysscope-core = { version = "0.0.1", path = "../sysscope-core" }
+sysscope-proto = { version = "0.0.1", path = "../sysscope-proto" }
