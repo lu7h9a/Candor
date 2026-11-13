@@ -120,6 +120,7 @@ fn run(opts: &Opts) -> Result<()> {
         syscalls: opts.syscalls,
         budget_rate: opts.budget_rate,
         budget_burst: opts.budget_burst,
+        follow_at_start: opts.dump && opts.follow.is_some(),
     };
     if opts.dump {
         return dump::run(load, opts.follow, &stop);

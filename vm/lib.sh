@@ -56,8 +56,9 @@ preflight_kvm() {
     fi
     local avail_mb
     avail_mb=$(awk '/MemAvailable/ {print int($2/1024)}' /proc/meminfo)
-    # E5 line: 6 GB (decimal, = 5722 MiB) available, and at least guest RAM + 2 GiB.
-    local need=$((VM_MEM_MB + 2048)); [ "$need" -ge 5722 ] || need=5722
+    # E5 line (owner, Q2 answer A, 2026-11-14): guest RAM + 2 GiB available
+    # (4 GiB for the usual 2 GiB guest), so the host always keeps 2 GiB free.
+    local need=$((VM_MEM_MB + 2048))
     [ "$avail_mb" -ge "$need" ] || die "only ${avail_mb} MiB RAM available; need ${need} (escalate E5)"
 }
 

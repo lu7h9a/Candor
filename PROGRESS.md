@@ -4,7 +4,7 @@
 Updated: 2026-11-13 06:05 IST
 Milestone: M4   Current WP: WP28   Status: IN_PROGRESS
 Next action: WP28 - rules R009, R011 (ptrace hook, VM first), R100 (experimental, off by default)
-Open questions for owner: Q1, Q2, Q3
+Open questions for owner: Q4 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
 
@@ -671,3 +671,21 @@ debian12: all other itest binaries ok as well
 Limit (to be recorded in THREAT_MODEL.md at WP29): a pid recycled within the same clock tick (10 ms) as the original's start cannot be told apart by start time. The test waits more than one tick.
 Bug found on the way: the test assumed the dev socket is group 0; under sudo it is SUDO_GID. The test now reads the socket's group.
 Result: PASS in VMs; host run BLOCKED(E1).
+
+### 2026-11-14 04:30 Owner answers; first host root run
+Did:
+- **Owner answers.** Q1 A: passwordless sudo, verified from the agent shell. Q2 A: the VM line in vm/lib.sh is now guest RAM + 2 GiB (4 GiB). Q3 A: the R006 end-to-end test will use a test-only rules override.
+- **`make setup`** installed the plan's packages from the Kali repositories. hyperfine is not in Kali, so it was removed from APT_PKGS; the WP19 bench will use `cargo install hyperfine` as the user.
+- **First `make test-root` on the host** (kernel 6.19.14+kali): 47 of 49 pass.
+- **Bug: follow-mode leak** (found only on this busy host). `sysscoped --dump --follow` attached the programs in system-wide mode and switched to follow after the /proc scan. Events from other processes in that window were recorded: 124 opens by an unrelated root process reading /var/lib/dpkg/info/*.list. Fixed: with a follow root at start, the programs attach already in follow mode with an empty set (LoadOpts.follow_at_start).
+- **Still open:** the act test `non_root_needs_the_group_and_ownership` needs the `sysscope-act` group, which this host does not have (Q4).
+Verify command: `make test-root` (all other test binaries), then for the fix `make release` and a manual dump following an idle process, plus the follow test 3x: `sudo -E cargo test -p sysscope-itest --release --test follow` (runner `sudo -E`), then `sudo dmesg --level=err,warn`
+Verify output (real):
+```
+host make test-root: cli 5, files 5, lifecycle 5, network 1, proc 3, server 7, syscalls 1, act 4 of 5 (missing group) -> ok; follow 3 of 4 (leak) before the fix
+leak repro before the fix: following pid 569641 -> events 1..124 from pid 569634 (Open /var/lib/dpkg/info/*.list)
+after the fix: received=0 | events: 0 | from other pids: 0
+follow: test result: ok. 4 passed (x3)
+dmesg new err/warn after every host BPF run: none
+```
+Result: host root tests PASS except the one act test that needs Q4.

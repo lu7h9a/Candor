@@ -23,7 +23,7 @@ APT_PKGS := build-essential clang llvm lld libelf-dev zlib1g-dev libzstd-dev pkg
 	linux-headers-$(shell uname -r) libbpf-dev make git python3 strace qemu-system-x86 qemu-utils \
 	cloud-image-utils genisoimage openssh-client xvfb mesa-utils libgl1-mesa-dri libxkbcommon-dev \
 	libwayland-dev libx11-dev libxcursor-dev libxi-dev libxrandr-dev libfontconfig-dev bubblewrap \
-	libseccomp-dev clang-format rpm dpkg-dev fakeroot jq hyperfine
+	libseccomp-dev clang-format rpm dpkg-dev fakeroot jq
 
 .PHONY: setup build test test-root lint bench vm-test vm-matrix gui-shot fuzz vm-hostile \
 	fp-eval package gate integrity sysroot release wl itest-bin

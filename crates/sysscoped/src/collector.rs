@@ -91,6 +91,10 @@ pub struct LoadOpts {
     pub budget_rate: u32,
     /// Budget burst.
     pub budget_burst: u32,
+    /// Attach already in follow mode with an empty followed set (dump
+    /// --follow): nothing passes until `follow` registers the tree, so no
+    /// unrelated event slips in while the tree is being scanned.
+    pub follow_at_start: bool,
 }
 
 /// The loaded and attached BPF object.
@@ -144,7 +148,11 @@ impl<'obj> Collector<'obj> {
             .update(&me.to_le_bytes(), &1u32.to_le_bytes(), MapFlags::ANY)
             .context("adding the daemon to ignored_tgid")?;
         let cfg = abi::Cfg {
-            mode: abi::MODE_SYSTEM,
+            mode: if o.follow_at_start {
+                abi::MODE_FOLLOW
+            } else {
+                abi::MODE_SYSTEM
+            },
             budget_rate: o.budget_rate,
             budget_burst: o.budget_burst,
             flags: if o.syscalls {
