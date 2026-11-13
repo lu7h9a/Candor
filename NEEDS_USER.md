@@ -2,7 +2,7 @@
 
 Questions for the owner. Newest at the bottom. Answered questions are marked RESOLVED with the answer recorded underneath.
 
-## Q1 - Allow the build agent to use sudo without a password            (case E1, raised 2026-11-13 05:58)
+## Q1 - Allow the build agent to use sudo without a password            RESOLVED (case E1, raised 2026-11-13 05:58)
 Blocks: WP00 package install, and every work package that loads eBPF or runs root tests: WP04-WP10, WP12, WP14, WP16-WP18, WP23-WP25, WP27-WP31, WP34 (and the M1-M6 milestone gates, which include `make test-root`).
 What I need from you: choose A or B below and run its commands in a terminal once.
 Why I need it: `sudo -n true` fails with "a password is required", so I cannot install the missing build packages or load eBPF programs. On this machine eBPF always needs root (`kernel.unprivileged_bpf_disabled = 2`, `kernel.perf_event_paranoid = 3`), so there is no non-root way to test the tracer, and I must not type passwords myself.
@@ -19,6 +19,7 @@ If I hear nothing: I keep building and testing everything that does not need roo
 Update 2026-11-14: the owner created /etc/sudoers.d/90-sysscope-agent (chmod 0440, `visudo -c` parsed OK) and `sudo -n true` briefly printed OK, but minutes later the file was gone and `sudo -n` again asks for a password. Still open; I did not recreate it.
 RESOLVED 2026-11-14: the owner re-ran option A; /etc/sudoers.d/90-sysscope-agent is present (0440 root:root, 31 bytes) and `sudo -n true` succeeds from the agent shell, which has no cached sudo timestamp.
 Update 2026-11-14: after the first host run the owner ran `sudo rm /etc/sudoers.d/90-sysscope-agent`. The file was still present right after and `sudo -n true` still succeeded, but the owner's intent is clear: I treat passwordless sudo as withdrawn and do not use sudo until the owner says otherwise. Packages stay installed.
+RESOLVED again 2026-11-14: the owner re-ran option A (tee, then chmod 0440 and `visudo -c`: parsed OK). Passwordless sudo is in use again.
 
 ## Q2 - Not enough free memory to start test virtual machines reliably            RESOLVED (case E5, raised 2026-11-13 06:40)
 Blocks: VM steps of WP03 (fedora, arch), WP04-WP10 VM verification, WP23-WP26, WP30-WP31 (they all boot a 2 GiB test VM).
