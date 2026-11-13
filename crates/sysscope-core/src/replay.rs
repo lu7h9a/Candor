@@ -80,3 +80,14 @@ pub fn replay_lines<S: AsRef<str>>(lines: impl Iterator<Item = S>) -> Result<Sta
     for_each_input(lines, |input| state.apply(&input))?;
     Ok(state)
 }
+
+/// Replays a recording through a full `Engine` (state + detector) and
+/// returns it together with every alert raised, in order.
+pub fn replay_engine<S: AsRef<str>>(
+    engine: &mut crate::engine::Engine,
+    lines: impl Iterator<Item = S>,
+) -> Result<Vec<sysscope_proto::Finding>, ReplayError> {
+    let mut alerts = Vec::new();
+    for_each_input(lines, |input| alerts.extend(engine.apply(&input)))?;
+    Ok(alerts)
+}

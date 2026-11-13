@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP16 Rules R001-R004, R012   Status: IN_PROGRESS
-Next action: rule functions R001-R004/R012 with replay fixtures (pos/neg/boundary); simulator end-to-end part needs root (Q1)
+Milestone: M0   Current WP: WP17 Rules R005-R008   Status: IN_PROGRESS
+Next action: windowed rules R005-R008 with bounded per-process state and fixtures (19/20 files, CV 0.14/0.16, 5/6 connects)
 Open questions for owner: Q1, Q2
 Tree state: clean after WP00 commit
 Last green gate: none yet
@@ -27,7 +27,7 @@ Last green gate: none yet
 | WP13 | CLI | TODO | | | |
 | WP14 | Overhead benchmarks | TODO | | | needs root (Q1) |
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
-| WP16 | Rules R001-R004, R012 | TODO | | | |
+| WP16 | Rules R001-R004, R012 | BLOCKED(E1) | host (fixtures) | WP16 commit | 40 replay fixtures PASS; simulator end-to-end needs the live daemon (WP12, root) |
 | WP17 | Rules R005-R008 | TODO | | | |
 | WP18 | False-positive evaluation | TODO | | | |
 | WP19 | GUI model + transport | TODO | | | |
@@ -210,3 +210,15 @@ config: defaults_load, override_replaces_values, bad_files_are_rejected_with_cle
 Rendered golden (fixtures/explain/r001.txt) begins: `[HIGH 72] /tmp/x (pid 4312, started 12:00:01, parent /usr/bin/bash pid 4100, uid 1000)`.
 `make lint` and `make test` green.
 Result: PASS
+
+### 2026-11-13 09:00 WP16 Rules R001-R004, R012
+Did: core rules/files.rs (R001 credential read with system/untrusted confidence, R002 temp/world-writable exec, R003 fileless, R004 write or rename-into persistence with strong subjects, R012 decoy inode), rules/mod.rs ("~/" expansion per process home, fallback /home/*, /root), engine.rs (state + detector + decoy set; one code path for daemon and replay), replay_engine. scripts/gen_rule_fixtures.py writes 8 cases per rule (3 pos, 3 neg, 2 boundary) with hand-computed expectations; tests/rule_fixtures.rs replays them all. Mutation check: changing one expected score (87 -> 86) makes the test fail. Simulators testkit/sim/{cred_read,tmp_exec,memfd_exec,persist_write}.py with the `.sysscope-sim-ok` guard (refuse without it, run with it - checked on the host as the user).
+Verify command: `cargo test -p sysscope-core --test rule_fixtures`
+Verify output (trimmed, real):
+```
+test result: ok. 1 passed; 0 failed; 0 ignored    (40 fixtures, 5 rules x 3/3/2)
+--- mutation check ---
+1 failing: .../fixtures/rules/R012/boundary-also-credential: score of 500: got 87, want 86
+```
+`make lint` and `make test` green.
+Result: PASS for fixtures. Simulator end-to-end (expected finding with evidence ids from the live daemon) BLOCKED(E1): needs WP12 daemon and root.

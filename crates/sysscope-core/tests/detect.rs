@@ -72,6 +72,7 @@ fn state_with(p: ProcKey, exe: &str, trusted: bool) -> State {
         trusted,
         system_dir: trusted,
         home: BStr::from("/home/u"),
+        world_writable_dir: false,
     });
     s
 }

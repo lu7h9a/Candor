@@ -94,11 +94,13 @@ impl State {
             Input::RawEvent { event } => self.apply_event(event),
             Input::Samples { ts_ns, samples } => self.apply_samples(*ts_ns, samples),
             Input::Loss { loss } => self.loss = *loss,
+            Input::Decoys { .. } => {} // used by the engine (rules), not the state
             Input::ExeMeta {
                 proc,
                 trusted,
                 system_dir,
                 home,
+                ..
             } => {
                 if let Some(p) = self.procs.get_mut(proc) {
                     p.exe_trusted = *trusted;

@@ -1,0 +1,19 @@
+{
+  "findings": [
+    {
+      "rule": "R001",
+      "subject": "ssh_keys",
+      "tgid": 500,
+      "confidence": 0.9
+    },
+    {
+      "rule": "R012",
+      "subject": "decoy",
+      "tgid": 500,
+      "confidence": 0.8
+    }
+  ],
+  "scores": {
+    "500": 87
+  }
+}

@@ -66,6 +66,15 @@ pub enum Input {
         system_dir: bool,
         /// Home directory of the process's uid (for "~/" path classes).
         home: BStr,
+        /// The executable's directory is world-writable (R002).
+        #[serde(default)]
+        world_writable_dir: bool,
+    },
+    /// Files whose (dev, ino) are decoys: Glasshouse manifest entries or
+    /// host canaries from /etc/sysscope/canaries.toml (R012). Replaces the set.
+    Decoys {
+        /// (dev, ino) pairs.
+        inodes: Vec<(u64, u64)>,
     },
     /// Time passes (retention, rules).
     Tick {

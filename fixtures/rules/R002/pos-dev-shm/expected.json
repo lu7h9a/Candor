@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R002",
+      "subject": "/dev/shm/",
+      "tgid": 500,
+      "confidence": 1.0
+    }
+  ],
+  "scores": {
+    "500": 40
+  }
+}

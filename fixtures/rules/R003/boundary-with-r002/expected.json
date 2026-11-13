@@ -1,0 +1,19 @@
+{
+  "findings": [
+    {
+      "rule": "R002",
+      "subject": "/tmp/",
+      "tgid": 500,
+      "confidence": 1.0
+    },
+    {
+      "rule": "R003",
+      "subject": "fileless",
+      "tgid": 500,
+      "confidence": 0.9
+    }
+  ],
+  "scores": {
+    "500": 78
+  }
+}

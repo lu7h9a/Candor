@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R012",
+      "subject": "decoy",
+      "tgid": 500,
+      "confidence": 0.8
+    }
+  ],
+  "scores": {
+    "500": 72
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R001",
+      "subject": "browser_creds",
+      "tgid": 500,
+      "confidence": 0.9
+    }
+  ],
+  "scores": {
+    "500": 54
+  }
+}

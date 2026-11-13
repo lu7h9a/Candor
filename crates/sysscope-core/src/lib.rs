@@ -8,14 +8,17 @@
 
 pub mod config;
 pub mod detect;
+pub mod engine;
 pub mod explain;
 pub mod glob;
 pub mod input;
 pub mod limits;
 pub mod proc;
 pub mod replay;
+pub mod rules;
 pub mod state;
 
 pub use detect::{Band, Detector, Hit};
+pub use engine::Engine;
 pub use input::{Input, ProcSample};
 pub use state::{State, StateStats};

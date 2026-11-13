@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R004",
+      "subject": "ssh_authorized_keys",
+      "tgid": 500,
+      "confidence": 1.0
+    }
+  ],
+  "scores": {
+    "500": 60
+  }
+}

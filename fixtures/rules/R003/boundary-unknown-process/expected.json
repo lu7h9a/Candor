@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R003",
+      "subject": "fileless",
+      "tgid": 777,
+      "confidence": 0.9
+    }
+  ],
+  "scores": {
+    "777": 63
+  }
+}

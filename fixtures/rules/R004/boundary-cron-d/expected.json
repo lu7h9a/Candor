@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R004",
+      "subject": "cron",
+      "tgid": 500,
+      "confidence": 0.8
+    }
+  ],
+  "scores": {
+    "500": 48
+  }
+}

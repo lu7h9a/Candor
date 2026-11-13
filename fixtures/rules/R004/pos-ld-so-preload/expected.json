@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R004",
+      "subject": "ld_so_preload",
+      "tgid": 500,
+      "confidence": 1.0
+    }
+  ],
+  "scores": {
+    "500": 60
+  }
+}
