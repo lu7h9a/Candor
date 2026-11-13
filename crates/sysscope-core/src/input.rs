@@ -1,0 +1,63 @@
+//! Inputs to the core, and the `*.events.jsonl` recording format.
+//!
+//! The daemon turns kernel records and /proc samples into these values and
+//! feeds them to `State`. The same values, one JSON object per line, make up
+//! an events recording, so any run can be replayed exactly (invariant I7).
+
+use serde::{Deserialize, Serialize};
+use sysscope_proto::{BStr, Event, Loss, ProcKey};
+
+/// One process as read from /proc by the sampler.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ProcSample {
+    /// Identity.
+    pub key: ProcKey,
+    /// Parent pid (field 4 of stat).
+    pub ppid: u32,
+    /// readlink of /proc/<pid>/exe (may be empty for kernel threads).
+    pub exe: BStr,
+    /// comm.
+    pub comm: BStr,
+    /// Real uid.
+    pub uid: u32,
+    /// True for kernel threads.
+    pub kthread: bool,
+    /// utime + stime in clock ticks.
+    pub cpu_ticks: u64,
+    /// Resident set size in bytes.
+    pub rss: u64,
+    /// Number of threads.
+    pub threads: u32,
+    /// Bytes read (rchar or read_bytes).
+    pub io_r: u64,
+    /// Bytes written.
+    pub io_w: u64,
+}
+
+/// One input to the core. The JSON form is tagged by `"t"`.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(tag = "t")]
+pub enum Input {
+    /// A kernel event.
+    RawEvent {
+        /// The event.
+        event: Event,
+    },
+    /// A full /proc scan taken at `ts_ns`.
+    Samples {
+        /// Scan time (boot ns).
+        ts_ns: u64,
+        /// Every process found.
+        samples: Vec<ProcSample>,
+    },
+    /// Kernel loss counters read at `ts_ns`.
+    Loss {
+        /// The counters.
+        loss: Loss,
+    },
+    /// Time passes (retention, rules).
+    Tick {
+        /// Current time (boot ns).
+        ts_ns: u64,
+    },
+}

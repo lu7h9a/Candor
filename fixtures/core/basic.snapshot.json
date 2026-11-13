@@ -1,0 +1,131 @@
+{
+  "t": "Snapshot",
+  "seq": 0,
+  "ts_ns": 2500000000,
+  "mode": "system",
+  "procs": [
+    {
+      "key": {
+        "tgid": 1,
+        "start": 1
+      },
+      "parent": null,
+      "exe": "/usr/lib/systemd/systemd",
+      "comm": "systemd",
+      "uid": 0,
+      "kthread": false,
+      "cpu_pct": 10.0,
+      "rss": 12000000,
+      "threads": 1,
+      "io_r": 0,
+      "io_w": 0,
+      "n_open": 0,
+      "n_conn": 0,
+      "n_exec": 0,
+      "n_child": 0,
+      "n_sys": 0,
+      "score": 0,
+      "tree_score": 0,
+      "top_rule": null,
+      "exited_ts": null,
+      "followed": false,
+      "ev_dropped": 0
+    },
+    {
+      "key": {
+        "tgid": 100,
+        "start": 500
+      },
+      "parent": {
+        "tgid": 1,
+        "start": 1
+      },
+      "exe": "/usr/bin/bash",
+      "comm": "bash",
+      "uid": 1000,
+      "kthread": false,
+      "cpu_pct": 50.0,
+      "rss": 5100000,
+      "threads": 1,
+      "io_r": 4096,
+      "io_w": 512,
+      "n_open": 0,
+      "n_conn": 0,
+      "n_exec": 0,
+      "n_child": 1,
+      "n_sys": 0,
+      "score": 0,
+      "tree_score": 0,
+      "top_rule": null,
+      "exited_ts": null,
+      "followed": false,
+      "ev_dropped": 0
+    },
+    {
+      "key": {
+        "tgid": 200,
+        "start": 110
+      },
+      "parent": {
+        "tgid": 100,
+        "start": 500
+      },
+      "exe": "/usr/bin/curl",
+      "comm": "bash",
+      "uid": 1000,
+      "kthread": false,
+      "cpu_pct": 0.0,
+      "rss": 0,
+      "threads": 0,
+      "io_r": 0,
+      "io_w": 0,
+      "n_open": 1,
+      "n_conn": 1,
+      "n_exec": 1,
+      "n_child": 0,
+      "n_sys": 0,
+      "score": 0,
+      "tree_score": 0,
+      "top_rule": null,
+      "exited_ts": 1500000000,
+      "followed": false,
+      "ev_dropped": 0
+    },
+    {
+      "key": {
+        "tgid": 300,
+        "start": 90
+      },
+      "parent": {
+        "tgid": 100,
+        "start": 500
+      },
+      "exe": "/usr/bin/vim",
+      "comm": "vim",
+      "uid": 1000,
+      "kthread": false,
+      "cpu_pct": 0.0,
+      "rss": 9000000,
+      "threads": 2,
+      "io_r": 0,
+      "io_w": 0,
+      "n_open": 1,
+      "n_conn": 0,
+      "n_exec": 0,
+      "n_child": 0,
+      "n_sys": 0,
+      "score": 0,
+      "tree_score": 0,
+      "top_rule": null,
+      "exited_ts": null,
+      "followed": false,
+      "ev_dropped": 0
+    }
+  ],
+  "loss": {
+    "ringbuf": 0,
+    "budget": 3,
+    "scratch": 0,
+    "since_ts_ns": 0
+  }
+}

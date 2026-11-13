@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP05 Ground-truth workload + harness   Status: IN_PROGRESS
-Next action: write testkit/wl (C, raw syscalls, JSON manifest) and the itest run_wl helper
+Milestone: M0   Current WP: WP12 Daemon assembly   Status: IN_PROGRESS
+Next action: WP12 code (threads, socket server, access control); its root verify waits for Q1/Q2. WP05 VM itests run when free RAM >= 6 GB
 Open questions for owner: Q1, Q2
 Tree state: clean after WP00 commit
 Last green gate: none yet
@@ -16,13 +16,13 @@ Last green gate: none yet
 | WP02 | Protocol crate | DONE | host | | | |
 | WP03 | VM harness | DONE | debian12, ubuntu2204, ubuntu2404 | WP03 commit | fedora/arch refused by E5 RAM guard (Q2), in UNVERIFIED.md |
 | WP04 | BPF skeleton + lifecycle | BLOCKED(E1) | debian12 | WP04 commit | debian12 verify PASS; host pending Q1; ubuntu2204 refused by E5 guard |
-| WP05 | Ground-truth workload + harness | TODO | | | needs root (Q1) |
-| WP06 | File events | TODO | | | needs root (Q1) |
-| WP07 | Network events | TODO | | | needs root (Q1) |
-| WP08 | Syscall stats | TODO | | | needs root (Q1) |
-| WP09 | Follow mode + budgets | TODO | | | needs root (Q1) |
-| WP10 | /proc sampler + identity | TODO | | | needs root (Q1) |
-| WP11 | Core state | TODO | | | |
+| WP05 | Ground-truth workload + harness | BLOCKED(E1) | | WP05 commit | code done; VM run waits for E5 RAM line (Q2), host for Q1 |
+| WP06 | File events | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
+| WP07 | Network events | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
+| WP08 | Syscall stats | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
+| WP09 | Follow mode + budgets | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
+| WP10 | /proc sampler + identity | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
+| WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
 | WP12 | Daemon assembly | TODO | | | needs root (Q1) |
 | WP13 | CLI | TODO | | | |
 | WP14 | Overhead benchmarks | TODO | | | needs root (Q1) |
@@ -65,7 +65,11 @@ Last green gate: none yet
 - 2026-11-13 WP04: exec path comes from `fentry/security_file_open` (bpf_d_path-legal) for `__FMODE_EXEC` opens, stashed by (tid, dev, ino) and picked up by the `sched_process_exec` tracepoint, because `bpf_d_path` is not allowed in tp_btf programs. Fallback: the execve argument with flag F_PATH_FROM_ARG. Exec also carries the parent's ProcKey (additive to the 4.3 ABI).
 - 2026-11-13 WP04: WP04 rows are marked BLOCKED(E1), not DONE: verified in the debian12 VM, host verification waits for Q1. Same pattern for later kernel WPs.
 
+- 2026-11-13 WP11: a live process missing from 2 consecutive full /proc scans is marked exited (its EXIT may have been dropped); evicting a parent sets its children's parent to null and marks them orphan, so "parent exists or null" always holds.
+- 2026-11-13 WP11: core inputs and the `*.events.jsonl` line format are `sysscope_core::Input` (`RawEvent`, `Samples`, `Loss`, `Tick`, tagged by "t"); replay streams line by line.
+
 ## Deviations from the plan
+- 2026-11-13 WP11: plan says measure the 1M-event replay with `/usr/bin/time -v` -> the `time` package is not installed and not pre-authorised, so the replay example prints VmHWM from /proc/self/status (the value time -v reports as maximum RSS) and its own wall time - allowed: same measurement, different reader
 - 2026-11-13 WP03: plan says images are verified by SHA256 -> Debian only publishes SHA512SUMS for its cloud images, so debian12 is verified with SHA-512; the others with SHA-256 - published checksum files, fetched over HTTPS from the official origin - allowed: the intent (verify against the published checksum) is met
 
 ## Log
@@ -163,3 +167,21 @@ dmesg: no new bpf/BUG/WARNING/RCU lines
 ```
 `make lint` rc=0; `make test` green (sysscoped: 8 tests incl. I2 forbidden-helper check).
 Result: PASS on debian12 (kernel 6.1.0-54). Host: BLOCKED(E1). ubuntu2204: refused by E5 guard (5499 MiB).
+
+### 2026-11-13 07:50 WP05 Ground-truth workload + harness (code; verify pending)
+Did: testkit/wl/wl.c (static, raw syscalls, every action in the plan, JSON manifest with tgid/start_ticks and file identities); sysscope-itest lib (`Dump`, `wl`, `run_wl`, `subtree`) and tests/lifecycle.rs (exec 100, fork 100, threads, leader-exits-first, memfd fileless); `make wl`, `make itest-bin` (ships itest binaries to VMs), vm/tests/wp05_itest.sh. Host smoke run of every wl action succeeded (output in session). The root verify could not run: host needs Q1, and the debian12 VM was refused by the E5 guard (5459-5462 MiB available). A background job retries when RAM allows.
+Result: PENDING (BLOCKED E1/E5)
+
+### 2026-11-13 08:00 WP11 Core state
+Did: sysscope-core: limits.rs (4.6), input.rs (core inputs = recording lines), proc.rs (bounded per-process recent/series/files/conns/syscalls), state.rs (process table, tree with cycle refusal, placeholders, sample-driven CPU%, missed-scan exit, retention and caps, snapshot/detail), replay.rs (streaming, errors with line numbers). Tests: each cap hit with limit+1000, retention, placeholders, orphans, cycles, 500-case property test (no cycles, parent exists or null, child lists consistent, counters equal a naive recount), golden replay fixtures/core/basic.events.jsonl -> basic.snapshot.json (values checked by hand: systemd 10 %, bash 50 % CPU).
+Verify command: `cargo test -p sysscope-core` and `python3 scripts/gen_events.py 1000000 target/bench-1m.events.jsonl && target/release/examples/replay_file target/bench-1m.events.jsonl`
+Verify output (trimmed, real):
+```
+test result: ok. 12 passed; 0 failed; 0 ignored   (state.rs incl. property test)
+test result: ok. 2 passed; 0 failed; 0 ignored    (replay.rs golden + bad input)
+1000000   (RawEvent lines)
+procs=5047 live=2999 exited=2048 global_events=100000 stats=StateStats { procs_refused: 0, procs_evicted: 36597, events_unattributed: 0, cycles_refused: 100 }
+elapsed_s=14.25 VmHWM:	   80384 kB
+```
+`make lint` and `make test` green.
+Result: PASS (under 20 s and under 300 MiB)

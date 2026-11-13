@@ -5,3 +5,12 @@
 //! the same recorded events in always produces the same output. That is
 //! what makes the detector testable by replaying fixture files.
 #![forbid(unsafe_code)]
+
+pub mod input;
+pub mod limits;
+pub mod proc;
+pub mod replay;
+pub mod state;
+
+pub use input::{Input, ProcSample};
+pub use state::{State, StateStats};
