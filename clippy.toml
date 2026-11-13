@@ -1,0 +1,6 @@
+# unwrap/expect/panic are denied in library and binary code (SKILL.md section 5)
+# but allowed inside #[cfg(test)] code.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true

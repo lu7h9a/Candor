@@ -1,0 +1,12 @@
+[package]
+name = "sysscoped"
+description = "SysScope root daemon: eBPF collector, /proc sampler, detection, socket server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]

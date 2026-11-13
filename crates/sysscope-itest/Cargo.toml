@@ -1,0 +1,12 @@
+[package]
+name = "sysscope-itest"
+description = "SysScope root integration tests"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]

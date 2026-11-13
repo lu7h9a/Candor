@@ -1,0 +1,40 @@
+# CI for the private repo: lint and unprivileged tests only (plan WP01, section 11).
+# Kept small because private-repo Actions minutes are limited.
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang llvm libelf-dev zlib1g-dev \
+            libzstd-dev pkg-config clang-format libxkbcommon-dev libx11-dev libfontconfig-dev \
+            libgl1-mesa-dri
+      - name: Install Rust (version from rust-toolchain.toml)
+        run: rustup show active-toolchain || rustup toolchain install
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+      - name: Integrity check against the previous push
+        run: |
+          base="${{ github.event.before }}"
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$base" 2>/dev/null; then
+            base="${{ github.event.pull_request.base.sha }}"
+          fi
+          scripts/check-integrity.sh ${base:+"$base"}
+      - name: Lint and test
+        run: make lint test

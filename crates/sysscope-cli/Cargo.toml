@@ -1,0 +1,16 @@
+[package]
+name = "sysscope-cli"
+description = "SysScope command-line client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+
+[[bin]]
+name = "sysscope"
+path = "src/main.rs"

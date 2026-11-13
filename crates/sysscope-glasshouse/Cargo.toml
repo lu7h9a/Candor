@@ -1,0 +1,12 @@
+[package]
+name = "sysscope-glasshouse"
+description = "SysScope Glasshouse sandbox helper, decoys, differ and report"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]

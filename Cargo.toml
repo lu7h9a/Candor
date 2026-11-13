@@ -1,0 +1,30 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/sysscope-proto",
+    "crates/sysscope-core",
+    "crates/sysscoped",
+    "crates/sysscope-cli",
+    "crates/sysscope-gui",
+    "crates/sysscope-glasshouse",
+    "crates/sysscope-itest",
+]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/lu7h9a/sysscope"
+publish = false
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "warn"
+
+[profile.release]
+debug = 1
