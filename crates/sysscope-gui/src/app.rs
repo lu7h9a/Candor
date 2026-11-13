@@ -84,7 +84,17 @@ impl App {
     pub fn pump(&mut self) {
         for _ in 0..MAX_PER_FRAME {
             match self.source.rx.try_recv() {
-                Ok(inc) => self.model.apply(inc),
+                Ok(inc) => {
+                    let reconnected = matches!(&inc, crate::model::Incoming::Msg(m)
+                        if matches!(**m, sysscope_proto::DaemonMsg::Welcome { .. }));
+                    self.model.apply(inc);
+                    // Requests in flight when the daemon went away are lost:
+                    // ask again for what the window shows.
+                    if reconnected && let Some(k) = self.model.selected {
+                        let maps = self.model.tab == crate::model::Tab::Maps;
+                        self.send(sysscope_proto::ClientMsg::GetDetail { proc: k, maps });
+                    }
+                }
                 Err(_) => break,
             }
         }
@@ -109,7 +119,13 @@ impl App {
             return;
         }
         for req in self.model.on_action(a) {
-            let _ = self.source.tx.try_send(req);
+            self.send(req);
+        }
+    }
+
+    fn send(&mut self, req: sysscope_proto::ClientMsg) {
+        if self.source.tx.try_send(req).is_err() {
+            self.model.notice = Some("Too many requests waiting for the daemon; try again.".into());
         }
     }
 
@@ -132,13 +148,23 @@ impl App {
             .iter()
             .map(|p| {
                 serde_json::json!({"pid": p.key.tgid, "exe": r.text(&safe(&p.exe)), "uid": p.uid,
-                    "cpu_pct": p.cpu_pct, "rss": p.rss, "score": p.score, "top_rule": p.top_rule})
+                    "cpu_pct": p.cpu_pct, "rss": p.rss, "score": p.score, "top_rule": p.top_rule.as_deref().map(sysscope_core::display::safe_str)})
             })
             .collect();
-        let path = PathBuf::from(&home).join(format!("sysscope-export-{}.json", self.model.seq));
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        let path = PathBuf::from(&home).join(format!("sysscope-export-{stamp}.json"));
         let text = serde_json::to_string_pretty(&serde_json::json!({"processes": rows}))
             .unwrap_or_default();
-        self.model.notice = Some(match std::fs::write(&path, text) {
+        // create_new: never follows or overwrites an existing file or link.
+        let written = std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+            .and_then(|mut f| std::io::Write::write_all(&mut f, text.as_bytes()));
+        self.model.notice = Some(match written {
             Ok(()) => format!(
                 "Exported (redacted) to {} - review it before sharing",
                 path.display()

@@ -11,6 +11,7 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+rustix = { version = "1.1.6", features = ["event", "net", "time"] }
 serde = "1.0.229"
 serde_json = "1.0.154"
 sysscope-core = { version = "0.0.1", path = "../sysscope-core" }

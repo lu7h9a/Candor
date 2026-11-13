@@ -9,7 +9,6 @@
 
 use crate::model::{ConnState, Incoming};
 use crossbeam_channel::{Receiver, Sender, bounded};
-use std::io::BufRead;
 use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -18,8 +17,9 @@ use sysscope_proto::{
     PROTO_VERSION, decode_daemon, encode, read_frame, write_frame,
 };
 
-/// Messages waiting for the UI before the reader thread blocks.
-pub const UI_QUEUE: usize = 256;
+/// Messages waiting for the UI before the reader thread blocks (bounded:
+/// 32 frames of at most 16 MiB each).
+pub const UI_QUEUE: usize = 32;
 
 /// Handles of a running source.
 pub struct Source {
@@ -101,23 +101,36 @@ fn session(
         return true;
     };
     let req = req.clone();
+    let alive = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
+    let writer_alive = std::sync::Arc::clone(&alive);
     // Requests go out on their own thread so reading never waits on them.
+    // It stops (and is joined) when this session ends, so reconnects never
+    // leave old writers behind that could take a new session's requests.
     let writer_thread = std::thread::spawn(move || {
-        while let Ok(m) = req.recv() {
-            if !send_msg(&mut writer, &m) {
-                break;
+        while writer_alive.load(std::sync::atomic::Ordering::SeqCst) {
+            match req.recv_timeout(std::time::Duration::from_millis(200)) {
+                Ok(m) => {
+                    if !send_msg(&mut writer, &m) {
+                        break;
+                    }
+                }
+                Err(crossbeam_channel::RecvTimeoutError::Timeout) => {}
+                Err(_) => break,
             }
         }
     });
+    let mut ui_alive = true;
     while let Ok(Some(body)) = read_frame(&mut stream, MAX_DAEMON_FRAME) {
         let Ok(m) = decode_daemon(&body) else { break };
         if !deliver(out, w, Incoming::Msg(Box::new(m))) {
-            return false; // UI gone
+            ui_alive = false; // UI gone
+            break;
         }
     }
     let _ = stream.shutdown(std::net::Shutdown::Both);
-    drop(writer_thread);
-    true
+    alive.store(false, std::sync::atomic::Ordering::SeqCst);
+    let _ = writer_thread.join();
+    ui_alive
 }
 
 /// Starts the live reader thread with reconnect and backoff.
@@ -187,12 +200,17 @@ pub fn replay(path: PathBuf, pace: Pace) -> Source {
             return;
         };
         let mut last_ts: Option<u64> = None;
-        for line in std::io::BufReader::new(file).lines().map_while(Result::ok) {
-            // Each line is at most what a daemon frame may be.
-            if line.len() > MAX_DAEMON_FRAME as usize {
+        let mut reader = std::io::BufReader::new(file);
+        // Lines are capped at the daemon frame limit and read without ever
+        // holding a longer line; bad lines (too long, not UTF-8, not a
+        // message) are skipped, never the rest of the file.
+        while let Ok(Some(line)) =
+            sysscope_proto::read_line_bounded(&mut reader, MAX_DAEMON_FRAME as usize)
+        {
+            let sysscope_proto::Line::Text(line) = line else {
                 continue;
-            }
-            let Ok(m) = decode_daemon(line.as_bytes()) else {
+            };
+            let Ok(m) = decode_daemon(&line) else {
                 continue;
             };
             if let DaemonMsg::Snapshot { ts_ns, .. } = &m {

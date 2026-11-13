@@ -8,7 +8,7 @@
 use sysscope_core::detect::Band;
 use sysscope_core::display::{safe, safe_str};
 use sysscope_core::explain::{self, ExplainCtx};
-use sysscope_proto::{DaemonMsg, Event, Finding, ProcRow};
+use sysscope_proto::{DaemonMsg, Event, Finding, ProcKey, ProcRow};
 
 /// JSON text with characters a terminal could interpret escaped as \uXXXX.
 pub fn json_safe(text: &str) -> String {
@@ -96,6 +96,13 @@ pub fn tree(rows: &[ProcRow]) -> String {
         .filter(|r| r.parent.is_none_or(|p| !keys.contains(&p)))
         .collect();
     let mut stack: Vec<(&ProcRow, usize)> = roots.into_iter().rev().map(|r| (r, 0)).collect();
+    // Children by parent, built once: the walk stays linear in the rows.
+    let mut children: std::collections::BTreeMap<ProcKey, Vec<&ProcRow>> = Default::default();
+    for c in rows {
+        if let Some(p) = c.parent {
+            children.entry(p).or_default().push(c);
+        }
+    }
     let mut seen = std::collections::BTreeSet::new();
     while let Some((r, depth)) = stack.pop() {
         if !seen.insert(r.key) {
@@ -118,7 +125,7 @@ pub fn tree(rows: &[ProcRow]) -> String {
             name,
             score
         ));
-        let mut kids: Vec<&ProcRow> = rows.iter().filter(|c| c.parent == Some(r.key)).collect();
+        let mut kids: Vec<&ProcRow> = children.get(&r.key).cloned().unwrap_or_default();
         kids.sort_by_key(|c| std::cmp::Reverse(c.key));
         for k in kids {
             stack.push((k, depth + 1));
@@ -193,8 +200,8 @@ pub fn status(welcome: &DaemonMsg, snap: &DaemonMsg) -> String {
             sysscope_proto::Mode::System(_) => "system-wide".to_string(),
             sysscope_proto::Mode::Follow { follow } => format!("following pid {}", follow.tgid),
         };
-        s.push_str(&format!("mode: {mode}\nprocesses: {live} live, {} tracked\nflagged (score >= 30): {flagged}\nlost events: ring buffer {}, budget {}, scratch {}\n",
-            procs.len(), loss.ringbuf, loss.budget, loss.scratch));
+        s.push_str(&format!("mode: {mode}\nprocesses: {live} live, {} tracked\nflagged (score >= 30): {flagged}\nlost events: ring buffer {}, budget {}, scratch {}, undecodable {}\n",
+            procs.len(), loss.ringbuf, loss.budget, loss.scratch, loss.decode));
     }
     s
 }

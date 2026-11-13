@@ -145,3 +145,12 @@ fn non_finite_floats_are_clamped() {
     let json = serde_json::to_string(&row).unwrap();
     assert!(json.contains("\"cpu_pct\":0.0"), "{json}");
 }
+
+#[test]
+fn decode_errors_never_carry_raw_control_bytes() {
+    let body = br#"{"t":"GhStatus","state":"\u001b]2;pwn\u0007","run_id":"r","message":"m"}"#;
+    match decode_daemon(body).unwrap_err() {
+        DecodeError::Malformed(m) => assert!(!m.bytes().any(|b| b < 0x20 || b == 0x7f), "{m:?}"),
+        other => panic!("unexpected {other:?}"),
+    }
+}

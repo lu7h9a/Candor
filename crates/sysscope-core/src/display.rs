@@ -11,7 +11,12 @@ use sysscope_proto::BStr;
 
 fn dangerous(c: char) -> bool {
     matches!(c as u32,
-        0x00..=0x1F | 0x7F..=0x9F | 0x200E | 0x200F | 0x202A..=0x202E | 0x2066..=0x2069 | 0x061C)
+        0x00..=0x1F | 0x7F..=0x9F       // C0 and C1 controls
+        | 0x200B..=0x200F                // zero-width space/joiners, LRM, RLM
+        | 0x2028 | 0x2029                // line and paragraph separators
+        | 0x202A..=0x202E | 0x2066..=0x2069 | 0x061C  // bidi controls
+        | 0xFEFF                         // byte-order mark / zero-width no-break space
+        | 0xE0000..=0xE007F) // tag characters
 }
 
 /// Neutralises dangerous characters in already-escaped text.
@@ -44,5 +49,9 @@ mod tests {
         assert_eq!(safe(&BStr::from("/usr/bin/ls")), "/usr/bin/ls");
         assert_eq!(safe(&BStr::new(b"\x1b[2J".to_vec())), "\\x1B[2J");
         assert_eq!(safe_str("x\u{7}y"), "x\\u{0007}y");
+        assert_eq!(
+            safe_str("a\u{2028}b\u{200B}c\u{FEFF}d\u{E0041}"),
+            "a\\u{2028}b\\u{200B}c\\u{FEFF}d\\u{E0041}"
+        );
     }
 }

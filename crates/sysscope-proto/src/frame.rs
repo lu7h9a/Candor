@@ -74,6 +74,56 @@ pub fn write_frame<W: Write>(w: &mut W, body: &[u8], max: u32) -> Result<(), Fra
     Ok(())
 }
 
+/// One line of a JSONL file, read with a size cap.
+#[derive(Debug, PartialEq, Eq)]
+pub enum Line {
+    /// A complete line (without the newline).
+    Text(Vec<u8>),
+    /// A line longer than the cap; its bytes were skipped, not kept.
+    TooLong,
+}
+
+/// Reads the next line of at most `max` bytes. Longer lines are skipped in
+/// small chunks (never held in memory) and reported as `TooLong`; `Ok(None)`
+/// at the end of the input. For replay files from untrusted sources.
+pub fn read_line_bounded<R: std::io::BufRead>(
+    r: &mut R,
+    max: usize,
+) -> Result<Option<Line>, FrameError> {
+    let mut buf = Vec::new();
+    let mut too_long = false;
+    loop {
+        let chunk = r.fill_buf()?;
+        if chunk.is_empty() {
+            if buf.is_empty() && !too_long {
+                return Ok(None);
+            }
+            break;
+        }
+        let (take, done) = match chunk.iter().position(|&b| b == b'\n') {
+            Some(i) => (i, true),
+            None => (chunk.len(), false),
+        };
+        if !too_long {
+            if buf.len() + take > max {
+                too_long = true;
+                buf = Vec::new();
+            } else {
+                buf.extend_from_slice(chunk.get(..take).unwrap_or(&[]));
+            }
+        }
+        r.consume(if done { take + 1 } else { take });
+        if done {
+            break;
+        }
+    }
+    Ok(Some(if too_long {
+        Line::TooLong
+    } else {
+        Line::Text(buf)
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,6 +146,24 @@ mod tests {
         assert!(matches!(err, FrameError::TooLarge { .. }));
         let err = write_frame(&mut Vec::new(), &[0u8; 11], 10).unwrap_err();
         assert!(matches!(err, FrameError::TooLarge { .. }));
+    }
+
+    #[test]
+    fn bounded_lines_skip_giant_lines_without_storing_them() {
+        let mut data = b"short\n".to_vec();
+        data.extend(std::iter::repeat_n(b'x', 100_000));
+        data.extend_from_slice(b"\nlast");
+        let mut r = std::io::BufReader::with_capacity(64, &data[..]);
+        assert_eq!(
+            read_line_bounded(&mut r, 10).unwrap(),
+            Some(Line::Text(b"short".to_vec()))
+        );
+        assert_eq!(read_line_bounded(&mut r, 10).unwrap(), Some(Line::TooLong));
+        assert_eq!(
+            read_line_bounded(&mut r, 10).unwrap(),
+            Some(Line::Text(b"last".to_vec()))
+        );
+        assert_eq!(read_line_bounded(&mut r, 10).unwrap(), None);
     }
 
     #[test]

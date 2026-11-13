@@ -33,10 +33,15 @@ fn fail(msg: &str) -> ! {
 }
 
 fn main() {
-    if euid() == Some(0) {
-        fail(
+    // Fail closed: if the effective uid cannot be read, do not start (I1).
+    match euid() {
+        Some(0) => fail(
             "refusing to run as root. Run the GUI as your normal user; only the daemon runs as root.",
-        );
+        ),
+        None => {
+            fail("cannot read /proc/self/status to check that this is not root; refusing to start.")
+        }
+        Some(_) => {}
     }
     let mut replay: Option<PathBuf> = None;
     let mut pace = Pace::Fixed(Duration::from_millis(500));

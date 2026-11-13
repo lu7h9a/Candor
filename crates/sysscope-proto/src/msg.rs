@@ -311,8 +311,7 @@ fn decode_tagged<T: serde::de::DeserializeOwned>(
 ) -> Result<T, DecodeError> {
     // Pass 1: the tag only (cheap). Pass 2: the typed message. This avoids
     // parsing large snapshots into a generic JSON tree first.
-    let tag: TagOnly =
-        serde_json::from_slice(body).map_err(|e| DecodeError::Malformed(e.to_string()))?;
+    let tag: TagOnly = serde_json::from_slice(body).map_err(malformed)?;
     let tag = match tag.t {
         Some(serde_json::Value::String(s)) => s,
         _ => return Err(DecodeError::Malformed("missing string field \"t\"".into())),
@@ -324,7 +323,13 @@ fn decode_tagged<T: serde::de::DeserializeOwned>(
         let shown = crate::bstr::escape(raw.get(..64).unwrap_or(raw));
         return Err(DecodeError::UnknownType(shown));
     }
-    serde_json::from_slice(body).map_err(|e| DecodeError::Malformed(e.to_string()))
+    serde_json::from_slice(body).map_err(malformed)
+}
+
+/// serde's messages quote the peer's bytes ("unknown variant ..."), so the
+/// text is escaped before it can reach a log or terminal (I10).
+fn malformed(e: serde_json::Error) -> DecodeError {
+    DecodeError::Malformed(crate::bstr::escape(e.to_string().as_bytes()))
 }
 
 /// Decodes a frame body sent by a client.

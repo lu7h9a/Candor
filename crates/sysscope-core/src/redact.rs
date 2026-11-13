@@ -27,10 +27,20 @@ pub struct Redactor {
 const SECRET_FLAGS: &[&str] = &[
     "--password",
     "--passwd",
+    "--pass",
     "--token",
     "--secret",
     "--key",
     "-p",
+    "--api-key",
+    "--apikey",
+    "--access-token",
+    "--auth-token",
+    "--client-secret",
+    "--auth",
+    "-u",
+    "--user",
+    "--private-key",
 ];
 const SECRET_WORDS: &[&str] = &["pass", "token", "secret", "key", "auth", "cred"];
 
@@ -78,19 +88,59 @@ impl Redactor {
         }
         result.push_str(rest);
         let mut out = strip_userinfo(&result);
-        if !self.user.is_empty() && self.user.len() > 2 {
-            out = out.replace(&self.user, "<user>");
+        if !self.user.is_empty() {
+            out = replace_word(&out, &self.user, "<user>");
         }
-        if !self.host.is_empty() && self.host.len() > 2 {
-            out = out.replace(&self.host, "<host>");
+        if !self.host.is_empty() {
+            out = replace_word(&out, &self.host, "<host>");
+        }
+        if self.ips {
+            out = self.ips_in(&out);
         }
         out
     }
 
-    /// Redacts a command line given as NUL-separated arguments; returns the
-    /// arguments joined by spaces.
+    /// Replaces every IP address (alone or as addr:port, [v6]:port) in text.
+    fn ips_in(&mut self, s: &str) -> String {
+        let is_ip_char = |c: char| c.is_ascii_hexdigit() || c == '.' || c == ':';
+        let mut out = String::new();
+        let mut token = String::new();
+        let flush = |tok: &mut String, out: &mut String, me: &mut Redactor| {
+            if tok.is_empty() {
+                return;
+            }
+            let t = tok.trim_end_matches(':').to_string();
+            let tail = &tok[t.len()..];
+            if t.parse::<std::net::IpAddr>().is_ok() {
+                out.push_str(&me.ip(&t));
+            } else if let Some((addr, port)) = t.rsplit_once(':')
+                && addr.parse::<std::net::Ipv4Addr>().is_ok()
+                && port.parse::<u16>().is_ok()
+            {
+                let alias = me.ip(addr);
+                out.push_str(&format!("{alias}:{port}"));
+            } else {
+                out.push_str(&t);
+            }
+            out.push_str(tail);
+            tok.clear();
+        };
+        for c in s.chars() {
+            if is_ip_char(c) {
+                token.push(c);
+            } else {
+                flush(&mut token, &mut out, self);
+                out.push(c);
+            }
+        }
+        flush(&mut token, &mut out, self);
+        out
+    }
+
+    /// Redacts a command line given as NUL-separated arguments (one argument
+    /// may contain spaces); returns the arguments joined by spaces.
     pub fn argv(&mut self, argv: &str) -> String {
-        let args: Vec<&str> = argv.split(['\0', ' ']).filter(|a| !a.is_empty()).collect();
+        let args: Vec<&str> = argv.split('\0').filter(|a| !a.is_empty()).collect();
         let mut out = Vec::new();
         let mut hide_next = false;
         for a in args {
@@ -102,6 +152,24 @@ impl Redactor {
             if SECRET_FLAGS.contains(&a) {
                 out.push(a.to_string());
                 hide_next = true;
+                continue;
+            }
+            // Attached values: -psecret (mysql style).
+            if a.len() > 2 && a.starts_with("-p") && !a.starts_with("--") {
+                out.push("-p<redacted>".to_string());
+                continue;
+            }
+            // Header values such as "Authorization: Bearer x".
+            if let Some((k, _)) = a.split_once(':')
+                && [
+                    "authorization",
+                    "cookie",
+                    "x-api-key",
+                    "proxy-authorization",
+                ]
+                .contains(&k.trim().to_ascii_lowercase().as_str())
+            {
+                out.push(format!("{k}: <redacted>"));
                 continue;
             }
             if let Some((k, _)) = a.split_once('=') {
@@ -127,6 +195,34 @@ impl Redactor {
             .or_insert_with(|| format!("ip{n}"))
             .clone()
     }
+}
+
+/// Replaces `word` only where it stands alone (not inside a longer name),
+/// so a user called "bin" does not turn "/usr/bin" into "/usr/<user>".
+fn replace_word(s: &str, word: &str, with: &str) -> String {
+    if word.is_empty() {
+        return s.to_string();
+    }
+    // '/' and '.' count as part of a word: path components are not names
+    // (home directories are handled before this).
+    let is_word = |c: char| c.is_alphanumeric() || matches!(c, '_' | '-' | '/' | '.');
+    let mut out = String::new();
+    let mut i = 0;
+    while let Some(pos) = s.get(i..).and_then(|r| r.find(word)) {
+        let start = i + pos;
+        let end = start + word.len();
+        let before = s.get(..start).and_then(|b| b.chars().last());
+        let after = s.get(end..).and_then(|a| a.chars().next());
+        out.push_str(s.get(i..start).unwrap_or(""));
+        if before.is_none_or(|c| !is_word(c)) && after.is_none_or(|c| !is_word(c)) {
+            out.push_str(with);
+        } else {
+            out.push_str(word);
+        }
+        i = end;
+    }
+    out.push_str(s.get(i..).unwrap_or(""));
+    out
 }
 
 /// Removes "user:pass@" from every "scheme://user:pass@host" in the text.
@@ -170,6 +266,19 @@ mod tests {
             "curl https://example.com/x"
         );
         assert_eq!(r.ip("10.0.0.1"), "10.0.0.1");
+        // Review fixes: short names only as whole words; attached and header secrets.
+        let mut r = Redactor::new("/home/bin", "bin", "box1", false);
+        assert_eq!(
+            r.text("/usr/bin/ls run by bin on box1"),
+            "/usr/bin/ls run by <user> on <host>"
+        );
+        assert_eq!(r.argv("mysql\0-psecret\0--api-key\0k1\0-H\0Authorization: Bearer tok\0--password\0two words"),
+            "mysql -p<redacted> --api-key <redacted> -H Authorization: <redacted> --password <redacted>");
+        let mut r = Redactor::new("/root", "root", "h", true);
+        assert_eq!(
+            r.text("Connect 10.1.2.3:443 then 10.1.2.3 and ::1"),
+            "Connect ip1:443 then ip1 and ip2"
+        );
         let mut r = Redactor::new("/root", "root", "h", true);
         assert_eq!(
             (r.ip("10.0.0.1"), r.ip("10.0.0.2"), r.ip("10.0.0.1")),

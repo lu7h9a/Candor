@@ -20,7 +20,13 @@ pub fn local_names() -> (String, String, String) {
     (home, user, host)
 }
 
+/// One CSV cell: terminal-safe text, protected against spreadsheet formula
+/// injection (a leading = + - @ gets a ' prefix), quoted when needed.
 fn csv_field(s: &str) -> String {
+    let mut s = sysscope_core::display::safe_str(s);
+    if s.starts_with(['=', '+', '-', '@']) {
+        s.insert(0, '\'');
+    }
     if s.contains([',', '"', '\n', '\r']) {
         format!("\"{}\"", s.replace('"', "\"\""))
     } else {
@@ -74,7 +80,7 @@ pub fn json(rows: &[ProcRow], findings: &[Finding], r: &mut Option<Redactor>) ->
                 "exe": match r { Some(r) => r.text(&exe), None => exe },
                 "cpu_pct": p.cpu_pct, "rss": p.rss, "threads": p.threads,
                 "opens": p.n_open, "connects": p.n_conn, "score": p.score,
-                "tree_score": p.tree_score, "top_rule": p.top_rule,
+                "tree_score": p.tree_score, "top_rule": p.top_rule.as_deref().map(sysscope_core::display::safe_str),
             })
         })
         .collect();
@@ -86,6 +92,9 @@ pub fn json(rows: &[ProcRow], findings: &[Finding], r: &mut Option<Redactor>) ->
                 None => s.to_string(),
             };
             let summary = text(&f.summary);
+            let title = text(&f.title);
+            let subject = text(&f.subject);
+            let why: Vec<String> = f.why.iter().map(|w| text(w)).collect();
             let exe = text(&safe(&f.exe));
             let events: Vec<serde_json::Value> = f
                 .evidence_events
@@ -104,8 +113,8 @@ pub fn json(rows: &[ProcRow], findings: &[Finding], r: &mut Option<Redactor>) ->
                 })
                 .collect();
             serde_json::json!({
-                "rule": f.rule, "title": f.title, "subject": f.subject, "pid": f.proc.tgid,
-                "exe": exe, "summary": summary, "why": f.why, "evidence": f.evidence,
+                "rule": sysscope_core::display::safe_str(&f.rule), "title": title, "subject": subject, "pid": f.proc.tgid,
+                "exe": exe, "summary": summary, "why": why, "evidence": f.evidence,
                 "evidence_events": events, "confidence": f.confidence, "weight": f.weight,
             })
         })
@@ -117,6 +126,18 @@ pub fn json(rows: &[ProcRow], findings: &[Finding], r: &mut Option<Redactor>) ->
 mod tests {
     use super::*;
     use sysscope_proto::{BStr, ProcKey};
+
+    #[test]
+    fn csv_cells_are_safe_and_formula_proof() {
+        assert_eq!(csv_field("=HYPERLINK(1)"), "'=HYPERLINK(1)");
+        assert_eq!(csv_field("@SUM"), "'@SUM");
+        assert_eq!(
+            csv_field("a\x1b[31m"),
+            sysscope_core::display::safe_str("a\x1b[31m")
+        );
+        assert!(!csv_field("x\u{202e}y").contains('\u{202e}'));
+        assert_eq!(csv_field("a,b"), "\"a,b\"");
+    }
 
     #[test]
     fn csv_quotes_and_redacts() {

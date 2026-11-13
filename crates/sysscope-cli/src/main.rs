@@ -14,7 +14,6 @@ mod export;
 mod out;
 
 use conn::{CliError, Conn};
-use std::io::BufRead;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 use sysscope_core::Engine;
@@ -267,7 +266,9 @@ fn run(a: Args) -> Result<(), CliError> {
                         }
                         printed += 1;
                     }
-                    if client_dropped > 0 && !a.json {
+                    if client_dropped > 0 && a.json {
+                        println!("{}", serde_json::json!({"client_dropped": client_dropped}));
+                    } else if client_dropped > 0 {
                         eprintln!(
                             "({client_dropped} events dropped because this client was too slow)"
                         );
@@ -400,15 +401,29 @@ fn replay(rest: &[String], json: bool) -> Result<(), CliError> {
     let file = std::fs::File::open(path).map_err(|e| CliError::Other(format!("{path}: {e}")))?;
     let mut engine = Engine::with_defaults().map_err(|e| CliError::Other(e.to_string()))?;
     let mut read_error = None;
-    let lines = std::io::BufReader::new(file)
-        .lines()
-        .map_while(|l| match l {
-            Ok(l) => Some(l),
-            Err(e) => {
-                read_error = Some(e);
-                None
+    let mut skipped = 0u64;
+    let mut reader = std::io::BufReader::new(file);
+    // Lines are read with a cap, so a hostile file cannot make us hold an
+    // endless line; too-long or non-UTF-8 lines are skipped and counted.
+    let lines = std::iter::from_fn(|| {
+        loop {
+            match sysscope_proto::read_line_bounded(
+                &mut reader,
+                sysscope_proto::MAX_DAEMON_FRAME as usize,
+            ) {
+                Ok(Some(sysscope_proto::Line::Text(b))) => match String::from_utf8(b) {
+                    Ok(l) => return Some(l),
+                    Err(_) => skipped += 1,
+                },
+                Ok(Some(sysscope_proto::Line::TooLong)) => skipped += 1,
+                Ok(None) => return None,
+                Err(e) => {
+                    read_error = Some(e);
+                    return None;
+                }
             }
-        });
+        }
+    });
     let frames_out = opt(rest, "--frames");
     let alerts = match &frames_out {
         Some(out) => write_frames(&mut engine, lines, out)?,
@@ -417,6 +432,9 @@ fn replay(rest: &[String], json: bool) -> Result<(), CliError> {
     };
     if let Some(e) = read_error {
         return Err(CliError::Other(format!("{path}: {e}")));
+    }
+    if skipped > 0 {
+        eprintln!("sysscope: skipped {skipped} unreadable line(s) in {path}");
     }
     let snap = engine.snapshot(0);
     let rows = rows_of(&snap);

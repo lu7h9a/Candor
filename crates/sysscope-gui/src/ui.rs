@@ -157,8 +157,8 @@ fn top_bar(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         if lost > 0 {
             let r = ui.label(
                 RichText::new(format!(
-                    "LOST EVENTS: ring buffer {}, budget {}, scratch {}",
-                    m.loss.ringbuf, m.loss.budget, m.loss.scratch
+                    "LOST EVENTS: ring buffer {}, budget {}, scratch {}, undecodable {}",
+                    m.loss.ringbuf, m.loss.budget, m.loss.scratch, m.loss.decode
                 ))
                 .color(Color32::from_rgb(0xd0, 0x30, 0x30)),
             );
@@ -517,7 +517,7 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                 }
             }
             Tab::Network => {
-                for c in conns {
+                for c in conns.iter().take(1000) {
                     ui.label(format!("{}:{}  x{}", safe_str(&c.addr), c.port, c.count));
                 }
                 if conns.is_empty() {
@@ -528,17 +528,14 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                 let mut s = syscalls.clone();
                 s.sort_by_key(|x| std::cmp::Reverse(x.count));
                 for x in s.iter().take(100) {
-                    ui.label(format!("{:<20} {}", x.name, x.count));
+                    ui.label(format!("{:<20} {}", safe_str(&x.name), x.count));
                 }
             }
             Tab::Children => {
-                for c in children {
-                    let n = m
-                        .rows
-                        .iter()
-                        .find(|r| r.key == *c)
-                        .map(|r| safe(&r.exe))
-                        .unwrap_or_default();
+                let names: std::collections::BTreeMap<_, _> =
+                    m.rows.iter().map(|r| (r.key, &r.exe)).collect();
+                for c in children.iter().take(1000) {
+                    let n = names.get(c).map(|e| safe(e)).unwrap_or_default();
                     ui.label(format!("{} {n}", c.tgid));
                 }
             }
@@ -549,7 +546,7 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                             "{:012x}-{:012x} {} {}",
                             r.start,
                             r.end,
-                            r.perms,
+                            safe_str(&r.perms),
                             safe(&r.path)
                         ));
                     }
@@ -606,7 +603,7 @@ fn alerts(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             for (i, f) in m.alerts.iter().enumerate() {
                 let text = format!(
                     "{} {} - {} (pid {}): {}",
-                    f.rule,
+                    safe_str(&f.rule),
                     safe_str(&f.title),
                     safe(&f.exe),
                     f.proc.tgid,

@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: M3 gate review fixes   Status: IN_PROGRESS
-Next action: fix the GUI/CLI review findings (redaction gaps, unescaped daemon text, replay line limits, reconnect thread leak, loss overflow), then WP24
+Milestone: M4   Current WP: WP24   Status: IN_PROGRESS
+Next action: WP24 - check path shape, box attribution and the demo counts in the debian12 VM, then daemon upload + helper + differ + report + CLI + GUI tab
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -453,3 +453,19 @@ availability rc=4 run-local rc=4 leftover_run_dirs=0   WP23 UNAVAILABLE-CORRECTL
 Unit tests: seccomp namespaces_refused_and_clone3_falls_back, ordinary_syscalls_still_work, programs_serialize_to_eight_bytes_per_instruction ok.
 Bugs found on the way: the probe first lacked the /lib64 symlink (false "unavailable" on Debian) and my VM script accepted that; both fixed (script now derives the expected outcome from the sysctls).
 Result: PASS in VMs; host run BLOCKED(E1).
+
+### 2026-11-13 20:40 M3 gate review fixes (GUI/CLI)
+Did: fixed every finding of the fresh-subagent M3 review.
+- Core: explanation fields escape CR/LF, so a hostile name cannot forge extra explanation lines. `dangerous()` also covers zero-width, line/paragraph separators, BOM and tag characters. Redaction gained more secret flags (--api-key, --auth-token, -u, ...), `-psecret`, Authorization/Cookie header args, whole-word user/host replacement, and IP pseudonyms inside free text.
+- Proto: `read_line_bounded`, used for GUI and CLI replay. Decode errors never echo control bytes. `Loss.decode` counts undecodable kernel events.
+- GUI: the reconnect writer thread is joined per session, so there is no leaked writer. Loss sums saturate. Syscall/perm/rule text is escaped. Detail lists are capped. A full request queue is reported to the user, not dropped silently. Exports use `create_new`.
+- CLI: exported finding text (title, subject, why, summary) is redacted. CSV cells are escaped and protected against formulas (`'` prefix on = + - @). Daemon error text is escaped. `tail` waits with poll() instead of read timeouts. `recv_until` is bounded (100 000 messages). `tree` is linear. `status` shows undecodable events. `tail --json` emits `{"client_dropped":n}`. `replay` uses bounded lines and counts the lines it skipped.
+Verify command: `make lint && make test && make itest-bin && /tmp/claude-1000/wait-vm-run.sh debian12 vm/tests/wp00_tools.sh vm/tests/wp05_itest.sh`
+Verify output (trimmed, real):
+```
+make lint: Finished `dev` profile ... (fmt --check, clippy -D warnings clean)
+make test: every "test result: ok." (core 22, proto, cli 3 incl. csv_cells_are_safe_and_formula_proof and daemon_error_text_is_escaped, gui kittest + stress, glasshouse)
+debian12: cli 5, files 5, follow 4, lifecycle 5, network 1, proc 3, server 7 (incl. follow_switch_and_stale_key), syscalls 1 -> all ok; RC=0
+```
+(The GLIBC_2.39 weak-version line before each itest binary is the known loader warning recorded above; the binaries run.)
+Result: PASS (M3 gate slice). The full gate (`make test-root` on the host) and the v0.1.0 tag stay BLOCKED(E1) on Q1.

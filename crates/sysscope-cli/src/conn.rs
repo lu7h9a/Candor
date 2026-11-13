@@ -50,6 +50,16 @@ impl CliError {
     }
 }
 
+/// Daemon-supplied error text made safe for the terminal (I10).
+fn daemon_text(code: &str, message: &str) -> String {
+    let safe = sysscope_core::display::safe_str;
+    format!("{}: {}", safe(code), safe(message))
+}
+
+/// Messages `recv_until` reads before giving up (a chatty or broken daemon
+/// that never sends the awaited reply must not hang the CLI forever).
+const MAX_WAIT_MESSAGES: usize = 100_000;
+
 /// A connected, greeted client.
 pub struct Conn {
     stream: UnixStream,
@@ -103,7 +113,7 @@ impl Conn {
         match c.recv()? {
             w @ DaemonMsg::Welcome { .. } => c.welcome = w,
             DaemonMsg::Error { code, message } => {
-                return Err(CliError::Daemon(format!("{code}: {message}")));
+                return Err(CliError::Daemon(daemon_text(&code, &message)));
             }
             other => return Err(CliError::Daemon(format!("unexpected reply {other:?}"))),
         }
@@ -122,7 +132,7 @@ impl Conn {
         match read_frame(&mut self.stream, MAX_DAEMON_FRAME) {
             Ok(Some(body)) => match decode_daemon(&body) {
                 Ok(DaemonMsg::Error { code, message }) => {
-                    Err(CliError::Daemon(format!("{code}: {message}")))
+                    Err(CliError::Daemon(daemon_text(&code, &message)))
                 }
                 Ok(m) => Ok(m),
                 Err(e) => Err(CliError::Daemon(e.to_string())),
@@ -132,28 +142,46 @@ impl Conn {
         }
     }
 
-    /// Waits up to `timeout` for a message; None on timeout.
+    /// Waits up to `timeout` for a message to start arriving; None on
+    /// timeout. Waiting uses poll(), so an idle wait never interrupts a
+    /// frame; the 10 s socket read timeout remains only as a guard against a
+    /// daemon that stops in the middle of a frame.
     pub fn recv_timeout(&mut self, timeout: Duration) -> Result<Option<DaemonMsg>, CliError> {
-        let _ = self.stream.set_read_timeout(Some(timeout));
-        let r = self.recv();
-        let _ = self.stream.set_read_timeout(Some(Duration::from_secs(10)));
-        match r {
-            Err(CliError::Other(e))
-                if e.contains("timed out") || e.contains("Resource temporarily") =>
-            {
-                Ok(None)
-            }
-            other => other.map(Some),
+        let ts = rustix::time::Timespec {
+            tv_sec: timeout.as_secs() as i64,
+            tv_nsec: i64::from(timeout.subsec_nanos()),
+        };
+        let mut fds = [rustix::event::PollFd::new(
+            &self.stream,
+            rustix::event::PollFlags::IN,
+        )];
+        match rustix::event::poll(&mut fds, Some(&ts)) {
+            Ok(0) => Ok(None),
+            Ok(_) => self.recv().map(Some),
+            Err(rustix::io::Errno::INTR) => Ok(None),
+            Err(e) => Err(CliError::Other(format!("waiting for the daemon: {e}"))),
         }
     }
 
     /// Receives messages until `f` matches one.
     pub fn recv_until(&mut self, f: impl Fn(&DaemonMsg) -> bool) -> Result<DaemonMsg, CliError> {
-        loop {
+        for _ in 0..MAX_WAIT_MESSAGES {
             let m = self.recv()?;
             if f(&m) {
                 return Ok(m);
             }
         }
+        Err(CliError::Daemon(
+            "the daemon did not send the expected reply".into(),
+        ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn daemon_error_text_is_escaped() {
+        let t = super::daemon_text("bad\x1b]0;x\x07", "line1\nline2");
+        assert!(!t.chars().any(|c| c.is_control()), "{t:?}");
     }
 }

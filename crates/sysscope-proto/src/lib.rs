@@ -13,7 +13,10 @@ pub mod msg;
 pub mod types;
 
 pub use bstr::BStr;
-pub use frame::{FrameError, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME, read_frame, write_frame};
+pub use frame::{
+    FrameError, Line, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME, read_frame, read_line_bounded,
+    write_frame,
+};
 pub use msg::{
     ActAction, ClientKind, ClientMsg, DaemonMsg, DecodeError, EventSub, EventSubMode, GhState,
     decode_client, decode_daemon, encode,

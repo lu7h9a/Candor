@@ -291,7 +291,13 @@ impl Model {
 
     /// Events lost in the kernel so far (all reasons).
     pub fn loss_total(&self) -> u64 {
-        self.loss.ringbuf + self.loss.budget + self.loss.scratch + self.loss.decode
+        // Saturating: hostile counters near u64::MAX must not wrap (and hide
+        // the banner) or panic.
+        self.loss
+            .ringbuf
+            .saturating_add(self.loss.budget)
+            .saturating_add(self.loss.scratch)
+            .saturating_add(self.loss.decode)
     }
 
     /// True when new losses happened since the user last dismissed the banner.

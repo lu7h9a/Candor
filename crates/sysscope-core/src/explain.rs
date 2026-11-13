@@ -71,8 +71,23 @@ pub fn describe(e: &Event) -> String {
     }
 }
 
+/// A daemon-supplied text field as one line: CR and LF become visible
+/// escapes, so only the renderer's own newlines separate lines.
+fn one_line(s: &str) -> String {
+    s.replace('\r', "\\u{000D}").replace('\n', "\\u{000A}")
+}
+
 /// Renders the full explanation text (plan 5.6).
 pub fn render(f: &Finding, ctx: &ExplainCtx) -> String {
+    let mut f = f.clone();
+    f.rule = one_line(&f.rule);
+    f.title = one_line(&f.title);
+    f.subject = one_line(&f.subject);
+    f.summary = one_line(&f.summary);
+    f.attack = f.attack.as_deref().map(one_line);
+    f.why = f.why.iter().map(|w| one_line(w)).collect();
+    f.benign = f.benign.iter().map(|b| one_line(b)).collect();
+    let f = &f;
     let t = |ns| clock(ns, ctx.boot_to_wall_ns, ctx.tz_offset_s);
     let mut out = String::new();
     let parent = match &ctx.parent {
