@@ -3,6 +3,7 @@
 //! classes and texts come from `config::Rules`, never from constants here.
 
 pub mod files;
+pub mod windows;
 
 use crate::glob;
 use crate::proc::Proc;

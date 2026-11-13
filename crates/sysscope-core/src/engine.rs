@@ -9,6 +9,7 @@ use crate::config::{AllowEntry, Rules};
 use crate::detect::{Detector, Hit};
 use crate::input::Input;
 use crate::rules::files;
+use crate::rules::windows::WindowState;
 use crate::state::State;
 use std::collections::BTreeSet;
 use sysscope_proto::{DaemonMsg, Event, EventKind, Finding};
@@ -21,6 +22,7 @@ pub struct Engine {
     /// Findings and scores.
     pub detector: Detector,
     decoys: BTreeSet<(u64, u64)>,
+    windows: WindowState,
 }
 
 impl Engine {
@@ -30,6 +32,7 @@ impl Engine {
             state: State::new(),
             detector: Detector::new(rules, allow),
             decoys: BTreeSet::new(),
+            windows: WindowState::default(),
         }
     }
 
@@ -45,7 +48,19 @@ impl Engine {
         self.state.apply(input);
         let mut hits = Vec::new();
         match input {
-            Input::RawEvent { event } => hits = self.event_hits(event),
+            Input::RawEvent { event } => {
+                hits = self.event_hits(event);
+                hits.extend(
+                    self.windows
+                        .on_event(self.detector.rules(), &self.state, event),
+                );
+            }
+            Input::BudgetDrops { ts_ns, drops } => {
+                hits =
+                    self.windows
+                        .on_budget_drops(self.detector.rules(), &self.state, *ts_ns, drops);
+            }
+            Input::Tick { .. } => self.windows.prune(&self.state),
             Input::Decoys { inodes } => self.decoys = inodes.iter().copied().collect(),
             Input::ExeMeta {
                 proc,
@@ -83,6 +98,11 @@ impl Engine {
         hits.extend(files::r004(rules, &self.state, ev));
         hits.extend(files::r012(rules, &self.decoys, ev));
         hits
+    }
+
+    /// Window state of the windowed rules (for tests).
+    pub fn windows(&self) -> &WindowState {
+        &self.windows
     }
 
     /// Snapshot with scores filled in.

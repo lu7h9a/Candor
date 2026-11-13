@@ -169,6 +169,9 @@ impl Detector {
             Some(f) => {
                 // Repeat: update evidence and time, keep one finding.
                 for e in &hit.evidence {
+                    if f.evidence.len() >= limits::MAX_EVIDENCE_IDS {
+                        break; // bounded (I8); the finding already has evidence
+                    }
                     if !f.evidence.contains(&e.id) {
                         f.evidence.push(e.id);
                         if f.evidence_events.len() < max_ev {
@@ -196,7 +199,12 @@ impl Detector {
                     summary: hit.summary.clone(),
                     why,
                     benign: cfg.benign.iter().map(|b| fill(b, &hit.vars)).collect(),
-                    evidence: hit.evidence.iter().map(|e| e.id).collect(),
+                    evidence: hit
+                        .evidence
+                        .iter()
+                        .take(limits::MAX_EVIDENCE_IDS)
+                        .map(|e| e.id)
+                        .collect(),
                     evidence_events: hit.evidence.iter().take(max_ev).cloned().collect(),
                 };
                 self.next_id += 1;

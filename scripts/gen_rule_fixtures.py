@@ -21,9 +21,9 @@ class Case:
         self.id = 0
         self.ts = SEC
 
-    def ev(self, tgid, kind):
+    def ev(self, tgid, kind, gap_ns=1_000_000):
         self.id += 1
-        self.ts += 1_000_000  # 1 ms apart: decay is negligible for scores
+        self.ts += gap_ns  # default 1 ms apart: decay is negligible for scores
         self.lines.append({"t": "RawEvent", "event": {
             "id": self.id, "ts_ns": self.ts, "proc": {"tgid": tgid, "start": 1},
             "tid": tgid, "uid": 1000, "kind": kind}})
@@ -55,6 +55,14 @@ class Case:
 
     def decoys(self, inodes):
         self.lines.append({"t": "Decoys", "inodes": inodes})
+
+    def connect(self, tgid, addr, port, gap_ns=1_000_000, family="inet"):
+        self.ev(tgid, {"k": "Connect", "family": family, "addr": addr, "port": port,
+                       "sock": "stream"}, gap_ns)
+
+    def budget(self, ts_s, drops):
+        self.lines.append({"t": "BudgetDrops", "ts_ns": SEC + ts_s * SEC,
+                           "drops": [[{"tgid": t, "start": 1}, n] for (t, n) in drops]})
 
 
 def write(rule, name, case, findings, scores):
@@ -173,8 +181,163 @@ def r012():
     write("R012", "boundary-also-credential", c, [("R001", "ssh_keys", P, 0.9), ("R012", "decoy", P, 0.8)], {P: 87})
 
 
+def rewrite_rename(c, n, new_ext=lambda i: "locked", gap_ns=1_000_000, base="/home/u/docs"):
+    for i in range(n):
+        c.open_(P, "%s/f%d.txt" % (base, i), read=False, write=True, ino=10 + i)
+        c.ev(P, {"k": "Rename", "old": "%s/f%d.txt" % (base, i),
+                 "new": "%s/f%d.txt.%s" % (base, i, new_ext(i)), "dev": 1, "ino": 10 + i,
+                 "approx": False}, gap_ns)
+
+
+def r005():
+    # w 0.8: c 0.9 -> 72, c 0.5 -> 40, c 0.4 -> 32
+    c = Case(); c.proc(P, TOOL); rewrite_rename(c, 20)
+    write("R005", "pos-rename-common-ext", c, [("R005", "mass_rewrite", P, 0.9)], {P: 72})
+    c = Case(); c.proc(P, TOOL)
+    for i in range(20):
+        c.open_(P, "/home/u/docs/f%d.txt.enc" % i, read=False, write=True, create=True, ino=1000 + i)
+        c.unlink(P, "/home/u/docs/f%d.txt" % i, ino=10 + i)
+    write("R005", "pos-new-sibling-then-unlink", c, [("R005", "mass_rewrite", P, 0.9)], {P: 72})
+    c = Case(); c.proc(P, TOOL); rewrite_rename(c, 20, new_ext=lambda i: "x%d" % i)
+    write("R005", "pos-mixed-extensions", c, [("R005", "mass_rewrite", P, 0.5)], {P: 40})
+    c = Case(); c.proc(P, TOOL)
+    for i in range(30):
+        c.open_(P, "/home/u/d%d/f%d" % (i % 3, i), read=False, write=True, trunc=True, ino=10 + i)
+    write("R005", "pos-truncate-existing", c, [("R005", "mass_rewrite", P, 0.4)], {P: 32})
+    c = Case(); c.proc(P, "/usr/bin/tar", trusted=True, system_dir=True)
+    for i in range(100):
+        c.open_(P, "/home/u/x/f%d" % i, read=False, write=True, create=True, trunc=True, ino=10 + i)
+    write("R005", "neg-tar-extract", c, [], {P: 0})
+    c = Case(); c.proc(P, "/usr/bin/git", trusted=True, system_dir=True); rewrite_rename(c, 30, base="/home/u/repo/.git/objects")
+    write("R005", "neg-excluded-git-dir", c, [], {P: 0})
+    c = Case(); c.proc(P, "/usr/bin/mv", trusted=True, system_dir=True)
+    for i in range(30):
+        c.rename(P, "/home/u/docs/f%d.txt" % i, "/home/u/docs/f%d.bak" % i, ino=10 + i)
+    write("R005", "neg-renames-without-writes", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for i in range(30):
+        c.open_(P, "/home/u/d%d/f%d" % (i % 2, i), read=False, write=True, trunc=True, ino=10 + i)
+    write("R005", "neg-truncate-two-dirs", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL); rewrite_rename(c, 19)
+    write("R005", "boundary-19-files", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL); rewrite_rename(c, 20)
+    write("R005", "boundary-20-files", c, [("R005", "mass_rewrite", P, 0.9)], {P: 72})
+    c = Case(); c.proc(P, TOOL); rewrite_rename(c, 20, gap_ns=600_000_000)  # spans 12 s > 10 s window
+    write("R005", "boundary-outside-window", c, [], {P: 0})
+
+
+def beacon(c, addr, port, gaps_s):
+    c.connect(P, addr, port)
+    for g in gaps_s:
+        c.connect(P, addr, port, gap_ns=int(g * SEC))
+
+
+def r006():
+    # w 0.5: c 0.6 -> 30, public c 0.8 -> 40
+    c = Case(); c.proc(P, TOOL); beacon(c, "10.1.2.3", 443, [10] * 7)
+    write("R006", "pos-private-every-10s", c, [("R006", "10.1.2.3:443", P, 0.6)], {P: 30})
+    c = Case(); c.proc(P, TOOL); beacon(c, "93.184.216.34", 443, [30] * 5)
+    write("R006", "pos-public-every-30s", c, [("R006", "93.184.216.34:443", P, 0.8)], {P: 40})
+    c = Case(); c.proc(P, TOOL); beacon(c, "10.1.2.3", 443, [9, 11] * 4)  # cv 0.10
+    write("R006", "pos-small-jitter", c, [("R006", "10.1.2.3:443", P, 0.6)], {P: 30})
+    c = Case(); c.proc(P, TOOL); beacon(c, "127.0.0.1", 8080, [10] * 7)
+    write("R006", "neg-loopback", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL); beacon(c, "10.1.2.3", 443, [2, 30, 5, 60, 1, 20, 7])
+    write("R006", "neg-irregular", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for i in range(8):
+        c.connect(P, "/run/x.sock", 0, gap_ns=10 * SEC, family="unix")
+    write("R006", "neg-unix-socket", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL); beacon(c, "10.1.2.3", 443, [15] * 4)  # 5 connects, span 60
+    write("R006", "boundary-5-connects", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL); beacon(c, "10.1.2.3", 443, [15] * 5)  # 6 connects, span 75
+    write("R006", "boundary-6-connects", c, [("R006", "10.1.2.3:443", P, 0.6)], {P: 30})
+    # 6 connects, gaps 17.2/22.8: mean 19.44, sd 2.743, cv 0.141 -> fires
+    c = Case(); c.proc(P, TOOL); beacon(c, "10.1.2.3", 443, [17.2, 22.8, 17.2, 22.8, 17.2, 22.8])
+    write("R006", "boundary-cv-0.14", c, [("R006", "10.1.2.3:443", P, 0.6)], {P: 30})
+    # gaps 16.8/23.2: cv 0.162 at 6 connects and 0.160 at 7 -> never fires
+    c = Case(); c.proc(P, TOOL); beacon(c, "10.1.2.3", 443, [16.8, 23.2, 16.8, 23.2, 16.8, 23.2])
+    write("R006", "boundary-cv-0.16", c, [], {P: 0})
+
+
+def r007():
+    # w 0.5, c 0.7 -> 35
+    c = Case(); c.proc(P, TOOL)
+    for port in range(20000, 20030):
+        c.connect(P, "127.0.0.1", port)
+    write("R007", "pos-ports-one-addr", c, [("R007", "fanout", P, 0.7)], {P: 35})
+    c = Case(); c.proc(P, TOOL)
+    for i in range(1, 51):
+        c.connect(P, "10.0.0.%d" % i, 80)
+    write("R007", "pos-addrs-one-port", c, [("R007", "fanout", P, 0.7)], {P: 35})
+    c = Case(); c.proc(P, TOOL)
+    for a in range(1, 6):
+        for port in range(1000, 1020):
+            c.connect(P, "10.0.0.%d" % a, port)
+    write("R007", "pos-100-destinations", c, [("R007", "fanout", P, 0.7)], {P: 35})
+    c = Case(); c.proc(P, TOOL)
+    for i in range(1, 50):
+        c.connect(P, "10.0.0.%d" % i, 80)
+    write("R007", "neg-49-addrs", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for i in range(30):
+        c.connect(P, "10.0.0.1", 443)
+    write("R007", "neg-same-destination", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for port in range(20000, 20030):
+        c.connect(P, "127.0.0.1", port, gap_ns=SEC // 2)  # at most 21 in any 10 s
+    write("R007", "neg-slow-scan", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for port in range(20000, 20024):
+        c.connect(P, "127.0.0.1", port)
+    write("R007", "boundary-24-ports", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for port in range(20000, 20025):
+        c.connect(P, "127.0.0.1", port)
+    write("R007", "boundary-25-ports", c, [("R007", "fanout", P, 0.7)], {P: 35})
+
+
+def r008():
+    # w 0.3, c 0.6 -> 18
+    c = Case(); c.proc(P, TOOL)
+    for t in (1, 2, 3):
+        c.budget(t, [(P, 100)])
+    write("R008", "pos-three-seconds", c, [("R008", "flood", P, 0.6)], {P: 18})
+    c = Case(); c.proc(P, TOOL)
+    for t in range(1, 6):
+        c.budget(t, [(P, 100)])
+    write("R008", "pos-five-seconds-one-finding", c, [("R008", "flood", P, 0.6)], {P: 18})
+    c = Case(); c.proc(P, TOOL); c.proc(501, TOOL)
+    for t in (1, 2, 3):
+        c.budget(t, [(P, 5), (501, 7)])
+    write("R008", "pos-two-processes", c, [("R008", "flood", P, 0.6), ("R008", "flood", 501, 0.6)], {P: 18, 501: 18})
+    c = Case(); c.proc(P, TOOL)
+    for t in (1, 2, 4):
+        c.budget(t, [(P, 100)])
+    write("R008", "neg-gap-in-seconds", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for t in (1, 2, 3):
+        c.budget(t, [(P, 0)])
+    write("R008", "neg-zero-drops", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL); c.proc(501, TOOL)
+    for t in (1, 2, 3):
+        c.budget(t, [(501 if t == 2 else P, 50)])
+    write("R008", "neg-interrupted-by-other-process", c, [], {P: 0, 501: 0})
+    c = Case(); c.proc(P, TOOL)
+    for t in (1, 2):
+        c.budget(t, [(P, 100)])
+    write("R008", "boundary-two-seconds", c, [], {P: 0})
+    c = Case(); c.proc(P, TOOL)
+    for t in (1, 2):
+        c.budget(t, [(P, 100)])
+    c.budget(3, [(501, 1)])
+    for t in (4, 5, 6):
+        c.budget(t, [(P, 100)])
+    write("R008", "boundary-restart-after-reset", c, [("R008", "flood", P, 0.6)], {P: 18})
+
+
 if __name__ == "__main__":
-    for r in ("R001", "R002", "R003", "R004", "R012"):
+    for r in ("R001", "R002", "R003", "R004", "R005", "R006", "R007", "R008", "R012"):
         shutil.rmtree(os.path.join(ROOT, r), ignore_errors=True)
-    r001(); r002(); r003(); r004(); r012()
+    r001(); r002(); r003(); r004(); r012(); r005(); r006(); r007(); r008()
     print("wrote fixtures under", os.path.normpath(ROOT))

@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R005",
+      "subject": "mass_rewrite",
+      "tgid": 500,
+      "confidence": 0.5
+    }
+  ],
+  "scores": {
+    "500": 40
+  }
+}

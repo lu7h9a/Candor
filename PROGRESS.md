@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP17 Rules R005-R008   Status: IN_PROGRESS
-Next action: windowed rules R005-R008 with bounded per-process state and fixtures (19/20 files, CV 0.14/0.16, 5/6 connects)
+Milestone: M0   Current WP: WP18 False-positive evaluation   Status: IN_PROGRESS
+Next action: WP18 needs recordings from the live daemon (root) -> blocked; continue with WP19 GUI model
 Open questions for owner: Q1, Q2
 Tree state: clean after WP00 commit
 Last green gate: none yet
@@ -16,7 +16,7 @@ Last green gate: none yet
 | WP02 | Protocol crate | DONE | host | | | |
 | WP03 | VM harness | DONE | debian12, ubuntu2204, ubuntu2404 | WP03 commit | fedora/arch refused by E5 RAM guard (Q2), in UNVERIFIED.md |
 | WP04 | BPF skeleton + lifecycle | BLOCKED(E1) | debian12 | WP04 commit | debian12 verify PASS; host pending Q1; ubuntu2204 refused by E5 guard |
-| WP05 | Ground-truth workload + harness | BLOCKED(E1) | | WP05 commit | code done; VM run waits for E5 RAM line (Q2), host for Q1 |
+| WP05 | Ground-truth workload + harness | BLOCKED(E1) | debian12 | WP17 commit | debian12 itests 5/5 PASS; host `make test-root` pending Q1 |
 | WP06 | File events | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
 | WP07 | Network events | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
 | WP08 | Syscall stats | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
@@ -28,7 +28,7 @@ Last green gate: none yet
 | WP14 | Overhead benchmarks | TODO | | | needs root (Q1) |
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
 | WP16 | Rules R001-R004, R012 | BLOCKED(E1) | host (fixtures) | WP16 commit | 40 replay fixtures PASS; simulator end-to-end needs the live daemon (WP12, root) |
-| WP17 | Rules R005-R008 | TODO | | | |
+| WP17 | Rules R005-R008 | BLOCKED(E1) | host (fixtures) | WP17 commit | 36 new fixtures PASS; simulator end-to-end needs live daemon; R006 simulator conflict noted |
 | WP18 | False-positive evaluation | TODO | | | |
 | WP19 | GUI model + transport | TODO | | | |
 | WP20 | GUI views | TODO | | | |
@@ -72,6 +72,9 @@ Last green gate: none yet
 - 2026-11-13 WP15: path pattern semantics: "*" never crosses "/"; a pattern without "/" matches the file name only (so "*.kdbx" and "wallet.dat" match anywhere). Config files use deny_unknown_fields (the protocol does not).
 
 ## Deviations from the plan
+- 2026-11-13 WP17: limits.rs gained MAX_EVIDENCE_IDS (1000), WINDOW_ENTRIES (4096), BEACON_POINTS (64) - new caps required by I8 for finding evidence lists and rule windows; no existing value changed - allowed: plan 4.6 is silent on these
+- 2026-11-13 WP17: PLAN CONFLICT (not resolved, recorded): 5.7(2) says network simulators talk only to 127.0.0.0/8 and WP17 specifies `sim/beacon.py` with a local listener, but R006 (5.4) only counts non-loopback destinations, so that simulator cannot trigger R006. Kept R006 exactly as specified; beacon.py is loopback-only as specified; R006 positives are covered by replay fixtures with 10.1.2.3 / 93.184.216.34. The end-to-end R006 check (blocked by Q1 anyway) needs an owner decision or a test-only rules override that allows loopback - to be raised if it is still open when WP17's end-to-end part is unblocked.
+- 2026-11-13 WP17: R005 "for one process tree" implemented as: each event counts for its process and for that process's direct parent (bounded; avoids flagging systemd for unrelated services). R005 simulator files live in its own dir, so the end-to-end test must add that dir to R005 `roots` via a test rules override (like R004).
 - 2026-11-13 WP15: added field `subject` to protocol `Finding` (it is part of the de-duplication key and of the "To silence" allowlist line in 5.6). Plan 4.5 says additive fields do not bump `proto`, and also that changing a golden file requires a bump; treated as additive: `#[serde(default)]` so older peers still decode, goldens Alert/Detail/GhReport.json regenerated (diff = exactly one `"subject"` line each), proto stays 1 - allowed by the additive-field rule
 - 2026-11-13 WP11: plan says measure the 1M-event replay with `/usr/bin/time -v` -> the `time` package is not installed and not pre-authorised, so the replay example prints VmHWM from /proc/self/status (the value time -v reports as maximum RSS) and its own wall time - allowed: same measurement, different reader
 - 2026-11-13 WP03: plan says images are verified by SHA256 -> Debian only publishes SHA512SUMS for its cloud images, so debian12 is verified with SHA-512; the others with SHA-256 - published checksum files, fetched over HTTPS from the official origin - allowed: the intent (verify against the published checksum) is met
@@ -222,3 +225,32 @@ test result: ok. 1 passed; 0 failed; 0 ignored    (40 fixtures, 5 rules x 3/3/2)
 ```
 `make lint` and `make test` green.
 Result: PASS for fixtures. Simulator end-to-end (expected finding with evidence ids from the live daemon) BLOCKED(E1): needs WP12 daemon and root.
+
+### 2026-11-13 09:40 WP05 Ground-truth workload + harness (verify)
+Did: debian12 VM run of the itest binary (built on the host, shipped by `make itest-bin`). First run: 3/5 pass; two tests wrongly assumed wl's own exec happens before tracing (it is observed, correctly). Tightened the assertions (wl has exactly one exec of its own; children never exec / exactly one fileless exec) - stronger, not weaker. Leader-exits-first case confirms the WP04 EXIT signal: exactly one EXIT, emitted by the surviving non-leader thread.
+Verify command: `make itest-bin && vm/run.sh debian12 "$(cat vm/tests/wp05_itest.sh)"`
+Verify output (trimmed, real):
+```
+== sysscope-itest-lifecycle
+/opt/sysscope/bin/sysscope-itest-lifecycle: /lib/x86_64-linux-gnu/libc.so.6: weak version `GLIBC_2.39' not found (required by ...)   <- weak symbol warning only; the binary runs
+test exec_100_children_exactly ... ok
+test fork_100_without_exec ... ok
+test leader_exiting_first_gives_one_exit_from_the_last_thread ... ok
+test memfd_exec_is_fileless ... ok
+test threads_are_not_processes ... ok
+test result: ok. 5 passed; 0 failed; 0 ignored; finished in 8.27s
+dmesg: no new bpf/BUG/WARNING/RCU lines
+```
+Result: PASS on debian12. Host `make test-root`: BLOCKED(E1).
+
+### 2026-11-13 09:50 WP17 Rules R005-R008
+Did: core rules/windows.rs: R005 (rename-after-write or unlink-after-new-sibling, common-extension share, truncate-existing across dirs; user-data roots minus excluded components; event time), R006 (per (exe, addr, port), BEACON_POINTS timestamps, CV of intervals, public-address confidence, max_keys LRU via an index), R007 (incremental distinct-destination counts), R008 (BudgetDrops input, consecutive seconds, evidence = latest event). Finding evidence ids capped (MAX_EVIDENCE_IDS). 36 more fixtures incl. boundaries 19/20 files, 12 s vs 10 s window, CV 0.14/0.16, 5/6 connects, 24/25 ports, 2/3 seconds. Cap tests: R006 keys = max_keys, R005/R007 windows = WINDOW_ENTRIES. Simulators ransom_sim.py, beacon.py, portscan.py (marker-guarded, own dir / loopback only). Performance: first version re-scanned windows per event (cap test 144 s in debug); now incremental (1.0 s).
+Verify command: `cargo test -p sysscope-core` (rule_fixtures, windows, detect)
+Verify output (trimmed, real):
+```
+test result: ok. 10 passed; 0 failed   (detect.rs incl. evidence_ids_per_finding_are_capped)
+test result: ok. 1 passed; 0 failed    (rule_fixtures: 76 fixtures, 9 rules, each >= 3 pos / 3 neg / 2 boundary)
+test result: ok. 2 passed; 0 failed; finished in 1.00s   (windows.rs caps)
+```
+`make lint` and `make test` green.
+Result: PASS for fixtures and caps; simulator end-to-end BLOCKED(E1) (needs the live daemon).

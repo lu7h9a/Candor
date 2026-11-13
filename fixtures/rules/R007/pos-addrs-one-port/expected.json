@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R007",
+      "subject": "fanout",
+      "tgid": 500,
+      "confidence": 0.7
+    }
+  ],
+  "scores": {
+    "500": 35
+  }
+}

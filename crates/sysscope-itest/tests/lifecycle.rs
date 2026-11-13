@@ -52,9 +52,16 @@ fn exec_100_children_exactly() {
 
 #[test]
 fn fork_100_without_exec() {
-    let (_m, ev) = run_wl(&["fork", "100"]).unwrap();
+    let (m, ev) = run_wl(&["fork", "100"]).unwrap();
+    let root = wl_key(&m);
     assert_eq!(count(&ev, "Fork"), 100);
-    assert_eq!(count(&ev, "Exec"), 0);
+    // The only exec is wl's own start; the forked children never exec.
+    let execs: Vec<_> = ev
+        .iter()
+        .filter(|e| matches!(e.kind, EventKind::Exec { .. }))
+        .collect();
+    assert_eq!(execs.len(), 1);
+    assert_eq!(execs[0].proc, root);
     assert_eq!(count(&ev, "Exit"), 101); // 100 children + wl
 }
 
@@ -87,9 +94,22 @@ fn leader_exiting_first_gives_one_exit_from_the_last_thread() {
 
 #[test]
 fn memfd_exec_is_fileless() {
-    let (_m, ev) = run_wl(&["memfd-exec"]).unwrap();
+    let (m, ev) = run_wl(&["memfd-exec"]).unwrap();
+    let root = wl_key(&m);
+    // wl's own exec is a normal file exec.
+    let own: Vec<_> = ev
+        .iter()
+        .filter(|e| e.proc == root)
+        .filter_map(|e| match &e.kind {
+            EventKind::Exec { fileless, .. } => Some(*fileless),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(own, vec![false]);
+    // The child's exec from the memfd is the only exec below wl.
     let execs: Vec<_> = ev
         .iter()
+        .filter(|e| e.proc != root)
         .filter_map(|e| match &e.kind {
             EventKind::Exec { fileless, exe, .. } => Some((*fileless, exe.escaped())),
             _ => None,

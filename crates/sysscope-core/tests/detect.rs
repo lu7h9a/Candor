@@ -327,3 +327,19 @@ fn explanation_matches_golden_text() {
         Err(e) => panic!("missing {}: {e}", path.display()),
     }
 }
+
+#[test]
+fn evidence_ids_per_finding_are_capped() {
+    let p = key(6);
+    let s = state_with(p, "/tmp/x", false);
+    let mut d = detector();
+    for i in 0..(sysscope_core::limits::MAX_EVIDENCE_IDS as u64 + 500) {
+        d.raise(
+            &s,
+            hit("R001", p, "ssh_keys", 0.9, open(i + 10, SEC, p, "/k")),
+        );
+    }
+    let f = d.findings().next().unwrap();
+    assert_eq!(f.evidence.len(), sysscope_core::limits::MAX_EVIDENCE_IDS);
+    assert_eq!(f.evidence_events.len(), 10);
+}

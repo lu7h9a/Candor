@@ -1,0 +1,20 @@
+{
+  "findings": [
+    {
+      "rule": "R008",
+      "subject": "flood",
+      "tgid": 500,
+      "confidence": 0.6
+    },
+    {
+      "rule": "R008",
+      "subject": "flood",
+      "tgid": 501,
+      "confidence": 0.6
+    }
+  ],
+  "scores": {
+    "500": 18,
+    "501": 18
+  }
+}

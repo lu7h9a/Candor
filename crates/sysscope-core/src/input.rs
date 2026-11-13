@@ -76,6 +76,14 @@ pub enum Input {
         /// (dev, ino) pairs.
         inodes: Vec<(u64, u64)>,
     },
+    /// Per-process kernel budget drops during the second ending at `ts_ns`
+    /// (R008 and ProcRow.ev_dropped). Processes without drops are omitted.
+    BudgetDrops {
+        /// End of the one-second interval (boot ns).
+        ts_ns: u64,
+        /// (process, events dropped in that second).
+        drops: Vec<(ProcKey, u64)>,
+    },
     /// Time passes (retention, rules).
     Tick {
         /// Current time (boot ns).

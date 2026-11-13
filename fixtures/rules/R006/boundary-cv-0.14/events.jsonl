@@ -1,0 +1,10 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 18202000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 41002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 58202000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 6, "ts_ns": 81002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 7, "ts_ns": 98202000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 8, "ts_ns": 121002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}

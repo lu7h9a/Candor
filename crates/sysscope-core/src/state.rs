@@ -95,6 +95,14 @@ impl State {
             Input::Samples { ts_ns, samples } => self.apply_samples(*ts_ns, samples),
             Input::Loss { loss } => self.loss = *loss,
             Input::Decoys { .. } => {} // used by the engine (rules), not the state
+            Input::BudgetDrops { ts_ns, drops } => {
+                self.advance(*ts_ns);
+                for (k, n) in drops {
+                    if let Some(p) = self.procs.get_mut(k) {
+                        p.ev_dropped = p.ev_dropped.saturating_add(*n);
+                    }
+                }
+            }
             Input::ExeMeta {
                 proc,
                 trusted,

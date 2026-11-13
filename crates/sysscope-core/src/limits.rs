@@ -28,5 +28,11 @@ pub const PER_PROC_SYSCALLS: usize = 1024;
 /// A live process missing from this many consecutive full /proc scans is
 /// treated as exited (its EXIT event may have been lost).
 pub const MISSED_SCANS_TO_EXIT: u32 = 2;
+/// Evidence event ids kept per finding; later ones are counted only.
+pub const MAX_EVIDENCE_IDS: usize = 1000;
+/// Entries kept in one sliding window of a windowed rule (R005, R007).
+pub const WINDOW_ENTRIES: usize = 4096;
+/// Connect timestamps kept per (exe, destination) for R006.
+pub const BEACON_POINTS: usize = 64;
 /// Clock ticks per second used by /proc (USER_HZ).
 pub const CLK_TCK: u64 = 100;
