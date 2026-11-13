@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M4   Current WP: WP24   Status: IN_PROGRESS
-Next action: WP24 - check path shape, box attribution and the demo counts in the debian12 VM, then daemon upload + helper + differ + report + CLI + GUI tab
+Milestone: M4   Current WP: WP25   Status: IN_PROGRESS
+Next action: WP25 - adversarial suite (testkit/hostile, VM-only guard, differ torture), then Gate M4 with a Glasshouse-attacking review
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -35,7 +35,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP21 | Follow UX, loss, robustness | DONE | host (Xvfb, fake daemon) | WP21 commit | GUI threads 6-7 % CPU, 125 MiB; real-GPU check left to the owner |
 | WP22 | Decoys + manifest | DONE | host | WP22 commit | 42 decoys per plan 6.2 |
 | WP23 | Launcher | BLOCKED(E1) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run pending Q1 |
-| WP24 | Trace integration, differ, report, UI | TODO | | | |
+| WP24 | Trace integration, differ, report, UI | BLOCKED(E1) | debian12 + ubuntu2204 exact demo report and attribution; ubuntu2404 correctly unavailable | WP24 commit | host run pending Q1 |
 | WP25 | Adversarial suite | TODO | | | |
 | WP26 | Real-sample protocol | TODO | | | |
 | WP27 | Act mode (experimental) | TODO | | | |
@@ -75,6 +75,12 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 - 2026-11-13 WP07: CONNECT copies a constant 128 bytes of the kernel sockaddr (the syscall path keeps it in a 128-byte sockaddr_storage) and records min(addrlen,128) as its length: a computed-length copy was rejected by the 6.1 and 5.15 verifiers after clang dropped the mask.
 - 2026-11-13 WP09: the budget map value also counts ring-buffer-full drops per tgid (`rb_dropped`), so the loss identity can be checked per process system-wide and ProcRow.ev_dropped can include both reasons.
 - 2026-11-13 setup: .cargo/config.toml sets C_INCLUDE_PATH / LIBBPF_SYS_LIBRARY_PATH to target/sysroot (relative) so plain `cargo` works, not only `make`.
+- 2026-11-13 WP24: box attribution = the box unit's main pid (stage2, which execs bubblewrap) plus everything forked from it (Fork events in kernel order); no cgroup id in the event header, so no BPF change. The box cgroup id is still put into `followed_cgroup`, so a run is fully traced while the user follows something else (checked: identical report while following an unrelated `sleep`).
+- 2026-11-13 WP24: the generated home gets a plain, non-decoy `~/.bashrc`, and the differ gets a full pre-run baseline of non-decoy files. This makes "tries to write ~/.bashrc" reach R004 (an open without O_CREAT on a missing file never reaches security_file_open) while "exactly 1 created" still holds. The changed `.bashrc` is reported as a note ("pre-existing non-decoy file changed").
+- 2026-11-13 WP24: the attribution check counts data opens. Under `strace -f` the box makes 134 successful opens, 14 of them O_PATH (bwrap mount setup). O_PATH opens give no access to file data and never reach security_file_open, so the comparison is 120 strace data opens = 120 traced opens. The calibration needs ptrace, which the seccomp filter refuses, so it is a separate `run-local --calibrate` run without the seccomp filters. The daemon has no way to request this mode.
+- 2026-11-13 WP24: the sample name, arguments and timeout travel in a job file (`RUNS/<id>.job.json`, then `<run>/job.json`), not on the systemd-run command line, so systemd never expands `$`/`%` in untrusted text. The helper protocol (`sysscope_proto::helper`) uses deny_unknown_fields and a 16 MiB line cap. A report timeline keeps 20 000 events; a report frame over 16 MiB is shrunk by halving the timeline, with a note.
+- 2026-11-13 WP24: protocol additions are additive and defaulted, as WP15 did: GhStatus.decoys (live tiles), CreatedFile.kind, GhReport.notes. Goldens GhStatus/GhReport were re-blessed (diff = only those lines); proto stays 1.
+- 2026-11-13 WP24: the GUI file picker is an in-window directory browser (no native dialog dependency). Hidden files and names that would need escaping are not listed; any path can still be typed.
 
 ## Deviations from the plan
 - 2026-11-13 WP21: GUI CPU budget (< 10 % of one core) is measured on the GUI's own threads; under Xvfb, Mesa's llvmpipe threads do the rasterising that a GPU does on real hardware, and the whole process including them uses ~33 %. Real-GPU measurement is a human check (UNVERIFIED.md)
@@ -469,3 +475,76 @@ debian12: cli 5, files 5, follow 4, lifecycle 5, network 1, proc 3, server 7 (in
 ```
 (The GLIBC_2.39 weak-version line before each itest binary is the known loader warning recorded above; the binaries run.)
 Result: PASS (M3 gate slice). The full gate (`make test-root` on the host) and the v0.1.0 tag stay BLOCKED(E1) on Q1.
+
+### 2026-11-13 22:30 WP24 Trace integration, differ, report, UI
+Did:
+- **Daemon (`glasshouse.rs`).** Uploads are streamed to `/var/lib/sysscope/glasshouse/<id>.sample` (0600; strict base64, chunks in order, declared size enforced). The sample name is sanitised. Name, args and timeout go in a job file. The helper is started as `systemd-run --wait --pipe sysscope-glasshouse run <id>`, and its stdout is parsed strictly (16 MiB line cap, deny_unknown_fields). On the helper's Need, the daemon:
+  - records the box root ProcKey from /proc;
+  - sets the decoy set for R012;
+  - has the poller put the cgroup into `followed_cgroup` and rewrite run-dir rename/unlink paths to what the sample sees (`/home/victim/...`, `/etc/...`), and only then answers Go.
+  - Events from the box tree are attributed through Fork lineage. They fill the timeline (cap 20 000) and live decoy states (pushed at most every 300 ms). `~` is the sandbox home for box processes.
+  - The report merges trace reads into the differ's states and adds connections, processes, findings of box processes, loss during the run, notes and the 6.4 text. It is sent to the client and saved 0640 root:sysscope in `/var/lib/sysscope/reports`.
+  - The Welcome feature `glasshouse` is offered only if the helper's real probe succeeds.
+- **Helper.** `run` (daemon-driven), `diff` (as sysscope-box, refuses root), `run-local [--calibrate]`, and stage2 reading `job.json`. The kill is `systemctl kill SIGKILL` at the timeout or on cancel. The differ runs only after the box cgroup is gone.
+- **Differ (`differ.rs`).** Per-component O_NOFOLLOW, lstat only, regular files opened with NONBLOCK and inode re-check. Caps: 20 000 entries, 64 MiB per file, 30 s, depth 64. States are renamed (same inode), modified (hash), deleted (missing inode, only if the walk completed) and created (inode not in manifest or baseline). Other types are listed but never opened.
+- **Core.** `ghreport` (text report, entropy sentence, counts) and `GLASSHOUSE_LIMITATION`, checked verbatim against MASTER_PLAN.md by a test.
+- **Proto.** `helper` line protocol, strict `b64`, and additive fields (GhStatus.decoys, CreatedFile.kind, GhReport.notes).
+- **CLI.** `sysscope glasshouse run [--timeout S] FILE [ARGS]`: prints the 6.4 text, uploads bytes, shows progress, then the report as text or `--json`.
+- **GUI Glasshouse page.** 6.4 text always on top, in-window file picker, args, timeout, run/cancel, live decoy grid (word and colour), report with before/after table, connections, findings, notes, timeline and export (txt + json, create_new). New flag `--page glasshouse`.
+- **Demo and tests.** `testkit/sim/fake_malware.py` refuses to run unless HOME=/home/victim and hostname=glasshouse. Also added: `vm/embed.sh`, `vm/tests/wp24_glasshouse.sh`, the fixtures `fixtures/gui/glasshouse.report.json` (real VM report) and `glasshouse.frames.jsonl` (`scripts/gen_gh_fixture.py`), and the `glasshouse-report` state in `make gui-shot`.
+Verify command: `make lint && make test && make release`, then for each of debian12 and ubuntu2204: `vm/run.sh <d> "$(vm/embed.sh testkit/sim/fake_malware.py:/tmp/fake_malware.py)
+$(cat vm/tests/wp24_glasshouse.sh)"`; the same on ubuntu2404; `bash scripts/gui-shots.sh`
+Verify output (trimmed, real):
+```
+== debian12 (kernel 6.1, systemd 252, bubblewrap 0.8.0)
+OK   daemon offers glasshouse
+read: ['/home/victim/.aws/credentials', '/home/victim/.ssh/id_ed25519']
+modified+renamed: 20 entropy rose: 20 e.g. 4.17 -> 7.94
+deleted: 10 created: [('/home/victim/README_RESTORE.txt', 'file')]
+connections: [('203.0.113.10', 443, 1)]
+findings: ['R001', 'R004', 'R005', 'R012']
+loss: {'ringbuf': 0, 'budget': 0, 'scratch': 0, 'decode': 0, ...} notes: ['pre-existing non-decoy file changed: /home/victim/.bashrc'] exit: 0 timed_out: False
+OPENS_FROM_BWRAP 120 timeline 162 processes 3
+REPORT PASS
+decoys: 2 read, 20 modified, 20 renamed, 10 deleted (of 42); 1 new file(s); 1 connection attempt(s)
+  /home/victim/Documents/file00.docx  [modified, renamed]
+      now named /home/victim/Documents/file00.docx.locked
+      size 1889 -> 1889 bytes, entropy 4.2 -> 7.9 bits/byte
+      entropy rose from 4.2 to 7.9 bits/byte, consistent with encryption or compression
+== 2. calibration (strace -f, successful opens only, seccomp off, run-local)
+successful opens under strace: 134, of which O_PATH (no data access, never reach security_file_open): 14, data opens: 120
+daemon trace opens from bwrap on: 120 (budget+ringbuf drops 0)
+OK   every data open of the box is attributed
+== 3. demo run while following an unrelated process
+following pid 1283 (1 processes)
+OPENS_FROM_BWRAP 120 timeline 162 processes 3
+REPORT PASS
+leftover entries in /var/lib/sysscope/glasshouse: 0
+      3 -rw-r----- root sysscope        (one saved report per run)
+WP24 GLASSHOUSE PASS
+== ubuntu2204 (kernel 5.15): same counts and findings; strace 151 successful opens, 14 O_PATH, 137 data opens = 137 traced; REPORT PASS x2; WP24 GLASSHOUSE PASS
+== ubuntu2404: unavailable: bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted (kernel.apparmor_restrict_unprivileged_userns = 1 ...)
+   sysscope: Glasshouse is not available on this system (the daemon does not offer it; ...)   WP24 UNAVAILABLE-CORRECTLY PASS
+make lint: clean; make test: all ok (glasshouse 12 incl. differ x3, core incl. ghreport x2, proto incl. b64 x2 + helper, cli 4, gui 11 lib + ui 4 incl. glasshouse_page_shows_the_report, sysscoped incl. mounts glasshouse rewrite)
+gui-shots: target/shots/glasshouse-report.png 1400x900 1620 colours OK (and the 6 WP20 states OK)
+```
+Screenshot (glasshouse-report.png, opened and checked):
+- Top bar: "Processes | Glasshouse" (Glasshouse selected).
+- The full 6.4 text in white on an amber band.
+- Form: Program file with Browse..., Arguments, Timeout 60. "Run in Glasshouse" is disabled (replay, no daemon). Status line: "run 1794547283-1: finished. report saved to /var/lib/sysscope/reports/1794547283-1.json".
+- "Decoys: 32 of 42 touched", then 42 tiles, 7 per row, each with the file name and the state as a word:
+  - id_ed25519 and credentials: "read" (amber);
+  - file00-19: "modified, renamed" (orange);
+  - photo00-09: "deleted" (red);
+  - the rest "untouched" (green).
+- "Report: fake_malware.py (exited with code 0)" and "2 decoys read, 20 modified, 20 renamed, 10 deleted; 1 new file(s); 1 connection attempt(s); 6 finding(s)".
+- A striped Before/after table: Decoy (old -> new name), What happened, Size before -> after, Entropy before -> after. Each document row shows 4.2 -> 7.9 "(consistent with encryption or compression)".
+All text is legible.
+Bugs found on the way:
+- Rename/unlink paths came out as `/home/Documents/...`, because the run tmpfs was not in the mount table. Fixed with per-run path rewrites set before Go.
+- The box user's host home "/" broke the `~/` classes. Fixed: box processes get /home/victim.
+- A second run right after the first got "busy". Fixed: the run slot is freed once the report is sent.
+- My first calibration miscounted strace's table and included O_PATH opens. Replaced by a per-open strace log.
+- `vm/embed.sh` output lost its last newline in `$(...)`.
+- I had run some unit tests with Debian's cargo 1.94 instead of the pinned 1.100. All results above are from `make` (pinned toolchain).
+Result: PASS in VMs (debian12, ubuntu2204; ubuntu2404 correctly unavailable). Host run BLOCKED(E1) on Q1.

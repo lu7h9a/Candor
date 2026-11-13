@@ -94,6 +94,8 @@ struct Core {
     welcome: DaemonMsg,
     record: Option<std::io::BufWriter<std::fs::File>>,
     seq: u64,
+    gh: crate::glasshouse::Glasshouse,
+    last_loss: sysscope_proto::Loss,
 }
 
 impl Core {
@@ -112,7 +114,9 @@ impl Core {
 
     fn on_poller(&mut self, msg: PollerMsg) {
         match msg {
+            PollerMsg::GhReady => self.gh.ready(),
             PollerMsg::Event(ev) => {
+                self.gh.observe(&ev);
                 for c in self.clients.values().filter(|c| c.hello) {
                     let wanted = match c.events {
                         EventSub::Simple(EventSubMode::All) => true,
@@ -132,7 +136,12 @@ impl Core {
                 if let Some(exe) = exec {
                     let (trusted, system_dir, world_writable_dir) =
                         hostinfo::exe_facts(key, &exe, crate::follow::start_of(key.tgid));
-                    let home = self.homes.get(&uid).cloned().unwrap_or_default();
+                    // Inside the Glasshouse box "~" is the sandbox home.
+                    let home = if self.gh.in_box(&key) {
+                        b"/home/victim".to_vec()
+                    } else {
+                        self.homes.get(&uid).cloned().unwrap_or_default()
+                    };
                     self.apply(Input::ExeMeta {
                         proc: key,
                         trusted,
@@ -142,7 +151,10 @@ impl Core {
                     });
                 }
             }
-            PollerMsg::Loss(loss) => self.apply(Input::Loss { loss }),
+            PollerMsg::Loss(loss) => {
+                self.last_loss = loss;
+                self.apply(Input::Loss { loss });
+            }
             PollerMsg::Drops { ts_ns, per_proc } => {
                 self.apply(Input::BudgetDrops {
                     ts_ns,
@@ -207,6 +219,7 @@ impl Core {
                 );
             }
             ClientCmd::Gone { id } => {
+                self.gh.client_gone(id);
                 if let Some(c) = self.clients.remove(&id) {
                     c.queue.close();
                 }
@@ -317,17 +330,89 @@ impl Core {
                 ok: false,
                 message: "act mode is not enabled (sysscoped --enable-act)".into(),
             }),
-            ClientMsg::GhUploadBegin { .. }
-            | ClientMsg::GhUploadChunk { .. }
-            | ClientMsg::GhRun { .. }
-            | ClientMsg::GhCancel {} => q.put_reply(DaemonMsg::Error {
-                code: "unavailable".into(),
-                message: "Glasshouse is not available in this build".into(),
-            }),
+            ClientMsg::GhUploadBegin { name, size } => {
+                for m in self.gh.begin(id, &name, size) {
+                    q.put_reply(m);
+                }
+            }
+            ClientMsg::GhUploadChunk { seq, b64 } => {
+                for m in self.gh.chunk(id, seq, &b64) {
+                    q.put_reply(m);
+                }
+            }
+            ClientMsg::GhRun { args, timeout_s } => {
+                for m in self.gh.start(id, &args, timeout_s, self.last_loss) {
+                    q.put_reply(m);
+                }
+            }
+            ClientMsg::GhCancel {} => {
+                for m in self.gh.cancel(id) {
+                    q.put_reply(m);
+                }
+            }
+        }
+    }
+
+    fn gh_effects(&mut self, fx: &crate::glasshouse::Effects) {
+        for cmd in &fx.poller {
+            // The poller channel is small; these commands must not be lost
+            // (a lost GhBox would leave the box waiting for Go).
+            let _ = self.poller.send(cmd.clone());
+        }
+        if let Some(inodes) = &fx.decoys {
+            self.apply(Input::Decoys {
+                inodes: inodes.clone(),
+            });
+        }
+    }
+
+    /// One message from a Glasshouse helper thread.
+    fn on_gh(&mut self, ev: crate::glasshouse::GhEvent) {
+        let now = crate::sampler::boot_ns();
+        let fx = self.gh.on_helper(ev, now);
+        self.gh_effects(&fx);
+        if fx.finish {
+            let procs = self.gh.box_procs();
+            let findings: Vec<sysscope_proto::Finding> = self
+                .engine
+                .detector
+                .findings()
+                .filter(|f| procs.contains(&f.proc))
+                .cloned()
+                .collect();
+            if let Some((owner, report)) = self.gh.report(findings, self.last_loss, now) {
+                let saved = match crate::glasshouse::save_report(&report) {
+                    Ok(p) => format!("report saved to {}", p.display()),
+                    Err(e) => format!("the report could not be saved: {e}"),
+                };
+                let run_id = report.run_id.clone();
+                if let Some(c) = self.clients.get(&owner) {
+                    c.queue
+                        .put_reply(fit_report(DaemonMsg::GhReport { report }));
+                    c.queue.put_reply(DaemonMsg::GhStatus {
+                        state: sysscope_proto::GhState::Finished,
+                        run_id,
+                        message: saved,
+                        decoys: Vec::new(),
+                    });
+                }
+            }
+            let done = self.gh.finished();
+            self.gh_effects(&done);
+        }
+        for (owner, msg) in fx.replies {
+            if let Some(c) = self.clients.get(&owner) {
+                c.queue.put_reply(msg);
+            }
         }
     }
 
     fn snapshot(&mut self) {
+        if let Some((owner, msg)) = self.gh.live()
+            && let Some(c) = self.clients.get(&owner)
+        {
+            c.queue.put_reply(msg);
+        }
         self.seq += 1;
         let mut msg = self.engine.snapshot(self.seq);
         if let DaemonMsg::Snapshot { mode, procs, .. } = &mut msg
@@ -386,6 +471,35 @@ fn fit_snapshot(mut msg: DaemonMsg) -> Option<Arc<Vec<u8>>> {
         }
     }
     server::snapshot_frame(&msg)
+}
+
+/// A report must fit one frame: the timeline is halved until it does
+/// (the report says so in its notes).
+fn fit_report(mut msg: DaemonMsg) -> DaemonMsg {
+    let size = |m: &DaemonMsg| {
+        sysscope_proto::encode(m)
+            .map(|b| b.len())
+            .unwrap_or(usize::MAX)
+    };
+    while size(&msg) > sysscope_proto::MAX_DAEMON_FRAME as usize {
+        let DaemonMsg::GhReport { report } = &mut msg else {
+            break;
+        };
+        if report.timeline.is_empty() {
+            report.created.truncate(report.created.len() / 2);
+            if report.created.is_empty() {
+                break;
+            }
+            continue;
+        }
+        let keep = report.timeline.len() / 2;
+        let cut = report.timeline.len() - keep;
+        report.timeline.truncate(keep);
+        report.notes.push(format!(
+            "{cut} timeline events were left out so the report fits one message"
+        ));
+    }
+    msg
 }
 
 fn shorten(b: &mut Vec<u8>, max: usize) {
@@ -479,6 +593,7 @@ fn core_loop(
     events: Receiver<PollerMsg>,
     samples: Receiver<Vec<ProcSample>>,
     clients: Receiver<ClientCmd>,
+    gh: Receiver<crate::glasshouse::GhEvent>,
     stop: Arc<AtomicBool>,
 ) {
     let mut next_snapshot = Instant::now() + Duration::from_millis(500);
@@ -511,6 +626,9 @@ fn core_loop(
             },
             recv(clients) -> c => if let Ok(c) = c {
                 core.on_client(c);
+            },
+            recv(gh) -> g => if let Ok(g) = g {
+                core.on_gh(g);
             },
             default(wait) => {}
         }
@@ -547,6 +665,11 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     if load.syscalls {
         features.push("syscalls".into());
     }
+    // Glasshouse is offered only where a real sandbox start works (the
+    // helper's probe; it never changes a system setting).
+    if crate::glasshouse::available() {
+        features.push("glasshouse".into());
+    }
     let boot_to_wall = boot_to_wall_ns();
     let welcome = DaemonMsg::Welcome {
         proto: PROTO_VERSION,
@@ -579,7 +702,10 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     let (cmd_tx, cmd_rx) = crossbeam_channel::bounded::<PollerCmd>(16);
     let (smp_tx, smp_rx) = crossbeam_channel::bounded::<Vec<ProcSample>>(64);
     let (cli_tx, cli_rx) = crossbeam_channel::bounded::<ClientCmd>(1024);
+    let (gh, gh_rx) = crate::glasshouse::Glasshouse::new();
     let core = Core {
+        gh,
+        last_loss: sysscope_proto::Loss::default(),
         engine: Engine::new(rules, allow),
         clients: BTreeMap::new(),
         homes: hostinfo::load_homes(),
@@ -598,7 +724,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     let s2 = Arc::clone(&stop);
     let core_thread = std::thread::Builder::new()
         .name("core".into())
-        .spawn(move || core_loop(core, ev_rx, smp_rx, cli_rx, s2))?;
+        .spawn(move || core_loop(core, ev_rx, smp_rx, cli_rx, gh_rx, s2))?;
     let s3 = Arc::clone(&stop);
     let count = Arc::new(AtomicUsize::new(0));
     let acceptor = std::thread::Builder::new()

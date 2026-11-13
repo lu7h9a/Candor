@@ -6,9 +6,11 @@
 //! it only reads from and writes to things that implement `Read`/`Write`.
 #![forbid(unsafe_code)]
 
+pub mod b64;
 pub mod bstr;
 pub mod float;
 pub mod frame;
+pub mod helper;
 pub mod msg;
 pub mod types;
 

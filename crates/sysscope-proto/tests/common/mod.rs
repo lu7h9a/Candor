@@ -114,6 +114,7 @@ pub fn sample_report() -> GhReport {
             size: 64,
             entropy: 4.5,
             preview: Some(BStr::from("your files are locked (demo)\n")),
+            kind: "file".into(),
         }],
         timeline: vec![sample_event()],
         connections: vec![ConnStat {
@@ -130,6 +131,7 @@ pub fn sample_report() -> GhReport {
         limitation:
             "Glasshouse is a behaviour-demonstration sandbox, not a malware containment system."
                 .into(),
+        notes: vec!["differ stopped at 20000 entries".into()],
     }
 }
 
@@ -302,6 +304,7 @@ pub fn daemon_samples() -> Vec<(&'static str, DaemonMsg)> {
                 state: GhState::Running,
                 run_id: "20261113-0001".into(),
                 message: "sample started".into(),
+                decoys: vec![],
             },
         ),
         (
@@ -789,6 +792,7 @@ pub fn arb_daemon() -> impl Strategy<Value = DaemonMsg> {
                             size,
                             entropy,
                             preview,
+                            kind: "file".into(),
                         })
                         .collect(),
                     timeline,
@@ -797,6 +801,7 @@ pub fn arb_daemon() -> impl Strategy<Value = DaemonMsg> {
                     findings,
                     loss,
                     limitation,
+                    notes: vec![],
                 },
             },
         );
@@ -846,7 +851,8 @@ pub fn arb_daemon() -> impl Strategy<Value = DaemonMsg> {
         (state, ".{0,10}", ".{0,20}").prop_map(|(state, run_id, message)| DaemonMsg::GhStatus {
             state,
             run_id,
-            message
+            message,
+            decoys: vec![],
         }),
         report,
         (any::<bool>(), ".{0,20}").prop_map(|(ok, message)| DaemonMsg::ActResult { ok, message }),

@@ -50,15 +50,34 @@ pub enum PollerMsg {
     },
     /// Result of a follow/unfollow request.
     FollowResult(Result<String, String>),
+    /// A `GhBox` command is in effect (the box may be released).
+    GhReady,
 }
 
 /// Requests the core thread sends to the poller.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum PollerCmd {
     /// Follow the tree of this process.
     Follow(ProcKey),
     /// Back to system-wide.
     Unfollow,
+    /// A Glasshouse box: trace its cgroup even in follow mode, and show
+    /// paths on its run directory as the sample sees them.
+    GhBox {
+        /// cgroup v2 id of the box unit.
+        cgroup: u64,
+        /// (major, minor) of the run directory's tmpfs.
+        majmin: (u32, u32),
+        /// Host path of the run directory.
+        run_dir: Vec<u8>,
+    },
+    /// The box is gone: undo `GhBox`.
+    GhBoxEnd {
+        /// cgroup v2 id of the box unit.
+        cgroup: u64,
+        /// (major, minor) of the run directory's tmpfs.
+        majmin: (u32, u32),
+    },
 }
 
 /// Load-time options.
@@ -253,6 +272,36 @@ pub fn run_poller(
         }
         while let Ok(cmd) = cmds.try_recv() {
             let res = match cmd {
+                PollerCmd::GhBox {
+                    cgroup,
+                    majmin,
+                    run_dir,
+                } => {
+                    mounts.borrow_mut().set_override(
+                        majmin,
+                        vec![
+                            (b"/home".to_vec(), b"/home/victim".to_vec()),
+                            (b"/etc".to_vec(), b"/etc".to_vec()),
+                            (Vec::new(), run_dir),
+                        ],
+                    );
+                    if let Err(e) = col.skel.maps.followed_cgroup.update(
+                        &cgroup.to_le_bytes(),
+                        &1u32.to_le_bytes(),
+                        libbpf_rs::MapFlags::ANY,
+                    ) {
+                        eprintln!(
+                            "sysscoped: adding the Glasshouse cgroup to followed_cgroup: {e}"
+                        );
+                    }
+                    let _ = tx.send(PollerMsg::GhReady);
+                    continue;
+                }
+                PollerCmd::GhBoxEnd { cgroup, majmin } => {
+                    mounts.borrow_mut().clear_override(majmin);
+                    let _ = col.skel.maps.followed_cgroup.delete(&cgroup.to_le_bytes());
+                    continue;
+                }
                 PollerCmd::Follow(root) => col
                     .follow(root)
                     .map(|n| format!("following pid {} ({n} processes)", root.tgid))
@@ -268,7 +317,7 @@ pub fn run_poller(
             next_tick += Duration::from_secs(1);
             let ts_ns = crate::sampler::boot_ns();
             if tick_count.is_multiple_of(10) {
-                *mounts.borrow_mut() = Mounts::load();
+                mounts.borrow_mut().reload();
             }
             tick_count += 1;
             let mut loss = col.loss()?;

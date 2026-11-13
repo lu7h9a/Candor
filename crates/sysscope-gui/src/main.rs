@@ -7,13 +7,14 @@
 //!
 //! Debug flags: --replay FILE [--pace recorded|max|MS], --screenshot PNG
 //! --after-frames N, --select PID, --tab NAME, --socket PATH, --paused,
-//! --shot-at SECONDS:FILE (repeatable; exits after the last one).
+//! --shot-at SECONDS:FILE (repeatable; exits after the last one),
+//! --page processes|glasshouse.
 #![forbid(unsafe_code)]
 
 use std::path::PathBuf;
 use std::time::Duration;
 use sysscope_gui::app::App;
-use sysscope_gui::model::{Action, Tab};
+use sysscope_gui::model::{Action, Page, Tab};
 use sysscope_gui::net::{self, Pace};
 
 fn euid() -> Option<u32> {
@@ -82,6 +83,11 @@ fn main() {
             )),
             "--socket" => sockets = vec![val().into()],
             "--paused" => initial.push(Action::TogglePause),
+            "--page" => initial.push(Action::ShowPage(match val().as_str() {
+                "processes" => Page::Processes,
+                "glasshouse" => Page::Glasshouse,
+                _ => fail("--page processes|glasshouse"),
+            })),
             "--shot-at" => {
                 let v = val();
                 let (t, p) = v

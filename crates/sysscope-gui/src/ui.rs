@@ -7,14 +7,14 @@
 //! label (`status`, `mode`, `search`, `pause`, `export`, `loss`, `procs`,
 //! `detail-<tab>`, `alerts`). Scores are shown as words as well as colour.
 
-use crate::model::{Action, Column, ConnState, Model, RowView, Tab};
+use crate::model::{Action, Column, ConnState, Model, Page, RowView, Tab};
 use egui::{Color32, Response, RichText, Role, Ui, WidgetInfo};
 use sysscope_core::display::{safe, safe_str};
 use sysscope_core::explain;
 use sysscope_proto::{DaemonMsg, Mode};
 
-/// The 6.4 text, shown verbatim on the Glasshouse tab (I13).
-pub const GLASSHOUSE_LIMITS: &str = "Glasshouse is a behaviour-demonstration sandbox, not a malware containment system. The program you run shares this computer's kernel. A kernel or sandbox vulnerability, a CPU side-channel, or a mistake in configuration could let it read your data or take over your account or the machine. Glasshouse does not hide that it is a sandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.";
+/// The 6.4 text, shown verbatim on the Glasshouse page (I13).
+pub const GLASSHOUSE_LIMITS: &str = sysscope_core::explain::GLASSHOUSE_LIMITATION;
 
 /// Product statement (plan section 1).
 pub const STATEMENT: &str = "SysScope shows what programs on your Linux machine are doing and explains why some behaviour looks suspicious. It is a visibility tool with explainable heuristics, not an antivirus, and it cannot be relied on to stop or contain malware.";
@@ -66,6 +66,10 @@ pub fn draw(ui: &mut Ui, m: &Model) -> Vec<Action> {
     if let Some(k) = m.confirm_follow {
         confirm_follow(ui, m, k, &mut acts);
     }
+    if m.page == Page::Glasshouse {
+        egui::CentralPanel::default().show(ui, |ui| crate::ghui::page(ui, m, &mut acts));
+        return acts;
+    }
     if !matches!(m.conn, ConnState::Connected { .. } | ConnState::Replay(_)) && m.rows.is_empty() {
         egui::CentralPanel::default().show(ui, |ui| conn_state(ui, m));
         return acts;
@@ -84,6 +88,15 @@ pub fn draw(ui: &mut Ui, m: &Model) -> Vec<Action> {
 
 fn top_bar(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     ui.horizontal_wrapped(|ui| {
+        for (p, text) in [
+            (Page::Processes, "Processes"),
+            (Page::Glasshouse, "Glasshouse"),
+        ] {
+            if ui.selectable_label(m.page == p, text).clicked() && m.page != p {
+                acts.push(Action::ShowPage(p));
+            }
+        }
+        ui.separator();
         let status = match &m.conn {
             ConnState::Connected {
                 version, kernel, ..
@@ -410,10 +423,7 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         ui.heading("Select a process");
         ui.label("Click a row to see its files, connections, syscalls and findings.");
         ui.separator();
-        ui.collapsing("Glasshouse", |ui| {
-            ui.label("Glasshouse runs a program in a sandbox full of decoy files and reports what it touched. Not available in this build yet.");
-            ui.label(RichText::new(GLASSHOUSE_LIMITS).strong());
-        });
+        ui.label("To run a program in a sandbox full of decoy files and see what it touches, open the Glasshouse page (top left).");
         return;
     };
     let row = m.rows.iter().find(|r| r.key == sel);

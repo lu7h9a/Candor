@@ -11,6 +11,7 @@ pub mod detect;
 pub mod display;
 pub mod engine;
 pub mod explain;
+pub mod ghreport;
 pub mod glob;
 pub mod input;
 pub mod limits;

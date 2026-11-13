@@ -7,8 +7,8 @@
 
 use crate::bstr::BStr;
 use crate::types::{
-    ConnStat, Event, FileStat, Finding, GhReport, Loss, MapRow, Mode, ProcKey, ProcRow, Series,
-    SysStat,
+    ConnStat, DecoyStatus, Event, FileStat, Finding, GhReport, Loss, MapRow, Mode, ProcKey,
+    ProcRow, Series, SysStat,
 };
 use serde::{Deserialize, Serialize};
 
@@ -221,6 +221,10 @@ pub enum DaemonMsg {
         run_id: String,
         /// Human-readable message.
         message: String,
+        /// Live decoy states while running (from the trace; the final
+        /// report's differ result is authoritative).
+        #[serde(default)]
+        decoys: Vec<DecoyStatus>,
     },
     /// Glasshouse final report.
     GhReport {

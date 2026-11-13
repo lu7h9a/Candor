@@ -4,6 +4,7 @@
 #![forbid(unsafe_code)]
 
 pub mod app;
+pub mod ghui;
 pub mod model;
 pub mod net;
 pub mod ui;

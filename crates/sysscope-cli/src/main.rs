@@ -11,6 +11,7 @@
 
 mod conn;
 mod export;
+mod glasshouse;
 mod out;
 
 use conn::{CliError, Conn};
@@ -33,7 +34,8 @@ commands:
   export --format json|csv [--raw] [--redact-ips]   redacted by default
   replay FILE [--frames OUT]  run a *.events.jsonl recording through the detector offline;
                               --frames also writes a *.frames.jsonl for `sysscope-gui --replay`
-  glasshouse run FILE [ARGS]  not available yet
+  glasshouse run [--timeout S] FILE [ARGS]   run FILE in the Glasshouse sandbox (uploaded
+                              as bytes) and print what it touched; see the warning it prints
 exit codes: 0 ok, 1 error, 2 usage, 3 daemon not running, 4 permission denied, 5 daemon error";
 
 struct Args {
@@ -168,9 +170,8 @@ fn run(a: Args) -> Result<(), CliError> {
         return replay(&rest, a.json);
     }
     if cmd == "glasshouse" {
-        return Err(CliError::Other(
-            "Glasshouse is not available yet in this build".into(),
-        ));
+        let mut c = Conn::open(a.socket.as_ref())?;
+        return glasshouse::run(&mut c, &rest, a.json);
     }
     if cmd.is_empty() {
         return Err(CliError::Usage(USAGE.into()));

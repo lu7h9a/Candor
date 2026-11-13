@@ -114,9 +114,12 @@ impl App {
 
     /// Applies one action.
     pub fn act(&mut self, a: Action) {
-        if a == Action::Export {
-            self.export();
-            return;
+        match a {
+            Action::Export => return self.export(),
+            Action::GhBrowse(dir) => return self.browse(dir),
+            Action::GhRun => return self.gh_run(),
+            Action::GhExport => return self.gh_export(),
+            _ => {}
         }
         for req in self.model.on_action(a) {
             self.send(req);
@@ -135,6 +138,131 @@ impl App {
         for a in crate::ui::draw(ui, &self.model) {
             self.act(a);
         }
+    }
+
+    /// Lists a directory for the Glasshouse picker (names escaped,
+    /// directories first, at most 2000 entries; symlinks are not followed
+    /// for the directory flag).
+    fn browse(&mut self, dir: PathBuf) {
+        const CAP: usize = 2000;
+        let mut entries: Vec<(String, bool)> = Vec::new();
+        let mut note = None;
+        match std::fs::read_dir(&dir) {
+            Ok(rd) => {
+                for e in rd.flatten() {
+                    if entries.len() >= CAP {
+                        note = Some(format!("showing the first {CAP} entries"));
+                        break;
+                    }
+                    let name = e.file_name();
+                    let Some(name) = name.to_str() else { continue };
+                    if name.starts_with('.') || sysscope_core::display::safe_str(name) != name {
+                        continue; // hidden, or a name that needs escaping
+                    }
+                    let is_dir = e.file_type().is_ok_and(|t| t.is_dir());
+                    entries.push((name.to_string(), is_dir));
+                }
+            }
+            Err(e) => note = Some(format!("cannot list this directory: {e}")),
+        }
+        entries.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+        self.model.gh.browse = Some(crate::model::Browse { dir, entries, note });
+    }
+
+    /// Reads the chosen file and uploads it, then asks for the run. The
+    /// GUI reads the file as the user; the daemon only gets bytes (D25).
+    fn gh_run(&mut self) {
+        use sysscope_proto::{BStr, ClientMsg, GhState};
+        let path = PathBuf::from(self.model.gh.path.trim());
+        let meta = match std::fs::metadata(&path) {
+            Ok(m) if m.is_file() && m.len() > 0 && m.len() <= 256 * 1024 * 1024 => m,
+            Ok(_) => {
+                self.model.gh.state = Some(GhState::Failed);
+                self.model.gh.message = "choose a regular file of 1 byte to 256 MiB".into();
+                return;
+            }
+            Err(e) => {
+                self.model.gh.state = Some(GhState::Failed);
+                self.model.gh.message = format!("cannot open the file: {e}");
+                return;
+            }
+        };
+        let name = path
+            .file_name()
+            .map(|n| BStr(std::os::unix::ffi::OsStrExt::as_bytes(n).to_vec()))
+            .unwrap_or_else(|| BStr::from("sample"));
+        let args: Vec<BStr> = self
+            .model
+            .gh
+            .args
+            .split_whitespace()
+            .map(BStr::from)
+            .collect();
+        let timeout_s = self.model.gh.timeout_s;
+        let size = meta.len();
+        let tx = self.source.tx.clone();
+        self.model.gh.state = Some(GhState::Uploading);
+        self.model.gh.message = format!("uploading {size} bytes");
+        self.model.gh.report = None;
+        self.model.gh.decoys.clear();
+        std::thread::spawn(move || {
+            let send = |m: ClientMsg| tx.send_timeout(m, Duration::from_secs(30)).is_ok();
+            let Ok(mut f) = std::fs::File::open(&path) else {
+                return;
+            };
+            if !send(ClientMsg::GhUploadBegin { name, size }) {
+                return;
+            }
+            let mut buf = vec![0u8; 64 * 1024];
+            let (mut sent, mut seq) = (0u64, 0u32);
+            while sent < size {
+                let Ok(n) = std::io::Read::read(&mut f, &mut buf) else {
+                    return;
+                };
+                if n == 0 {
+                    return; // file shrank: the daemon sees an incomplete upload
+                }
+                let n = n.min((size - sent) as usize);
+                let b64 = sysscope_proto::b64::encode(buf.get(..n).unwrap_or(&[]));
+                if !send(ClientMsg::GhUploadChunk { seq, b64 }) {
+                    return;
+                }
+                sent += n as u64;
+                seq += 1;
+            }
+            send(ClientMsg::GhRun { args, timeout_s });
+        });
+    }
+
+    /// Writes the report as text and JSON into the home directory.
+    fn gh_export(&mut self) {
+        let Some(r) = self.model.gh.report.as_deref() else {
+            return;
+        };
+        let home = PathBuf::from(std::env::var("HOME").unwrap_or_default());
+        let id: String = r
+            .run_id
+            .chars()
+            .filter(|c| c.is_ascii_alphanumeric() || *c == '-')
+            .collect();
+        let base = home.join(format!("sysscope-glasshouse-{id}"));
+        let write = |ext: &str, data: &[u8]| {
+            let p = base.with_extension(ext);
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&p)
+                .and_then(|mut f| std::io::Write::write_all(&mut f, data))
+                .map(|()| p)
+        };
+        let text = sysscope_core::ghreport::render_text(r);
+        let json = serde_json::to_vec_pretty(r).unwrap_or_default();
+        self.model.notice = Some(
+            match (write("txt", text.as_bytes()), write("json", &json)) {
+                (Ok(t), Ok(_)) => format!("Report saved to {} (and .json)", t.display()),
+                (Err(e), _) | (_, Err(e)) => format!("Report export failed: {e}"),
+            },
+        );
     }
 
     fn export(&mut self) {

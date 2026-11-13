@@ -118,3 +118,69 @@ fn glasshouse_limits_text_is_in_the_window() {
             .is_some()
     );
 }
+
+#[test]
+fn glasshouse_page_shows_the_report() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../fixtures/gui/glasshouse.frames.jsonl");
+    let app = App::new(net::replay(path, Pace::Max), None, Vec::new());
+    let mut h = Harness::builder()
+        .with_size(egui::vec2(1400.0, 900.0))
+        .build_ui_state(|ui, app: &mut App| app.frame(ui), app);
+    let deadline = Instant::now() + Duration::from_secs(10);
+    while Instant::now() < deadline && h.state().model.gh.report.is_none() {
+        h.step();
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    h.run_steps(3);
+    h.get_by_label("Glasshouse").click();
+    h.run_steps(3);
+    assert_eq!(h.state().model.page, sysscope_gui::model::Page::Glasshouse);
+    for label in [
+        "gh-path",
+        "gh-browse",
+        "gh-args",
+        "gh-timeout",
+        "gh-run",
+        "gh-cancel",
+        "gh-status",
+        "gh-decoys",
+        "gh-report",
+        "gh-timeline",
+        "gh-export",
+    ] {
+        assert!(
+            h.query_by_label(label).is_some(),
+            "missing element {label:?}"
+        );
+    }
+    // Shown at the top of the page and again under the report.
+    assert!(
+        h.query_all_by_label_contains("not a malware containment system")
+            .count()
+            >= 2
+    );
+    // The report's own numbers, as the daemon produced them in the VM.
+    assert!(
+        h.query_by_label_contains("2 decoys read, 20 modified, 20 renamed, 10 deleted; 1 new file(s); 1 connection attempt(s)")
+            .is_some()
+    );
+    let touched = h
+        .state()
+        .model
+        .gh
+        .decoys
+        .iter()
+        .filter(|d| d.states != vec![sysscope_proto::DecoyState::Untouched])
+        .count();
+    assert_eq!((touched, h.state().model.gh.decoys.len()), (32, 42));
+    // A replay has no daemon: running is not offered.
+    h.state_mut().model.gh.path = "/bin/true".into();
+    h.run_steps(2);
+    h.get_by_label("gh-run").click();
+    h.run_steps(2);
+    assert_eq!(
+        h.state().model.gh.state,
+        Some(sysscope_proto::GhState::Finished)
+    );
+}

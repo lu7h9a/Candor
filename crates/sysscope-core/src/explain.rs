@@ -7,6 +7,10 @@
 use crate::detect::{Band, Detector};
 use sysscope_proto::{BStr, Event, EventKind, Finding};
 
+/// Plan 6.4, verbatim: shown in the GUI Glasshouse tab, every Glasshouse
+/// report footer, the README and the docs.
+pub const GLASSHOUSE_LIMITATION: &str = "Glasshouse is a behaviour-demonstration sandbox, not a malware containment system. The program you run shares this computer's kernel. A kernel or sandbox vulnerability, a CPU side-channel, or a mistake in configuration could let it read your data or take over your account or the machine. Glasshouse does not hide that it is a sandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.";
+
 /// Facts about the flagged process that the finding itself does not carry.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ExplainCtx {

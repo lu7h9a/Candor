@@ -9,7 +9,9 @@
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use sysscope_core::display::{safe, safe_str};
-use sysscope_proto::{ClientMsg, DaemonMsg, Finding, Loss, Mode, ProcKey, ProcRow};
+use sysscope_proto::{
+    ClientMsg, DaemonMsg, DecoyStatus, Finding, GhReport, GhState, Loss, Mode, ProcKey, ProcRow,
+};
 
 /// Alerts kept in the list (newest first).
 pub const MAX_ALERTS: usize = 256;
@@ -129,6 +131,78 @@ impl Tab {
     }
 }
 
+/// Top-level page of the window.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Page {
+    /// Process table, details, alerts.
+    Processes,
+    /// Glasshouse sandbox runs.
+    Glasshouse,
+}
+
+/// A directory listing for the in-window file picker (filled by the app).
+#[derive(Clone, Debug, PartialEq)]
+pub struct Browse {
+    /// Directory shown.
+    pub dir: std::path::PathBuf,
+    /// (escaped name, is a directory), directories first.
+    pub entries: Vec<(String, bool)>,
+    /// Entries left out (cap) or why the directory could not be read.
+    pub note: Option<String>,
+}
+
+/// State of the Glasshouse page.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GhView {
+    /// Program file to run (typed or picked).
+    pub path: String,
+    /// Arguments, separated by spaces.
+    pub args: String,
+    /// Timeout in seconds (1..600).
+    pub timeout_s: u32,
+    /// The daemon offers Glasshouse on this system (Welcome features).
+    pub offered: bool,
+    /// Current or last run id (escaped).
+    pub run_id: String,
+    /// Current or last state.
+    pub state: Option<GhState>,
+    /// Last status text (escaped).
+    pub message: String,
+    /// Decoy states: live while running, final from the report.
+    pub decoys: Vec<DecoyStatus>,
+    /// Final report.
+    pub report: Option<Box<GhReport>>,
+    /// Open file picker.
+    pub browse: Option<Browse>,
+}
+
+impl Default for GhView {
+    fn default() -> Self {
+        GhView {
+            path: String::new(),
+            args: String::new(),
+            timeout_s: 60,
+            offered: false,
+            run_id: String::new(),
+            state: None,
+            message: String::new(),
+            decoys: Vec::new(),
+            report: None,
+            browse: None,
+        }
+    }
+}
+
+impl GhView {
+    /// A run is in progress (upload, start or running).
+    pub fn running(&self) -> bool {
+        matches!(
+            self.state,
+            Some(GhState::Uploading | GhState::Starting | GhState::Running)
+        )
+    }
+}
+
 /// What the user did.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Action {
@@ -162,6 +236,26 @@ pub enum Action {
     Export,
     /// Hide the loss banner until more events are lost.
     DismissLoss,
+    /// Switch the top-level page.
+    ShowPage(Page),
+    /// Glasshouse: program path typed.
+    GhSetPath(String),
+    /// Glasshouse: arguments typed.
+    GhSetArgs(String),
+    /// Glasshouse: timeout changed.
+    GhSetTimeout(u32),
+    /// Glasshouse: open the picker at a directory (the app lists it).
+    GhBrowse(std::path::PathBuf),
+    /// Glasshouse: picker entry chosen (a file path).
+    GhPick(String),
+    /// Glasshouse: close the picker.
+    GhCloseBrowse,
+    /// Glasshouse: run (the app reads the file and uploads it).
+    GhRun,
+    /// Glasshouse: cancel the run.
+    GhCancel,
+    /// Glasshouse: export the report (the app writes the files).
+    GhExport,
 }
 
 /// One row as displayed (already escaped, with tree depth).
@@ -221,6 +315,10 @@ pub struct Model {
     /// (not every frame: 2000 rows at 60 fps would cost too much, WP21).
     visible: Vec<RowView>,
     multi_user_cached: bool,
+    /// Top-level page.
+    pub page: Page,
+    /// Glasshouse page state.
+    pub gh: GhView,
 }
 
 impl Default for Model {
@@ -271,6 +369,8 @@ impl Model {
             loss_seen: 0,
             visible: Vec::new(),
             multi_user_cached: false,
+            page: Page::Processes,
+            gh: GhView::default(),
         }
     }
 
@@ -325,8 +425,10 @@ impl Model {
                 kernel,
                 boot_to_wall_ns,
                 act_enabled,
+                features,
                 ..
             } => {
+                self.gh.offered = features.iter().any(|f| f == "glasshouse");
                 if !matches!(self.conn, ConnState::Replay(_)) {
                     self.conn = ConnState::Connected {
                         version: safe_str(&daemon_version),
@@ -374,8 +476,34 @@ impl Model {
                 }
             }
             DaemonMsg::ActResult { message, .. } => self.notice = Some(safe_str(&message)),
+            DaemonMsg::GhStatus {
+                state,
+                run_id,
+                message,
+                decoys,
+            } => {
+                self.gh.run_id = safe_str(&run_id);
+                self.gh.state = Some(state);
+                if !message.is_empty() {
+                    self.gh.message = safe_str(&message);
+                }
+                if !decoys.is_empty() {
+                    self.gh.decoys = decoys;
+                }
+            }
+            DaemonMsg::GhReport { report } => {
+                self.gh.run_id = safe_str(&report.run_id);
+                self.gh.decoys = report.decoys.clone();
+                self.gh.report = Some(Box::new(report));
+            }
             DaemonMsg::Error { code, message } => {
-                if code == "proto_mismatch" {
+                if self.gh.running()
+                    && matches!(code.as_str(), "busy" | "bad_request" | "glasshouse_failed")
+                {
+                    // A refused upload or run ends the run on the page.
+                    self.gh.state = Some(GhState::Failed);
+                    self.gh.message = format!("{}: {}", safe_str(&code), safe_str(&message));
+                } else if code == "proto_mismatch" {
                     self.conn = ConnState::ProtoMismatch(safe_str(&message));
                 } else {
                     self.notice = Some(format!("{}: {}", safe_str(&code), safe_str(&message)));
@@ -468,6 +596,22 @@ impl Model {
             Action::Follow(k) => return vec![ClientMsg::Follow { root: k }],
             Action::Unfollow => return vec![ClientMsg::Unfollow {}],
             Action::Export => {}
+            Action::ShowPage(p) => self.page = p,
+            Action::GhSetPath(p) => self.gh.path = p,
+            Action::GhSetArgs(a) => self.gh.args = a,
+            Action::GhSetTimeout(t) => self.gh.timeout_s = t.clamp(1, 600),
+            Action::GhPick(p) => {
+                self.gh.path = p;
+                self.gh.browse = None;
+            }
+            Action::GhCloseBrowse => self.gh.browse = None,
+            // Done by the app (file system access): GhBrowse, GhRun, GhExport.
+            Action::GhBrowse(_) | Action::GhRun | Action::GhExport => {}
+            Action::GhCancel => {
+                if self.gh.running() {
+                    return vec![ClientMsg::GhCancel {}];
+                }
+            }
         }
         Vec::new()
     }
@@ -612,6 +756,59 @@ mod tests {
             procs,
             loss: Loss::default(),
         }))
+    }
+
+    #[test]
+    fn glasshouse_status_and_report_update_the_page() {
+        use sysscope_proto::{BStr, DecoyState};
+        let mut m = Model::new();
+        m.apply(Incoming::Msg(Box::new(DaemonMsg::Welcome {
+            proto: 1,
+            daemon_version: "t".into(),
+            kernel: "k".into(),
+            boot_to_wall_ns: 0,
+            features: vec!["glasshouse".into()],
+            act_enabled: false,
+        })));
+        assert!(m.gh.offered);
+        let decoy = DecoyStatus {
+            path: BStr::from("/home/victim/.ssh/id_ed25519"),
+            dev: 1,
+            ino: 2,
+            states: vec![DecoyState::Read],
+            new_path: None,
+            size_before: 3,
+            size_after: None,
+            entropy_before: 1.0,
+            entropy_after: None,
+        };
+        m.apply(Incoming::Msg(Box::new(DaemonMsg::GhStatus {
+            state: GhState::Running,
+            run_id: "r\u{1b}1".into(),
+            message: "sample started".into(),
+            decoys: vec![decoy.clone()],
+        })));
+        assert!(m.gh.running());
+        assert!(!m.gh.run_id.contains('\u{1b}'));
+        assert_eq!(m.gh.decoys, vec![decoy]);
+        // An empty live update keeps the message and the decoys.
+        m.apply(Incoming::Msg(Box::new(DaemonMsg::GhStatus {
+            state: GhState::Running,
+            run_id: "r1".into(),
+            message: String::new(),
+            decoys: vec![],
+        })));
+        assert_eq!(m.gh.message, "sample started");
+        assert_eq!(m.gh.decoys.len(), 1);
+        assert_eq!(m.on_action(Action::GhCancel), vec![ClientMsg::GhCancel {}]);
+        m.apply(Incoming::Msg(Box::new(DaemonMsg::Error {
+            code: "glasshouse_failed".into(),
+            message: "x".into(),
+        })));
+        assert_eq!(m.gh.state, Some(GhState::Failed));
+        assert!(m.on_action(Action::GhCancel).is_empty());
+        m.on_action(Action::GhSetTimeout(0));
+        assert_eq!(m.gh.timeout_s, 1);
     }
 
     fn pids(m: &Model) -> Vec<u32> {

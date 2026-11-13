@@ -16,6 +16,7 @@ mod convert;
 mod daemon;
 mod dump;
 mod follow;
+mod glasshouse;
 mod hostinfo;
 mod mounts;
 mod sampler;

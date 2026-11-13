@@ -6,4 +6,7 @@
 #![forbid(unsafe_code)]
 
 pub mod decoys;
+pub mod differ;
+/// The report text lives in sysscope-core (shared with CLI and GUI).
+pub use sysscope_core::ghreport as report;
 pub mod seccomp;

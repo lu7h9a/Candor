@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # gui-shots.sh - renders the GUI headless (Xvfb + software GL) from the demo
-# recording in 6 states and checks every PNG is non-blank (>= 500 colours).
+# recording in 6 states, plus the Glasshouse report page from a real VM run,
+# and checks every PNG is non-blank (>= 500 colours).
 # Output: target/shots/*.png (plan WP20, `make gui-shot`).
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
@@ -37,5 +38,8 @@ shot detail-findings --replay "$FRAMES" --pace max --select 1600 --tab findings
 shot following --replay "$OUT/follow.frames.jsonl" --pace max --select 1600
 shot daemon-down --socket /run/sysscope-none/sysscope.sock
 shot paused --replay "$FRAMES" --pace 200 --paused
+python3 scripts/gen_gh_fixture.py >/dev/null
+shot glasshouse-report --replay fixtures/gui/glasshouse.frames.jsonl --pace max --page glasshouse
 python3 scripts/png_colours.py 500 "$OUT"/system-wide.png "$OUT"/detail-files.png \
-    "$OUT"/detail-findings.png "$OUT"/following.png "$OUT"/daemon-down.png "$OUT"/paused.png
+    "$OUT"/detail-findings.png "$OUT"/following.png "$OUT"/daemon-down.png "$OUT"/paused.png \
+    "$OUT"/glasshouse-report.png

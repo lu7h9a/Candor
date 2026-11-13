@@ -424,6 +424,14 @@ pub struct CreatedFile {
     pub entropy: f32,
     /// First 256 bytes, only if printable text.
     pub preview: Option<BStr>,
+    /// "file" for regular files; "symlink", "fifo", "socket", "device" for
+    /// others (listed by type, never opened).
+    #[serde(default = "file_kind")]
+    pub kind: String,
+}
+
+fn file_kind() -> String {
+    "file".into()
 }
 
 /// Final report of a Glasshouse run (plan section 6.3).
@@ -461,4 +469,8 @@ pub struct GhReport {
     pub loss: Loss,
     /// The limitation text from plan section 6.4.
     pub limitation: String,
+    /// Remarks about completeness: caps reached, timeline cut, changed
+    /// pre-existing non-decoy files.
+    #[serde(default)]
+    pub notes: Vec<String>,
 }
