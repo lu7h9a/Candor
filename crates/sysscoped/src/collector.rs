@@ -55,7 +55,8 @@ pub struct DumpOpts {
     pub budget_burst: u32,
 }
 
-/// Dump mode also prints, at exit, one `{"sysstat": ...}` line per
+/// Dump mode prints a `{"t":"Samples",...}` line (a core input) about
+/// once per second with a full /proc scan (WP10), and at exit one `{"sysstat": ...}` line per
 /// (tgid, syscall) and one `{"budget": ...}` line per tgid with its loss
 /// counters (WP08, WP09).
 pub fn dump(o: &DumpOpts, stop: &AtomicBool) -> Result<()> {
@@ -121,7 +122,18 @@ pub fn dump(o: &DumpOpts, stop: &AtomicBool) -> Result<()> {
     let rb = rb.build().context("building ring buffer")?;
 
     eprintln!("sysscoped: tracing (dump mode); Ctrl-C to stop");
+    let mut next_sample = std::time::Instant::now();
     while !stop.load(Ordering::Relaxed) {
+        if std::time::Instant::now() >= next_sample {
+            next_sample += Duration::from_secs(1);
+            let input = sysscope_core::Input::Samples {
+                ts_ns: crate::sampler::boot_ns(),
+                samples: crate::sampler::sample_all(),
+            };
+            if let Ok(line) = serde_json::to_string(&input) {
+                let _ = writeln!(out.borrow_mut(), "{line}");
+            }
+        }
         match rb.poll(Duration::from_millis(100)) {
             Ok(()) => {}
             Err(e) if e.kind() == libbpf_rs::ErrorKind::Interrupted => {}

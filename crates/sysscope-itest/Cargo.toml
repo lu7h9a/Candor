@@ -13,3 +13,6 @@ workspace = true
 [dependencies]
 serde_json = "1.0.154"
 sysscope-proto = { version = "0.0.1", path = "../sysscope-proto" }
+
+[dev-dependencies]
+sysscope-core = { path = "../sysscope-core" }

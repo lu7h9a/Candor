@@ -13,7 +13,8 @@
  *          connect-tcp N, connect-tcp6 N, connect-fail N, connect-udp N,
  *          listen N, threads N, syscalls getppid N, flood N, longpath,
  *          badname, memfd-exec, leader-exits-first, open-relative,
- *          open-symlink, uring-open, gen3, sleep MS, nanosleep N
+ *          open-symlink, uring-open, gen3, sleep MS, nanosleep N,
+ *          spawn-hold N MS, busy MS, alloc MB MS
  * option: wl --dir DIR --wait-stdin ... waits for one byte on stdin first
  *
  * Built statically (make wl) so the same binary runs in every test VM.
@@ -649,6 +650,73 @@ static void act_nanosleep(long n)
 	end_action();
 }
 
+/* N children that each sleep MS, then exit; their pids go in the manifest. */
+static void act_spawn_hold(long n, long ms)
+{
+	begin_action("spawn-hold", n);
+	mput(",\"pids\":[");
+	pid_t *pids = calloc((size_t)n, sizeof(pid_t));
+	if (!pids)
+		die("calloc");
+	for (long i = 0; i < n; i++) {
+		pid_t c = (pid_t)syscall(SYS_fork);
+		if (c == 0) {
+			struct timespec ts = {ms / 1000, (ms % 1000) * 1000 * 1000};
+			nanosleep(&ts, NULL);
+			syscall(SYS_exit_group, 0);
+		}
+		pids[i] = c;
+		mput("%s%d", i ? "," : "", c);
+	}
+	for (long i = 0; i < n; i++)
+		waitpid(pids[i], NULL, 0);
+	free(pids);
+	mput("]");
+	end_action();
+}
+
+/* One child that spins on the CPU for MS milliseconds. */
+static void act_busy(long ms)
+{
+	begin_action("busy", ms);
+	pid_t c = (pid_t)syscall(SYS_fork);
+	if (c == 0) {
+		struct timespec start, now;
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		volatile unsigned long x = 0;
+		do {
+			for (int i = 0; i < 100000; i++)
+				x += (unsigned long)i;
+			clock_gettime(CLOCK_MONOTONIC, &now);
+		} while ((now.tv_sec - start.tv_sec) * 1000 + (now.tv_nsec - start.tv_nsec) / 1000000 < ms);
+		syscall(SYS_exit_group, 0);
+	}
+	waitpid(c, NULL, 0);
+	mput(",\"child\":%d", c);
+	end_action();
+}
+
+/* One child that allocates and touches MB MiB, then holds it for MS ms. */
+static void act_alloc(long mb, long ms)
+{
+	begin_action("alloc", mb);
+	pid_t c = (pid_t)syscall(SYS_fork);
+	if (c == 0) {
+		size_t sz = (size_t)mb * 1024 * 1024;
+		char *p = mmap(NULL, sz, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		if (p == MAP_FAILED)
+			syscall(SYS_exit_group, 3);
+		for (size_t i = 0; i < sz; i += 4096)
+			p[i] = 1;
+		struct timespec ts = {ms / 1000, (ms % 1000) * 1000 * 1000};
+		nanosleep(&ts, NULL);
+		syscall(SYS_exit_group, 0);
+	}
+	waitpid(c, NULL, 0);
+	mput(",\"child\":%d,\"bytes\":%ld", c, mb * 1024 * 1024);
+	end_action();
+}
+
 static void act_leader_exits_first(void)
 {
 	begin_action("leader-exits-first", 1);
@@ -746,7 +814,15 @@ int main(int argc, char **argv)
 			act_badname();
 		else if (!strcmp(a, "memfd-exec"))
 			act_memfd_exec();
-		else if (!strcmp(a, "gen3"))
+		else if (!strcmp(a, "spawn-hold")) {
+			long n = need_n(argc, argv, &i);
+			act_spawn_hold(n, need_n(argc, argv, &i));
+		} else if (!strcmp(a, "busy"))
+			act_busy(need_n(argc, argv, &i));
+		else if (!strcmp(a, "alloc")) {
+			long mb = need_n(argc, argv, &i);
+			act_alloc(mb, need_n(argc, argv, &i));
+		} else if (!strcmp(a, "gen3"))
 			act_gen3();
 		else if (!strcmp(a, "sleep"))
 			act_sleep(need_n(argc, argv, &i));

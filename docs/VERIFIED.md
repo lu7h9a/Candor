@@ -16,3 +16,5 @@ One row per `[VERIFY]` claim in docs/MASTER_PLAN.md.
 | WP06/D6: io_uring opens are seen at security_file_open | wl `uring-open` (IORING_OP_OPENAT via raw syscalls) in the debian12 and ubuntu2204 guests | observed exactly once each | WP06 |
 | WP07: sockaddr parameter type of security_socket_connect | host BTF 6.19: `struct sockaddr *`; read as raw bytes (`void *`) so the type name does not matter; guests 6.1/5.15 same arg list | works on 6.1 and 5.15 | WP07 |
 | WP08: batch map lookup | libbpf-rs 0.27.2 has `lookup_batch` / `lookup_and_delete_batch` (src/map.rs) | available; dump mode reads with keys()+lookup_percpu for now | WP08 |
+| 4.4/WP10: start_ticks = start_boottime / 10 ms equals field 22 of /proc/<pid>/stat | itest: 200 freshly forked children, key from the BPF FORK event vs key from the procfs sampler, on 6.1 and 5.15 | 200/200 equal on both kernels (CLK_TCK = 100) | WP10 |
+| WP10: procfs crate exposes stat starttime, statm, status/uid, io and handles races | procfs 0.18.0 sources (Process::stat/statm/io/exe/uid, all_processes) and the sampler test (vanished processes give errors that are skipped) | yes | WP10 |

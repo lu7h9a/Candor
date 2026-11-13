@@ -111,8 +111,12 @@ impl Dump {
         let mut events = Vec::new();
         let mut stats = Vec::new();
         for line in text.lines() {
-            if line.starts_with("{\"sysstat\"") || line.starts_with("{\"budget\"") {
-                // Kept whole: {"sysstat": {...}} or {"budget": {...}}.
+            if line.starts_with("{\"sysstat\"")
+                || line.starts_with("{\"budget\"")
+                || line.starts_with("{\"t\":\"Samples\"")
+            {
+                // Kept whole: {"sysstat": {...}}, {"budget": {...}} or a
+                // {"t":"Samples",...} core input.
                 let v: serde_json::Value =
                     serde_json::from_str(line).map_err(|e| format!("{e}: {line}"))?;
                 stats.push(v);

@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP10 /proc sampler + identity   Status: IN_PROGRESS
-Next action: /proc sampler (procfs crate or own parser), ProcKey equality test for 200 processes, CPU/RSS checks; then WP12 daemon assembly
+Milestone: M0   Current WP: WP12 Daemon assembly   Status: IN_PROGRESS
+Next action: daemon threads (poller, sampler, core, acceptor/clients), socket server with access control, --record, config, shutdown; verify in VM; then CLI (WP13), M1 gate slice + adversarial review
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
@@ -21,9 +21,9 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 | WP07 | Network events | BLOCKED(E1) | debian12, ubuntu2204 | WP06-08 commit | VM verify PASS on 6.1 and 5.15; host pending Q1 |
 | WP08 | Syscall stats | BLOCKED(E1) | debian12, ubuntu2204 | WP09 commit | count exact, followed nanosleep latency in range; host pending Q1 |
 | WP09 | Follow mode + budgets | BLOCKED(E1) | debian12, ubuntu2204 | WP09 commit | follow + loss identity PASS on 6.1/5.15; host pending Q1 |
-| WP10 | /proc sampler + identity | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
+| WP10 | /proc sampler + identity | BLOCKED(E1) | debian12, ubuntu2204 | WP10 commit | 200/200 ProcKey equal, CPU and RSS checks PASS; host pending Q1 |
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
-| WP12 | Daemon assembly | BLOCKED(E1) | | | depends on WP04-WP10 and root (Q1) |
+| WP12 | Daemon assembly | IN_PROGRESS | | | VM-verifiable; host pending Q1 |
 | WP13 | CLI | TODO | | | |
 | WP14 | Overhead benchmarks | TODO | | | needs root (Q1) |
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
@@ -291,3 +291,17 @@ Verify output (trimmed, real):
 == ubuntu2204 (5.15): follow 4/4, files 5/5, lifecycle 5/5, network 1/1, syscalls 1/1; dmesg clean
 ```
 Result: PASS on debian12 and ubuntu2204 (WP08 latency part included). Host: BLOCKED(E1).
+
+### 2026-11-13 11:15 WP10 /proc sampler + identity
+Did: crates/sysscoped/src/sampler.rs with the procfs crate (stat: ppid, comm, flags->kthread, utime+stime, num_threads, starttime; statm resident x page size; io rchar/wchar; exe bytes; owner uid); vanished/unreadable processes skipped; CLOCK_BOOTTIME timestamps via rustix. Dump mode prints a full scan as a core `Samples` input about once per second. CPU % comes from the core (pure) from consecutive samples. wl gained spawn-hold, busy, alloc.
+Verify command: `make itest-bin && vm/run.sh debian12 "$(cat vm/tests/wp05_itest.sh)"`, same for ubuntu2204
+Verify output (trimmed, real):
+```
+== debian12: sysscope-itest-proc  test result: ok. 3 passed; 0 failed
+   bpf_and_proc_keys_match_for_200_processes   (200 FORK child keys == 200 /proc keys, 200/200 equal)
+   busy_loop_shows_about_one_core              (>= 2 samples in 90-110 %)
+   allocation_shows_in_rss_within_ten_percent  (max RSS within 10 % of 200 MiB)
+   files 5/5, follow 4/4, lifecycle 5/5, network 1/1, syscalls 1/1; dmesg: no new bpf/BUG/WARNING/RCU lines
+== ubuntu2204: proc 3/3 and all others pass; dmesg clean
+```
+Result: PASS on debian12 and ubuntu2204. Host: BLOCKED(E1).

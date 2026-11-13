@@ -14,6 +14,7 @@ mod collector;
 mod convert;
 mod follow;
 mod mounts;
+mod sampler;
 mod sockaddr;
 mod startup;
 mod syscalls;
