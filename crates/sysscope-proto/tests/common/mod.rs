@@ -46,6 +46,7 @@ pub fn sample_finding() -> Finding {
         id: 7,
         rule: "R001".into(),
         title: "Credential file read".into(),
+        subject: "ssh_keys".into(),
         attack: Some("T1552".into()),
         proc: key(4312, 120034),
         exe: BStr::from("/tmp/x"),
@@ -473,6 +474,7 @@ pub fn arb_finding() -> impl Strategy<Value = Finding> {
             )| Finding {
                 id,
                 rule,
+                subject: title.clone(),
                 title,
                 attack,
                 proc,

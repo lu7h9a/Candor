@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP12 Daemon assembly   Status: IN_PROGRESS
-Next action: WP12 code (threads, socket server, access control); its root verify waits for Q1/Q2. WP05 VM itests run when free RAM >= 6 GB
+Milestone: M0   Current WP: WP16 Rules R001-R004, R012   Status: IN_PROGRESS
+Next action: rule functions R001-R004/R012 with replay fixtures (pos/neg/boundary); simulator end-to-end part needs root (Q1)
 Open questions for owner: Q1, Q2
 Tree state: clean after WP00 commit
 Last green gate: none yet
@@ -23,10 +23,10 @@ Last green gate: none yet
 | WP09 | Follow mode + budgets | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
 | WP10 | /proc sampler + identity | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
-| WP12 | Daemon assembly | TODO | | | needs root (Q1) |
+| WP12 | Daemon assembly | BLOCKED(E1) | | | depends on WP04-WP10 and root (Q1) |
 | WP13 | CLI | TODO | | | |
 | WP14 | Overhead benchmarks | TODO | | | needs root (Q1) |
-| WP15 | Rule engine | TODO | | | |
+| WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
 | WP16 | Rules R001-R004, R012 | TODO | | | |
 | WP17 | Rules R005-R008 | TODO | | | |
 | WP18 | False-positive evaluation | TODO | | | |
@@ -68,7 +68,11 @@ Last green gate: none yet
 - 2026-11-13 WP11: a live process missing from 2 consecutive full /proc scans is marked exited (its EXIT may have been dropped); evicting a parent sets its children's parent to null and marks them orphan, so "parent exists or null" always holds.
 - 2026-11-13 WP11: core inputs and the `*.events.jsonl` line format are `sysscope_core::Input` (`RawEvent`, `Samples`, `Loss`, `Tick`, tagged by "t"); replay streams line by line.
 
+- 2026-11-13 WP15: core input `ExeMeta {proc, trusted, system_dir, home}` carries what the daemon checked about an executable (5.3 ownership condition, R001 confidence, "~/" expansion); a new Exec resets trust until the next ExeMeta.
+- 2026-11-13 WP15: path pattern semantics: "*" never crosses "/"; a pattern without "/" matches the file name only (so "*.kdbx" and "wallet.dat" match anywhere). Config files use deny_unknown_fields (the protocol does not).
+
 ## Deviations from the plan
+- 2026-11-13 WP15: added field `subject` to protocol `Finding` (it is part of the de-duplication key and of the "To silence" allowlist line in 5.6). Plan 4.5 says additive fields do not bump `proto`, and also that changing a golden file requires a bump; treated as additive: `#[serde(default)]` so older peers still decode, goldens Alert/Detail/GhReport.json regenerated (diff = exactly one `"subject"` line each), proto stays 1 - allowed by the additive-field rule
 - 2026-11-13 WP11: plan says measure the 1M-event replay with `/usr/bin/time -v` -> the `time` package is not installed and not pre-authorised, so the replay example prints VmHWM from /proc/self/status (the value time -v reports as maximum RSS) and its own wall time - allowed: same measurement, different reader
 - 2026-11-13 WP03: plan says images are verified by SHA256 -> Debian only publishes SHA512SUMS for its cloud images, so debian12 is verified with SHA-512; the others with SHA-256 - published checksum files, fetched over HTTPS from the official origin - allowed: the intent (verify against the published checksum) is met
 
@@ -185,3 +189,24 @@ elapsed_s=14.25 VmHWM:	   80384 kB
 ```
 `make lint` and `make test` green.
 Result: PASS (under 20 s and under 300 MiB)
+
+### 2026-11-13 08:30 WP15 Rule engine
+Did: crates/sysscope-core/rules.toml (texts, weights, thresholds, path classes for R001-R008, R012) and allow.toml (24 default entries); config.rs (embedded defaults + override merged key by key, schema with deny_unknown_fields, range checks, clear file:line errors); glob.rs (byte-level, "*" within one component); detect.rs (Hit -> Finding with allowlist requiring a trusted exe, de-dup by (rule, proc, subject), MAX_FINDINGS cap, noisy-OR score with 600 s half-life, tree score, bands, alert on first entry to suspicious/high, row annotation); explain.rs (5.6 text, escaped bytes). Proto Finding gained `subject` (see Deviations).
+Verify command: `cargo test -p sysscope-core --test detect` (+ config unit tests)
+Verify output (trimmed, real):
+```
+test worked_example_scores_72 ... ok
+test contribution_halves_after_600_seconds ... ok      (40 -> 20 -> 10)
+test allowlist_needs_a_trusted_executable ... ok       (trusted ssh suppressed; same path user-writable flagged)
+test repeats_update_one_finding ... ok
+test no_finding_without_evidence ... ok
+test alerts_fire_once_per_band ... ok
+test findings_are_capped ... ok
+test tree_score_includes_descendants ... ok
+test explanation_matches_golden_text ... ok           (fixtures/explain/r001.txt)
+test result: ok. 9 passed; 0 failed; 0 ignored
+config: defaults_load, override_replaces_values, bad_files_are_rejected_with_clear_errors ... ok
+```
+Rendered golden (fixtures/explain/r001.txt) begins: `[HIGH 72] /tmp/x (pid 4312, started 12:00:01, parent /usr/bin/bash pid 4100, uid 1000)`.
+`make lint` and `make test` green.
+Result: PASS

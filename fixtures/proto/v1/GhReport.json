@@ -79,6 +79,7 @@
         "id": 7,
         "rule": "R001",
         "title": "Credential file read",
+        "subject": "ssh_keys",
         "attack": "T1552",
         "proc": {
           "tgid": 4312,

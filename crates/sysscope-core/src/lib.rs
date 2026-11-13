@@ -6,11 +6,16 @@
 //! what makes the detector testable by replaying fixture files.
 #![forbid(unsafe_code)]
 
+pub mod config;
+pub mod detect;
+pub mod explain;
+pub mod glob;
 pub mod input;
 pub mod limits;
 pub mod proc;
 pub mod replay;
 pub mod state;
 
+pub use detect::{Band, Detector, Hit};
 pub use input::{Input, ProcSample};
 pub use state::{State, StateStats};

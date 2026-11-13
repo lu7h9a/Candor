@@ -58,6 +58,12 @@ pub struct Proc {
     pub uid: u32,
     /// Kernel thread.
     pub kthread: bool,
+    /// Executable verified root-owned and not group/world-writable (5.3).
+    pub exe_trusted: bool,
+    /// Executable lives in a root-owned system directory.
+    pub exe_system: bool,
+    /// Home directory of the process's user, for "~/" path classes.
+    pub home: BStr,
     /// CPU percent from the last two samples.
     pub cpu_pct: f32,
     /// (time, cpu ticks) of the previous sample.
@@ -242,6 +248,9 @@ impl Proc {
         match &ev.kind {
             EventKind::Exec { exe, .. } => {
                 self.exe = exe.clone();
+                // A new executable is untrusted until the daemon checks it.
+                self.exe_trusted = false;
+                self.exe_system = false;
                 self.placeholder = false;
                 self.n_exec += 1;
             }

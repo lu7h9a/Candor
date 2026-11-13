@@ -1,0 +1,9 @@
+[HIGH 72] /tmp/x (pid 4312, started 12:00:01, parent /usr/bin/bash pid 4100, uid 1000)
+R001 Credential file read - ATT&CK T1552 - weight 0.6, confidence 0.9
+What happened: opened /home/u/.ssh/id_ed25519 for reading at 12:00:03.
+Why it is flagged:
+  - this file holds a private SSH key
+  - the program is not on the allowlist for ssh_keys
+Could be harmless if: you ran a backup, sync or key-management tool yourself.
+Evidence (2 events): #18812 Open /home/u/.ssh/id_ed25519 (read), #18815 Open /home/u/.ssh/id_ed25519\x1B[2J (read)
+To silence: add to /etc/sysscope/allow.toml -> { rule = "R001", exe = "/tmp/x", subject = "ssh_keys", reason = "..." }

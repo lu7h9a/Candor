@@ -55,6 +55,18 @@ pub enum Input {
         /// The counters.
         loss: Loss,
     },
+    /// What the daemon verified about a process's executable at exec time.
+    ExeMeta {
+        /// The process.
+        proc: ProcKey,
+        /// Owned by root, and neither the file nor its directory is group-
+        /// or world-writable (required for allowlist matches, plan 5.3).
+        trusted: bool,
+        /// Lives in a root-owned system directory such as /usr/bin.
+        system_dir: bool,
+        /// Home directory of the process's uid (for "~/" path classes).
+        home: BStr,
+    },
     /// Time passes (retention, rules).
     Tick {
         /// Current time (boot ns).

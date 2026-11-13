@@ -227,6 +227,11 @@ pub struct Finding {
     pub rule: String,
     /// Rule title.
     pub title: String,
+    /// What the finding is about within the rule (file class, destination
+    /// or window), e.g. "ssh_keys". Part of the de-duplication key and of
+    /// the allowlist entry that would silence it. Added in WP15 (additive).
+    #[serde(default)]
+    pub subject: String,
     /// MITRE ATT&CK technique id, if one fits.
     pub attack: Option<String>,
     /// Process the finding is about.
