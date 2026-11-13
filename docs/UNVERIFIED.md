@@ -7,4 +7,5 @@
 | Display-time neutralising of C1 controls / bidi overrides in valid UTF-8 | WP02 | wire escaping (4.5) leaves them; must be handled in CLI/GUI display code | WP13 / WP20 tests with U+009B and U+202E in a path |
 | WP04 lifecycle on the host kernel 6.19 | WP04 | no passwordless sudo (Q1) | `make test-root` / `sudo ./target/release/sysscoped --dev --dump` |
 | WP04 lifecycle on ubuntu2204 (5.15) | WP04 | E5 RAM guard refused the VM (5499 MiB) | `make vm-test DISTRO=ubuntu2204` |
-| Leader-exits-first EXIT semantics | WP04 | needs the WP05 workload | `wl leader-exits-first` in WP05 |
+| R006 end-to-end with the beacon simulator | WP17 | plan contradiction (loopback-only simulator vs non-loopback rule), NEEDS_USER Q3 | owner answer, then the WP17 e2e itest |
+| Simulator end-to-end tests for R001-R008 | WP16/17 | need the live daemon (WP12) and root (Q1) or a VM | itests driving testkit/sim against sysscoped |

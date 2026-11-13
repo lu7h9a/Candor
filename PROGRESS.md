@@ -2,11 +2,11 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP18 False-positive evaluation   Status: IN_PROGRESS
-Next action: WP18 needs recordings from the live daemon (root) -> blocked; continue with WP19 GUI model
-Open questions for owner: Q1, Q2
+Milestone: M0   Current WP: WP06 File events   Status: IN_PROGRESS
+Next action: OPEN/RENAME/UNLINK programs, wl-based itests, verify in the debian12 VM (host pending Q1). Order after that: WP07-WP10, WP12, then M1 gate slice (make vm-test) + adversarial review
+Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
-Last green gate: none yet
+Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 
 ## WP status
 | WP | Name | Status | Verified on | Commit | Notes |
@@ -17,11 +17,11 @@ Last green gate: none yet
 | WP03 | VM harness | DONE | debian12, ubuntu2204, ubuntu2404 | WP03 commit | fedora/arch refused by E5 RAM guard (Q2), in UNVERIFIED.md |
 | WP04 | BPF skeleton + lifecycle | BLOCKED(E1) | debian12 | WP04 commit | debian12 verify PASS; host pending Q1; ubuntu2204 refused by E5 guard |
 | WP05 | Ground-truth workload + harness | BLOCKED(E1) | debian12 | WP17 commit | debian12 itests 5/5 PASS; host `make test-root` pending Q1 |
-| WP06 | File events | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
-| WP07 | Network events | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
-| WP08 | Syscall stats | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
-| WP09 | Follow mode + budgets | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
-| WP10 | /proc sampler + identity | BLOCKED(E1) | | | needs root (Q1) or a VM (Q2); not started |
+| WP06 | File events | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
+| WP07 | Network events | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
+| WP08 | Syscall stats | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
+| WP09 | Follow mode + budgets | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
+| WP10 | /proc sampler + identity | TODO | | | VM-verifiable (debian12), not started; host part pending Q1 |
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
 | WP12 | Daemon assembly | BLOCKED(E1) | | | depends on WP04-WP10 and root (Q1) |
 | WP13 | CLI | TODO | | | |
@@ -29,7 +29,7 @@ Last green gate: none yet
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
 | WP16 | Rules R001-R004, R012 | BLOCKED(E1) | host (fixtures) | WP16 commit | 40 replay fixtures PASS; simulator end-to-end needs the live daemon (WP12, root) |
 | WP17 | Rules R005-R008 | BLOCKED(E1) | host (fixtures) | WP17 commit | 36 new fixtures PASS; simulator end-to-end needs live daemon; R006 simulator conflict noted |
-| WP18 | False-positive evaluation | TODO | | | |
+| WP18 | False-positive evaluation | BLOCKED(E1) | | | needs recordings from the live daemon (WP12, root) |
 | WP19 | GUI model + transport | TODO | | | |
 | WP20 | GUI views | TODO | | | |
 | WP21 | Follow UX, loss, robustness | TODO | | | |
@@ -73,7 +73,7 @@ Last green gate: none yet
 
 ## Deviations from the plan
 - 2026-11-13 WP17: limits.rs gained MAX_EVIDENCE_IDS (1000), WINDOW_ENTRIES (4096), BEACON_POINTS (64) - new caps required by I8 for finding evidence lists and rule windows; no existing value changed - allowed: plan 4.6 is silent on these
-- 2026-11-13 WP17: PLAN CONFLICT (not resolved, recorded): 5.7(2) says network simulators talk only to 127.0.0.0/8 and WP17 specifies `sim/beacon.py` with a local listener, but R006 (5.4) only counts non-loopback destinations, so that simulator cannot trigger R006. Kept R006 exactly as specified; beacon.py is loopback-only as specified; R006 positives are covered by replay fixtures with 10.1.2.3 / 93.184.216.34. The end-to-end R006 check (blocked by Q1 anyway) needs an owner decision or a test-only rules override that allows loopback - to be raised if it is still open when WP17's end-to-end part is unblocked.
+- 2026-11-13 WP17: PLAN CONFLICT (not resolved, recorded): 5.7(2) says network simulators talk only to 127.0.0.0/8 and WP17 specifies `sim/beacon.py` with a local listener, but R006 (5.4) only counts non-loopback destinations, so that simulator cannot trigger R006. Kept R006 exactly as specified; beacon.py is loopback-only as specified; R006 positives are covered by replay fixtures with 10.1.2.3 / 93.184.216.34. The end-to-end R006 check (blocked by Q1 anyway) needs an owner decision or a test-only rules override that allows loopback - raised as NEEDS_USER Q3 (E6).
 - 2026-11-13 WP17: R005 "for one process tree" implemented as: each event counts for its process and for that process's direct parent (bounded; avoids flagging systemd for unrelated services). R005 simulator files live in its own dir, so the end-to-end test must add that dir to R005 `roots` via a test rules override (like R004).
 - 2026-11-13 WP15: added field `subject` to protocol `Finding` (it is part of the de-duplication key and of the "To silence" allowlist line in 5.6). Plan 4.5 says additive fields do not bump `proto`, and also that changing a golden file requires a bump; treated as additive: `#[serde(default)]` so older peers still decode, goldens Alert/Detail/GhReport.json regenerated (diff = exactly one `"subject"` line each), proto stays 1 - allowed by the additive-field rule
 - 2026-11-13 WP11: plan says measure the 1M-event replay with `/usr/bin/time -v` -> the `time` package is not installed and not pre-authorised, so the replay example prints VmHWM from /proc/self/status (the value time -v reports as maximum RSS) and its own wall time - allowed: same measurement, different reader

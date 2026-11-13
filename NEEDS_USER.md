@@ -27,3 +27,13 @@ Exactly what to do:
 How to check it worked: `free -m` shows an "available" value above 6144 (option B).
 Options (if it is a choice): A) lower the VM start line to 4 GiB free  B) keep 6 GB and free memory   My recommendation: A, because a 2 GiB guest with 4 GiB free leaves the desktop comfortable and VM tests are needed for every kernel work package.
 If I hear nothing: I keep the 6 GB line, retry the check each time a VM step starts, and run VM steps only when 6 GB happens to be free. Nothing is lowered without your answer.
+
+## Q3 - Plan contradiction: the beaconing simulator can never trigger the beaconing rule            (case E6, raised 2026-11-13 09:55)
+Blocks: only the end-to-end check of rule R006 in WP17 (replay tests for R006 already pass).
+What I need from you: choose A or B.
+Why I need it: the plan says network simulators may only talk to 127.0.0.0/8 (loopback, this machine), and asks for a beacon simulator with a local listener. But rule R006 is defined to ignore loopback destinations. So the simulator, as specified, can never trigger the rule it is meant to test, and the plan gives no fallback.
+Exactly what to do:
+  1. Reply with "Q3: A" or "Q3: B".
+How to check it worked: nothing to run; I record your answer in NEEDS_USER.md and PROGRESS.md.
+Options (if it is a choice): A) keep both as written; the end-to-end test loads a test-only rules override that lets R006 count loopback (production rules unchanged)  B) let the simulator connect to this machine's own non-loopback address (for example its LAN IP) with a local listener, so no rule changes are needed   My recommendation: A, because the shipped rule stays exactly as specified and the simulator never touches a real network interface.
+If I hear nothing: replay fixtures keep covering R006; its end-to-end check stays unverified and is listed in docs/UNVERIFIED.md.
