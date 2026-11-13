@@ -3,7 +3,7 @@
 ## Current state
 Updated: 2026-11-13 06:05 IST
 Milestone: M4   Current WP: WP25   Status: IN_PROGRESS
-Next action: WP25 - adversarial suite (testkit/hostile, VM-only guard, differ torture), then Gate M4 with a Glasshouse-attacking review
+Next action: Gate M4 - read the fresh-subagent Glasshouse attack review (started), fix findings, re-run vm-hostile + WP24 VM checks; then WP26
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -36,7 +36,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP22 | Decoys + manifest | DONE | host | WP22 commit | 42 decoys per plan 6.2 |
 | WP23 | Launcher | BLOCKED(E1) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run pending Q1 |
 | WP24 | Trace integration, differ, report, UI | BLOCKED(E1) | debian12 + ubuntu2204 exact demo report and attribution; ubuntu2404 correctly unavailable | WP24 commit | host run pending Q1 |
-| WP25 | Adversarial suite | TODO | | | |
+| WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204; ubuntu2404 refusal | WP25 commit | Gate M4 review in progress |
 | WP26 | Real-sample protocol | TODO | | | |
 | WP27 | Act mode (experimental) | TODO | | | |
 | WP28 | R009, R011, R100 | TODO | | | |
@@ -95,6 +95,8 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 - 2026-11-13 WP15: added field `subject` to protocol `Finding` (it is part of the de-duplication key and of the "To silence" allowlist line in 5.6). Plan 4.5 says additive fields do not bump `proto`, and also that changing a golden file requires a bump; treated as additive: `#[serde(default)]` so older peers still decode, goldens Alert/Detail/GhReport.json regenerated (diff = exactly one `"subject"` line each), proto stays 1 - allowed by the additive-field rule
 - 2026-11-13 WP11: plan says measure the 1M-event replay with `/usr/bin/time -v` -> the `time` package is not installed and not pre-authorised, so the replay example prints VmHWM from /proc/self/status (the value time -v reports as maximum RSS) and its own wall time - allowed: same measurement, different reader
 - 2026-11-13 WP03: plan says images are verified by SHA256 -> Debian only publishes SHA512SUMS for its cloud images, so debian12 is verified with SHA-512; the others with SHA-256 - published checksum files, fetched over HTTPS from the official origin - allowed: the intent (verify against the published checksum) is met
+- 2026-11-13 WP25: unit property LimitCORE=1 instead of the plan's LimitCORE=0. With 0, a piped kernel.core_pattern still ran the host's root core handler for box processes (probe ESCAPED, see VERIFIED.md). 1 is the kernel's "no piped dump" value.
+- 2026-11-13 WP25: `make vm-hostile` runs debian12, ubuntu2204 and ubuntu2404. On ubuntu2404 no box can start (AppArmor userns restriction, WP23), so there the suite only checks the clean refusal; ubuntu2204 is added so a second kernel is attacked. Hostile probes cannot see /etc/sysscope-test-vm or DMI from inside the box, so in-box guards are hostname "glasshouse" + HOME + uid 1000 + the CPU "hypervisor" flag. The runner (outside the box) checks the marker file and DMI=QEMU before anything starts.
 
 ## Log
 ### 2026-11-13 05:58 WP00 Preflight
@@ -548,3 +550,28 @@ Bugs found on the way:
 - `vm/embed.sh` output lost its last newline in `$(...)`.
 - I had run some unit tests with Debian's cargo 1.94 instead of the pinned 1.100. All results above are from `make` (pinned toolchain).
 Result: PASS in VMs (debian12, ubuntu2204; ubuntu2404 correctly unavailable). Host run BLOCKED(E1) on Q1.
+
+### 2026-11-13 23:40 WP25 Adversarial suite
+Did:
+- **Probes.** `testkit/hostile/hostile.py` has one probe per row of plan 6.5, 20 in total: syscalls (39 refused, x32 and i386 killed), hostfiles, procs, network, sockets (including an abstract socket and an X11 socket listening outside the box), setuid, userns, tiocsti, forkbomb, membomb, cpuhog, diskfill, flood, tamper, coredump, torture (symlinks, FIFO, device names, ANSI/RTL/newline/non-UTF-8 names, a ~10 000-character path, 1 GiB sparse attempt, 100 000 files), persist, fds, detect, sidechannel.
+- **Guards.** Each probe writes ~/VERDICT.txt, which comes back through the report. In-box guard: hostname, HOME, uid 1000 and the hypervisor flag. `run_all.sh` guard: /etc/sysscope-test-vm and DMI=QEMU. Both refuse on the host (checked, exit 3).
+- **Runner checks.** Leftover processes, units and mounts after every probe; host disk; the core handler (a piped core_pattern installed in the VM only, then restored); flood loss and R008; torture timing, plus no raw control bytes in the JSON or the text report (new `sysscope glasshouse report FILE`).
+- **Driver.** `vm/hostile.sh` times SSH while the suite runs. `make vm-hostile` covers debian12, ubuntu2204 and ubuntu2404.
+Fixes from ESCAPED results:
+- (1) coredump ESCAPED: the host root core handler ran 3 times under LimitCORE=0. Fixed with LimitCORE=1, now CONTAINED with 0 handler runs.
+- (2) Reports said "exited with code 1" for an OOM kill, because that was systemd-run's own code. The helper now parses systemd-run's closing lines: exit code only for real exits, otherwise a note such as "stopped by the 1 GiB memory limit (oom-kill)". Unit test added.
+- (3) The diskfill LimitFSIZE check ran on a full filesystem and proved nothing. It now frees the space and truncates a sparse 300 MiB file.
+- (4) Two driver bugs of mine: `set -e` from lib.sh, and a remote check whose status was misread as a failed SSH.
+Verify command: `make release && vm/hostile.sh debian12; vm/hostile.sh ubuntu2204; vm/hostile.sh ubuntu2404` (the same as `make vm-hostile`). WP24 VM check re-run after the fixes.
+Verify output (trimmed, real):
+```
+debian12: PROBE syscalls..sidechannel: all CONTAINED; forkbomb/cpuhog ended: timeout; membomb ended: exit None ['the sample was stopped by the 1 GiB memory limit (oom-kill)']
+  diskfill host / free 9799 -> 9799 MiB; flood budget drops counted 3716728, R008 True; coredump handler invocations 0
+  torture took 2s; notes: differ stopped at 20000 entries ...; 1 file(s) larger than 64 MiB were hashed only in part
+  HOSTILE SUMMARY: 20 contained, 0 escaped; slowest SSH per phase 139-200 ms (forkbomb 178 ms)   VM-HOSTILE debian12 PASS
+ubuntu2204: HOSTILE SUMMARY: 20 contained, 0 escaped; forkbomb 197 ms, torture 312 ms   VM-HOSTILE ubuntu2204 PASS
+ubuntu2404: HOSTILE UNAVAILABLE-CORRECTLY PASS   VM-HOSTILE ubuntu2404 PASS
+WP24 re-run debian12: REPORT PASS x2, "ran 0.2 s, exited with code 0", 120 data opens = 120 traced   WP24 GLASSHOUSE PASS
+```
+Honest gap: the memory bomb is OOM-killed in under 1 s, so the 2 s SSH sampling never landed inside it. The membomb responsiveness bar is not directly measured; the fork bomb's is (178/197 ms).
+Result: PASS (VMs). The Gate M4 adversarial review is running; its findings are still to be fixed.

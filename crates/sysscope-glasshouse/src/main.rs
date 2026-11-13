@@ -324,7 +324,12 @@ fn unit_properties(run: &Path, timeout_s: u32) -> Vec<String> {
         "MemorySwapMax=0",
         "TasksMax=256",
         "CPUQuota=100%",
-        "LimitCORE=0",
+        // 1, not the plan's 0: with a piped kernel.core_pattern the kernel
+        // ignores a limit of 0 and runs the host's root core handler for
+        // the box process (WP25 coredump probe, ESCAPED with 0). A limit of
+        // exactly 1 aborts piped dumps, and is below the smallest ELF core
+        // for file dumps; the box cannot raise it (hard limit, no caps).
+        "LimitCORE=1",
         "LimitFSIZE=268435456",
         "LimitNOFILE=1024",
         "KillMode=control-group",
@@ -640,12 +645,18 @@ fn run_in(
     let unit = format!("sysscope-gh-{run_id}");
     let exe = std::env::current_exe()?;
     let mut cmd = Command::new("systemd-run");
-    cmd.args(["--wait", "--quiet", "--unit", &unit, "--service-type=exec"]);
+    // Not --quiet: systemd-run then reports how the unit ended ("Finished
+    // with result: ...", "Main processes terminated with: code=..."), which
+    // is the only honest exit status (its own exit code is 1 for any
+    // failure, e.g. an OOM kill).
+    cmd.args(["--wait", "--unit", &unit, "--service-type=exec"]);
     for p in unit_properties(run, job.timeout_s) {
         cmd.args(["-p", &p]);
     }
     cmd.arg(&exe).arg("stage2").arg(run);
     cmd.stdin(std::process::Stdio::null());
+    cmd.stdout(std::process::Stdio::null());
+    cmd.stderr(std::process::Stdio::piped());
     let mut child = cmd.spawn().context("systemd-run")?;
     // The unit's cgroup id is the inode of its cgroup directory.
     let cg = PathBuf::from(format!("/sys/fs/cgroup/system.slice/{unit}.service"));
@@ -746,11 +757,20 @@ fn run_in(
         serde_json::from_slice(&std::fs::read(run.join("baseline.json"))?)?;
     let d = run_differ(run, &differ::DiffInput { manifest, baseline })?;
     notes.extend(d.notes);
+    let _ = status;
+    let mut said = Vec::new();
+    if let Some(mut e) = child.stderr.take() {
+        let _ = std::io::Read::read_to_end(&mut std::io::Read::take(&mut e, 64 * 1024), &mut said);
+    }
+    let end = unit_end(&String::from_utf8_lossy(&said));
     let exit_code = if timed_out || cancelled {
         None
     } else {
-        status.code()
+        end.exit_code
     };
+    if let Some(n) = end.note(timed_out || cancelled) {
+        notes.push(n);
+    }
     bridge.send(HelperOut::Diff {
         exit_code,
         timed_out,
@@ -765,6 +785,63 @@ fn run_in(
         stderr: read_capped(&run.join("stderr"), 1 << 20),
         strace: read_capped(&run.join("strace.out"), 1 << 20),
     })
+}
+
+/// How the box unit ended, from systemd-run's closing lines.
+#[derive(Debug, Default, PartialEq)]
+struct UnitEnd {
+    result: String,
+    code: String,
+    status: String,
+    exit_code: Option<i32>,
+}
+
+fn unit_end(text: &str) -> UnitEnd {
+    let mut e = UnitEnd::default();
+    for l in text.lines() {
+        let l = l.trim();
+        if let Some(r) = l.strip_prefix("Finished with result:") {
+            e.result = r.trim().to_string();
+        }
+        if let Some(r) = l.strip_prefix("Main processes terminated with:") {
+            // "code=exited/status=0", "code=killed/status=KILL",
+            // "code=exited/status=3/NOTIMPLEMENTED"
+            let r = r.trim();
+            if let Some((code, status)) = r
+                .strip_prefix("code=")
+                .and_then(|x| x.split_once("/status="))
+            {
+                e.code = code.to_string();
+                e.status = status.split('/').next().unwrap_or(status).to_string();
+            }
+        }
+    }
+    if e.code == "exited" {
+        e.exit_code = e.status.parse().ok();
+    }
+    e
+}
+
+impl UnitEnd {
+    /// A note when the sample did not simply exit (None for a plain exit or
+    /// a run the helper itself stopped).
+    fn note(&self, stopped_by_us: bool) -> Option<String> {
+        if stopped_by_us || (self.code == "exited" && self.result == "success") {
+            return None;
+        }
+        Some(match self.result.as_str() {
+            "oom-kill" => "the sample was stopped by the 1 GiB memory limit (oom-kill)".into(),
+            "timeout" => "the sample was stopped by the unit's runtime limit".into(),
+            "" => "how the sample ended is unknown (systemd-run did not say)".into(),
+            r if self.code == "exited" => {
+                format!("the sample exited with code {} ({r})", self.status)
+            }
+            r => format!(
+                "the sample was {} by signal {} ({r})",
+                self.code, self.status
+            ),
+        })
+    }
 }
 
 /// `run RUN_ID`: the daemon-driven run.
@@ -940,5 +1017,36 @@ fn main() {
             eprintln!("sysscope-glasshouse: {e:#}");
             std::process::exit(1);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_end_is_read_from_systemd_run() {
+        let ok = unit_end(
+            "Running as unit: x.service\nFinished with result: success\nMain processes terminated with: code=exited/status=0\nService runtime: 213ms\n",
+        );
+        assert_eq!((ok.exit_code, ok.note(false)), (Some(0), None));
+        let oom = unit_end(
+            "Finished with result: oom-kill\nMain processes terminated with: code=killed/status=KILL\n",
+        );
+        assert_eq!(oom.exit_code, None);
+        assert_eq!(
+            oom.note(false).as_deref(),
+            Some("the sample was stopped by the 1 GiB memory limit (oom-kill)")
+        );
+        let fail = unit_end(
+            "Finished with result: exit-code\nMain processes terminated with: code=exited/status=3/NOTIMPLEMENTED\n",
+        );
+        assert_eq!(fail.exit_code, Some(3));
+        assert_eq!(
+            fail.note(false).as_deref(),
+            Some("the sample exited with code 3 (exit-code)")
+        );
+        assert_eq!(oom.note(true), None);
+        assert!(valid_name("fake_malware.py") && !valid_name(".x") && !valid_name("a/b"));
     }
 }

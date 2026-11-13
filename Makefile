@@ -106,8 +106,10 @@ gui-shot: sysroot
 fuzz:
 	@echo "make fuzz: not implemented yet (WP29)"; exit 1
 
-vm-hostile:
-	@echo "make vm-hostile: not implemented yet (WP25)"; exit 1
+vm-hostile: release
+	vm/hostile.sh debian12 && vm/down.sh debian12
+	vm/hostile.sh ubuntu2204 && vm/down.sh ubuntu2204
+	vm/hostile.sh ubuntu2404 && vm/down.sh ubuntu2404
 
 fp-eval:
 	@echo "make fp-eval: not implemented yet (WP18)"; exit 1

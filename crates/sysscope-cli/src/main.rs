@@ -36,6 +36,7 @@ commands:
                               --frames also writes a *.frames.jsonl for `sysscope-gui --replay`
   glasshouse run [--timeout S] FILE [ARGS]   run FILE in the Glasshouse sandbox (uploaded
                               as bytes) and print what it touched; see the warning it prints
+  glasshouse report FILE.json print a saved Glasshouse report
 exit codes: 0 ok, 1 error, 2 usage, 3 daemon not running, 4 permission denied, 5 daemon error";
 
 struct Args {
@@ -168,6 +169,9 @@ fn run(a: Args) -> Result<(), CliError> {
     let rest: Vec<String> = a.rest.iter().skip(1).cloned().collect();
     if cmd == "replay" {
         return replay(&rest, a.json);
+    }
+    if cmd == "glasshouse" && rest.first().map(String::as_str) == Some("report") {
+        return glasshouse::show(&rest);
     }
     if cmd == "glasshouse" {
         let mut c = Conn::open(a.socket.as_ref())?;

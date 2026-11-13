@@ -39,6 +39,26 @@ fn parse(rest: &[String]) -> Result<(u32, String, Vec<String>), CliError> {
     Ok((timeout, file, rest.get(i + 1..).unwrap_or(&[]).to_vec()))
 }
 
+/// `glasshouse report FILE`: prints a saved report (strictly parsed, at
+/// most 64 MiB, everything escaped). Works without a daemon.
+pub fn show(rest: &[String]) -> Result<(), CliError> {
+    let file = rest
+        .get(1)
+        .ok_or_else(|| CliError::Usage("glasshouse report FILE.json".into()))?;
+    let mut body = Vec::new();
+    std::fs::File::open(file)
+        .and_then(|f| f.take(64 << 20).read_to_end(&mut body))
+        .map_err(|e| CliError::Other(format!("{file}: {e}")))?;
+    let r: sysscope_proto::GhReport = serde_json::from_slice(&body).map_err(|e| {
+        CliError::Other(format!(
+            "{file}: not a Glasshouse report: {}",
+            safe_str(&e.to_string())
+        ))
+    })?;
+    print!("{}", render_text(&r));
+    Ok(())
+}
+
 /// Runs a sample and prints the report (text, or JSON with --json).
 pub fn run(c: &mut Conn, rest: &[String], json: bool) -> Result<(), CliError> {
     let (timeout_s, file, args) = parse(rest)?;
