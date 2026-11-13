@@ -18,7 +18,7 @@ Options (if it is a choice): A) passwordless sudo for user lu7h9a  B) install th
 If I hear nothing: I keep building and testing everything that does not need root (scaffold, protocol, VM harness, core state, rule engine, GUI model and views from replay data). Root work packages stay blocked.
 Update 2026-11-14: the owner created /etc/sudoers.d/90-sysscope-agent (chmod 0440, `visudo -c` parsed OK) and `sudo -n true` briefly printed OK, but minutes later the file was gone and `sudo -n` again asks for a password. Still open; I did not recreate it.
 RESOLVED 2026-11-14: the owner re-ran option A; /etc/sudoers.d/90-sysscope-agent is present (0440 root:root, 31 bytes) and `sudo -n true` succeeds from the agent shell, which has no cached sudo timestamp.
-Update 2026-11-14: the owner removed /etc/sudoers.d/90-sysscope-agent after the first host run; `sudo -n` asks for a password again. Host root work is paused until the owner chooses otherwise; packages stay installed.
+Update 2026-11-14: after the first host run the owner ran `sudo rm /etc/sudoers.d/90-sysscope-agent`. The file was still present right after and `sudo -n true` still succeeded, but the owner's intent is clear: I treat passwordless sudo as withdrawn and do not use sudo until the owner says otherwise. Packages stay installed.
 
 ## Q2 - Not enough free memory to start test virtual machines reliably            RESOLVED (case E5, raised 2026-11-13 06:40)
 Blocks: VM steps of WP03 (fedora, arch), WP04-WP10 VM verification, WP23-WP26, WP30-WP31 (they all boot a 2 GiB test VM).
