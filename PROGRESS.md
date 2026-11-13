@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP12 Daemon assembly   Status: IN_PROGRESS
-Next action: daemon threads (poller, sampler, core, acceptor/clients), socket server with access control, --record, config, shutdown; verify in VM; then CLI (WP13), M1 gate slice + adversarial review
+Milestone: M0   Current WP: WP13 CLI   Status: IN_PROGRESS
+Next action: sysscope CLI subcommands with escaping, redaction, --json, exit codes; itests against daemon and replay. Then M1 gate slice (make vm-test) + adversarial review
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
@@ -23,7 +23,7 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 | WP09 | Follow mode + budgets | BLOCKED(E1) | debian12, ubuntu2204 | WP09 commit | follow + loss identity PASS on 6.1/5.15; host pending Q1 |
 | WP10 | /proc sampler + identity | BLOCKED(E1) | debian12, ubuntu2204 | WP10 commit | 200/200 ProcKey equal, CPU and RSS checks PASS; host pending Q1 |
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
-| WP12 | Daemon assembly | IN_PROGRESS | | | VM-verifiable; host pending Q1 |
+| WP12 | Daemon assembly | BLOCKED(E1) | debian12, ubuntu2204 | WP12 commit | all server itests + 10-min RSS (118 MiB) PASS; host pending Q1 |
 | WP13 | CLI | TODO | | | |
 | WP14 | Overhead benchmarks | TODO | | | needs root (Q1) |
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
@@ -77,6 +77,7 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 - 2026-11-13 setup: .cargo/config.toml sets C_INCLUDE_PATH / LIBBPF_SYS_LIBRARY_PATH to target/sysroot (relative) so plain `cargo` works, not only `make`.
 
 ## Deviations from the plan
+- 2026-11-13 WP12: EXIT is emitted by the first thread that sees signal->live == 0, de-duplicated per (tgid, start) with an LRU map; the VM showed two EXITs when a joined thread was still inside do_exit while the main thread exited - refines the WP04 choice (recorded in VERIFIED.md)
 - 2026-11-13 WP06: OPEN events are not emitted for exec-opens (`__FMODE_EXEC`: the binary, its interpreter, ld.so); they feed the exec-path stash and are represented by the EXEC event - plan silent; avoids double counting exec as open
 - 2026-11-13 WP17: limits.rs gained MAX_EVIDENCE_IDS (1000), WINDOW_ENTRIES (4096), BEACON_POINTS (64) - new caps required by I8 for finding evidence lists and rule windows; no existing value changed - allowed: plan 4.6 is silent on these
 - 2026-11-13 WP17: PLAN CONFLICT (not resolved, recorded): 5.7(2) says network simulators talk only to 127.0.0.0/8 and WP17 specifies `sim/beacon.py` with a local listener, but R006 (5.4) only counts non-loopback destinations, so that simulator cannot trigger R006. Kept R006 exactly as specified; beacon.py is loopback-only as specified; R006 positives are covered by replay fixtures with 10.1.2.3 / 93.184.216.34. The end-to-end R006 check (blocked by Q1 anyway) needs an owner decision or a test-only rules override that allows loopback - raised as NEEDS_USER Q3 (E6).
@@ -303,5 +304,25 @@ Verify output (trimmed, real):
    allocation_shows_in_rss_within_ten_percent  (max RSS within 10 % of 200 MiB)
    files 5/5, follow 4/4, lifecycle 5/5, network 1/1, syscalls 1/1; dmesg: no new bpf/BUG/WARNING/RCU lines
 == ubuntu2204: proc 3/3 and all others pass; dmesg clean
+```
+Result: PASS on debian12 and ubuntu2204. Host: BLOCKED(E1).
+
+### 2026-11-13 12:10 WP12 Daemon assembly
+Did: collector.rs (shared loader; poller T1 drains the ring buffer into a 65536 bounded channel with blocking send, applies follow/unfollow, 1 Hz loss/budget/syscall reads), sampler thread T2 (latest-wins channel 64), core thread T3 owning the Engine (events, samples, exe trust facts via /proc/<pid>/exe, passwd homes, 500 ms snapshots encoded once, 1 s ticks, Detail with /proc maps after a start-time check, Follow/Unfollow, Act and Glasshouse answered "not enabled/unavailable", --record JSONL of core inputs), server.rs (socket 0660 root:group in a 0750 dir with mode set before listen, stale-socket handling, SO_PEERCRED logged, 8 clients max, per-client snapshot slot / 4096 events / 256 alerts drop-oldest with counters, writer with 5 s timeout, reader with strict decode and Error-then-close), config files (/etc/sysscope/sysscoped.toml, rules.toml, allow.toml; bad file = refuse to start), SIGTERM/SIGINT shutdown removing the socket. Bugs found by the VM runs and fixed: poll interrupted by SIGTERM reported as failure; reply "Error then close" could be lost to a close race; duplicate EXIT from a racing thread (BPF exit_seen map).
+Verify command: `make itest-bin && vm/run.sh debian12 "$(cat vm/tests/wp12_tools.sh)" && vm/run.sh debian12 "$(cat vm/tests/wp05_itest.sh)"` (twice), same on ubuntu2204; `vm/run.sh debian12 "$(cat vm/tests/wp12_rss.sh)"`
+Verify output (trimmed, real):
+```
+== sysscope-itest-server   test result: ok. 6 passed; 0 failed; finished in 59.05s
+   eight_clients_then_the_ninth_is_refused                  (9th gets Error too_many_clients; after one leaves a new one gets in)
+   slow_client_is_cut_off_and_others_keep_their_snapshots   (other client's max snapshot gap < 700 ms; slow client reaches EOF)
+   bad_frames_get_an_error_and_the_daemon_survives          (malformed, 2 MiB frame, unknown type, proto 99 -> Error + close; daemon still serves)
+   detail_and_follow_work_over_the_socket                   (Detail with maps; Follow -> ActResult ok, snapshot mode follow, row followed)
+   sigterm_removes_the_socket
+   daemon_uses_only_unix_and_netlink_sockets                (strace -f -e trace=network for 30 s: only AF_UNIX/AF_NETLINK)
+files 5/5, follow 4/4, lifecycle 5/5, network 1/1, proc 3/3, syscalls 1/1; dmesg: no new bpf/BUG/WARNING/RCU lines
+(debian12 run 1 and run 2: all ok; ubuntu2204: all ok)
+--- 10 minutes of wl churn ---
+rounds=22649 daemon VmRSS=120508 kB VmHWM=120508 kB
+WP12 RSS PASS
 ```
 Result: PASS on debian12 and ubuntu2204. Host: BLOCKED(E1).

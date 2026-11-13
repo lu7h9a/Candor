@@ -8,12 +8,14 @@
 
 pub mod config;
 pub mod detect;
+pub mod display;
 pub mod engine;
 pub mod explain;
 pub mod glob;
 pub mod input;
 pub mod limits;
 pub mod proc;
+pub mod redact;
 pub mod replay;
 pub mod rules;
 pub mod state;
