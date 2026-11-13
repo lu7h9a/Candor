@@ -1,0 +1,20 @@
+You are building a project called SysScope from this empty folder, on your own. I will not be available to answer questions.
+
+Four files are in this folder: SKILL.md, MASTER_PLAN.md, ESCALATION.md, LEARNING_PATH.md.
+
+Do this first, in order:
+1. Read SKILL.md, MASTER_PLAN.md and ESCALATION.md completely before writing anything.
+2. Run `git init`. Move the files to: `.claude/skills/sysscope/SKILL.md`, `docs/MASTER_PLAN.md`, `docs/ESCALATION.md`, `docs/LEARNING_PATH.md`.
+3. Create `CLAUDE.md` at the repo root containing only: "Before any work: read .claude/skills/sysscope/SKILL.md, then PROGRESS.md, then the current work package in docs/MASTER_PLAN.md. Follow docs/ESCALATION.md when blocked."
+4. Create `PROGRESS.md` using the format in MASTER_PLAN.md section 10.
+5. Start at WP00 and execute the work packages in order.
+
+Working rules (SKILL.md has the full set; these are the ones you must never break):
+- One work package at a time. Run its Verify step. Record the real command and real output in PROGRESS.md. Commit and push to the private repo.
+- If a Verify fails, fix the cause. Never weaken or skip a test, never work around a failure, never silently change a decision in the plan.
+- Anything marked [VERIFY] is unconfirmed: check it against the installed kernel and crate versions before relying on it.
+- Stop and ask me only in the situations listed in ESCALATION.md, using its exact question format, then carry on with any work that is not blocked.
+- This is my only machine. Follow the host safety rules in SKILL.md section 2 without exception: no real malware, hostile tests only inside a VM, no reboots, nothing public.
+- At the end of each milestone run the milestone gate, including the fresh-subagent adversarial review, and fix what it finds.
+
+Keep going until every work package is done or blocked. When you stop, your last message must state: the current work package, what passed, what is blocked and why, and the contents of any open NEEDS YOU questions.
