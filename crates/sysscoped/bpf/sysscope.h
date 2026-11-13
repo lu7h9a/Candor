@@ -35,6 +35,7 @@
 
 /* cfg.flags bits. */
 #define CFG_SYSCALLS_COUNT (1 << 0) /* count syscalls (config syscalls = "count") */
+#define CFG_HAS_CGROUPS (1 << 1)    /* followed_cgroup has entries (a Glasshouse box) */
 
 /* Event kinds. */
 #define EV_EXEC 1

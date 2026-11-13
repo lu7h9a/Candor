@@ -74,6 +74,8 @@ pub const MODE_FOLLOW: u32 = 1;
 
 /// cfg.flags bit: count syscalls (CFG_SYSCALLS_COUNT).
 pub const CFG_SYSCALLS_COUNT: u32 = 1 << 0;
+/// cfg.flags bit: followed_cgroup has entries (CFG_HAS_CGROUPS).
+pub const CFG_HAS_CGROUPS: u32 = 1 << 1;
 
 /// Index of each reason in the `drops` map (DROP_* in sysscope.h).
 pub const DROP_RINGBUF: u32 = 0;

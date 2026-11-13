@@ -27,23 +27,30 @@ static __always_inline __u64 current_start_ns(void)
 	return t->group_leader->start_boottime;
 }
 
-/* Returns 1 if events of the current task should be recorded. */
-static __always_inline int gate_pass(__u32 tgid)
+/* Returns 1 if events of the current task should be recorded (`c` is the
+ * cfg, possibly NULL). In follow mode the followed set is checked first: an
+ * unrelated process costs one hash miss, plus the cgroup lookup only while
+ * a Glasshouse box is registered (CFG_HAS_CGROUPS). WP14 lever "move gates
+ * earlier". */
+static __always_inline int gate_pass_cfg(struct cfg *c, __u32 tgid)
 {
-	if (bpf_map_lookup_elem(&ignored_tgid, &tgid))
-		return 0;
-	struct cfg *c = get_cfg();
 	if (c && c->mode == MODE_FOLLOW) {
 		struct follow_val *fv = bpf_map_lookup_elem(&followed_tgid, &tgid);
 		/* Same tgid AND same start time: a recycled pid is not followed. */
-		if (fv && fv->start_ticks == current_start_ns() / NS_PER_TICK)
-			return 1;
-		__u64 cg = bpf_get_current_cgroup_id();
-		if (bpf_map_lookup_elem(&followed_cgroup, &cg))
-			return 1;
-		return 0;
+		int in = fv && fv->start_ticks == current_start_ns() / NS_PER_TICK;
+		if (!in && (c->flags & CFG_HAS_CGROUPS)) {
+			__u64 cg = bpf_get_current_cgroup_id();
+			in = bpf_map_lookup_elem(&followed_cgroup, &cg) != NULL;
+		}
+		if (!in)
+			return 0;
 	}
-	return 1;
+	return bpf_map_lookup_elem(&ignored_tgid, &tgid) == NULL;
+}
+
+static __always_inline int gate_pass(__u32 tgid)
+{
+	return gate_pass_cfg(get_cfg(), tgid);
 }
 
 /* Takes one token from tgid's bucket (refilled at cfg budget_rate per

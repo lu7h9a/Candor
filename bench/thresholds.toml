@@ -1,0 +1,14 @@
+# Overhead thresholds (plan WP14; provisional targets set by the architect).
+# Guarded by scripts/check-integrity.sh: never relax one without escalating (E6).
+# Values are the allowed slowdown with the tracer on, as a fraction.
+macro_cargo_build = 0.05
+macro_c_make = 0.05
+micro_open_close = 0.40
+micro_getppid_count = 0.60
+micro_getppid_syscalls_off = 0.05
+follow_mode_any = 0.03
+# Idle daemon: share of one core over 5 minutes, and resident memory.
+idle_cpu_share = 0.03
+rss_mib = 300
+# A benchmark whose runs spread more than this (max-min over median) is rerun.
+max_spread = 0.10

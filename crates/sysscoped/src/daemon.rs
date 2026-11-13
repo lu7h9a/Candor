@@ -510,6 +510,10 @@ impl Core {
         {
             c.queue.put_reply(msg);
         }
+        // Nobody to send it to: do not build or encode it (WP14 idle CPU).
+        if !self.clients.values().any(|c| c.hello && c.snapshots) {
+            return;
+        }
         self.seq += 1;
         let mut msg = self.engine.snapshot(self.seq);
         if let DaemonMsg::Snapshot { mode, procs, .. } = &mut msg

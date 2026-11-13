@@ -86,8 +86,8 @@ lint: sysroot
 integrity:
 	scripts/check-integrity.sh
 
-bench:
-	@echo "make bench: not implemented yet (WP14)"; exit 1
+bench: release wl
+	python3 bench/run.py
 
 # Root tests inside a throw-away guest (SKILL.md: new BPF is loaded in a VM first).
 vm-test: release itest-bin

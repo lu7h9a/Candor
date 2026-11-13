@@ -206,6 +206,23 @@ impl<'obj> Collector<'obj> {
         }
     }
 
+    /// Sets or clears one cfg.flags bit in the kernel.
+    pub fn set_cfg_flag(&mut self, bit: u32, on: bool) {
+        if on {
+            self.cfg.flags |= bit;
+        } else {
+            self.cfg.flags &= !bit;
+        }
+        if let Err(e) =
+            self.skel
+                .maps
+                .cfg
+                .update(&0u32.to_le_bytes(), &self.cfg.to_bytes(), MapFlags::ANY)
+        {
+            eprintln!("sysscoped: writing cfg flags: {e}");
+        }
+    }
+
     /// Back to system-wide tracing; clears the followed set.
     pub fn unfollow(&mut self) -> Result<()> {
         self.cfg.mode = abi::MODE_SYSTEM;
@@ -319,12 +336,15 @@ pub fn run_poller(
                             "sysscoped: adding the Glasshouse cgroup to followed_cgroup: {e}"
                         );
                     }
+                    col.set_cfg_flag(abi::CFG_HAS_CGROUPS, true);
                     let _ = tx.send(PollerMsg::GhReady);
                     continue;
                 }
                 PollerCmd::GhBoxEnd { cgroup, majmin } => {
                     mounts.borrow_mut().clear_override(majmin);
                     let _ = col.skel.maps.followed_cgroup.delete(&cgroup.to_le_bytes());
+                    let empty = col.skel.maps.followed_cgroup.keys().next().is_none();
+                    col.set_cfg_flag(abi::CFG_HAS_CGROUPS, !empty);
                     continue;
                 }
                 PollerCmd::Follow(root) => col

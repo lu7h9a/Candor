@@ -17,7 +17,7 @@ int BPF_PROG(on_sys_enter, struct pt_regs *regs, long id)
 		return 0;
 	__u64 pid_tgid = bpf_get_current_pid_tgid();
 	__u32 tgid = pid_tgid >> 32;
-	if (!gate_pass(tgid))
+	if (!gate_pass_cfg(c, tgid))
 		return 0;
 	struct sys_key k = {
 		.tgid = tgid, .nr = (__u32)id, .start_ticks = current_start_ns() / NS_PER_TICK};
