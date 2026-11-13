@@ -28,6 +28,7 @@
 #define BUDGET_MAX 16384
 #define DROPS_MAX 8
 #define EXEC_STASH_MAX 4096
+#define EXIT_SEEN_MAX 16384
 #define SYS_COUNT_MAX 65536
 #define SYS_LAT_MAX 16384
 #define SYS_START_MAX 16384
@@ -108,6 +109,14 @@ struct ev_exit {
 	__u32 _pad;
 };
 _Static_assert(sizeof(struct ev_exit) == 40, "ev_exit size");
+
+/* Key of exit_seen: one EXIT per process (tgid + start time). */
+struct proc_key {
+	__u32 tgid;
+	__u32 _pad;
+	__u64 start_boot_ns;
+};
+_Static_assert(sizeof(struct proc_key) == 16, "proc_key size");
 
 /* Key of exec_stash: the exec'ing thread and the opened file. Exec opens
  * several files (the binary, a script interpreter, ld.so); the exec

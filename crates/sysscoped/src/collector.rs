@@ -1,27 +1,84 @@
-//! Loads the BPF object, attaches the programs and reads the ring buffer.
+//! Loads the BPF object, attaches the programs and reads the kernel side.
 //!
-//! In WP04 the collector only supports dump mode: every record is decoded
-//! (`abi::decode`), converted to a protocol event and printed as one JSON
-//! line. The daemon's own tgid is put into `ignored_tgid` so it never traces
-//! itself. On exit the kernel drop counters are printed to stderr, so the
-//! loss identity (emitted = received + dropped) can be checked (I3).
+//! `Collector` owns the loaded skeleton. Only the poller thread (T1) touches
+//! it: it drains the ring buffer, applies follow/unfollow requests and once a
+//! second reads the loss counters, per-process budget drops and syscall
+//! totals. Everything it learns goes to the core thread as `PollerMsg`s over
+//! a bounded channel; when that channel is full the poller blocks, the ring
+//! buffer fills and the kernel counts the drops (D10: one place of loss).
 
 use crate::abi::{self, skel};
 use crate::convert;
 use crate::mounts::Mounts;
+use crate::syscalls::SysTotals;
 use anyhow::{Context, Result};
+use crossbeam_channel::{Receiver, Sender};
 use libbpf_rs::skel::{OpenSkel, Skel, SkelBuilder};
 use libbpf_rs::{MapCore, MapFlags, RingBufferBuilder};
-use std::cell::{Cell, RefCell};
-use std::io::Write;
+use std::cell::Cell;
+use std::collections::BTreeMap;
 use std::mem::MaybeUninit;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::time::Duration;
+use std::time::{Duration, Instant};
+use sysscope_proto::{Event, Loss};
 
 /// Default per-tgid event budget (events per second) and burst (plan 4.3).
 pub const BUDGET_RATE: u32 = 2000;
 /// Default per-tgid burst.
 pub const BUDGET_BURST: u32 = 4000;
+
+/// What the poller tells the core thread.
+#[derive(Debug)]
+pub enum PollerMsg {
+    /// One kernel event, already converted.
+    Event(Event),
+    /// Kernel loss counters (cumulative).
+    Loss(Loss),
+    /// Budget + ring-buffer drops per tgid during the last second.
+    Drops {
+        /// Boot ns.
+        ts_ns: u64,
+        /// (tgid, events dropped in that second).
+        per_tgid: Vec<(u32, u64)>,
+    },
+    /// Cumulative syscall totals per (tgid, nr).
+    Sys {
+        /// Boot ns.
+        ts_ns: u64,
+        /// Totals.
+        totals: BTreeMap<(u32, u32), SysTotals>,
+    },
+    /// Result of a follow/unfollow request.
+    FollowResult(Result<String, String>),
+}
+
+/// Requests the core thread sends to the poller.
+#[derive(Debug, Clone, Copy)]
+pub enum PollerCmd {
+    /// Follow the tree of this tgid.
+    Follow(u32),
+    /// Back to system-wide.
+    Unfollow,
+}
+
+/// Load-time options.
+#[derive(Debug, Clone, Copy)]
+pub struct LoadOpts {
+    /// Ring buffer size override (tests).
+    pub ringbuf_bytes: Option<u32>,
+    /// Count syscalls.
+    pub syscalls: bool,
+    /// Budget events/s per tgid (0 = off).
+    pub budget_rate: u32,
+    /// Budget burst.
+    pub budget_burst: u32,
+}
+
+/// The loaded and attached BPF object.
+pub struct Collector<'obj> {
+    skel: skel::SysscopeSkel<'obj>,
+    cfg: abi::Cfg,
+}
 
 /// Sum of the per-CPU `drops` counters for one reason index.
 fn read_drop(map: &dyn MapCore, reason: u32) -> Result<u64> {
@@ -40,78 +97,127 @@ fn read_drop(map: &dyn MapCore, reason: u32) -> Result<u64> {
     Ok(total)
 }
 
-/// Runs dump mode until `stop` is set.
-/// Options of dump mode.
-pub struct DumpOpts {
-    /// Ring buffer size override (tests).
-    pub ringbuf_bytes: Option<u32>,
-    /// Count syscalls.
-    pub syscalls: bool,
-    /// Follow this pid's tree instead of tracing everything.
-    pub follow: Option<u32>,
-    /// Budget events/s per tgid (0 = off).
-    pub budget_rate: u32,
-    /// Budget burst.
-    pub budget_burst: u32,
+fn u64_at(v: &[u8], off: usize) -> u64 {
+    v.get(off..off + 8)
+        .and_then(|s| s.try_into().ok())
+        .map(u64::from_le_bytes)
+        .unwrap_or(0)
 }
 
-/// Dump mode prints a `{"t":"Samples",...}` line (a core input) about
-/// once per second with a full /proc scan (WP10), and at exit one `{"sysstat": ...}` line per
-/// (tgid, syscall) and one `{"budget": ...}` line per tgid with its loss
-/// counters (WP08, WP09).
-pub fn dump(o: &DumpOpts, stop: &AtomicBool) -> Result<()> {
-    let (ringbuf_bytes, syscalls) = (o.ringbuf_bytes, o.syscalls);
-    let builder = skel::SysscopeSkelBuilder::default();
-    let mut storage = MaybeUninit::uninit();
-    let mut open = builder.open(&mut storage).context("opening BPF object")?;
-    if let Some(bytes) = ringbuf_bytes {
-        open.maps
-            .events
-            .set_max_entries(bytes)
-            .context("setting ring buffer size")?;
-    }
-    let mut loaded = open.load().context("loading BPF programs")?;
-
-    let me = std::process::id();
-    loaded
-        .maps
-        .ignored_tgid
-        .update(&me.to_le_bytes(), &1u32.to_le_bytes(), MapFlags::ANY)
-        .context("adding the daemon to ignored_tgid")?;
-    let cfg = abi::Cfg {
-        mode: abi::MODE_SYSTEM,
-        budget_rate: o.budget_rate,
-        budget_burst: o.budget_burst,
-        flags: if syscalls { abi::CFG_SYSCALLS_COUNT } else { 0 },
-    };
-    loaded
-        .maps
-        .cfg
-        .update(&0u32.to_le_bytes(), &cfg.to_bytes(), MapFlags::ANY)
-        .context("writing cfg")?;
-    loaded.attach().context("attaching BPF programs")?;
-    if let Some(root) = o.follow {
-        let n = crate::follow::start(&loaded, root, cfg)?;
-        eprintln!("sysscoped: following pid {root} ({n} processes)");
+impl<'obj> Collector<'obj> {
+    /// Opens, loads and attaches; the daemon's own tgid is ignored.
+    pub fn load(
+        storage: &'obj mut MaybeUninit<libbpf_rs::OpenObject>,
+        o: LoadOpts,
+    ) -> Result<Collector<'obj>> {
+        let builder = skel::SysscopeSkelBuilder::default();
+        let mut open = builder.open(storage).context("opening BPF object")?;
+        if let Some(bytes) = o.ringbuf_bytes {
+            open.maps
+                .events
+                .set_max_entries(bytes)
+                .context("setting ring buffer size")?;
+        }
+        let mut skel = open.load().context("loading BPF programs")?;
+        let me = std::process::id();
+        skel.maps
+            .ignored_tgid
+            .update(&me.to_le_bytes(), &1u32.to_le_bytes(), MapFlags::ANY)
+            .context("adding the daemon to ignored_tgid")?;
+        let cfg = abi::Cfg {
+            mode: abi::MODE_SYSTEM,
+            budget_rate: o.budget_rate,
+            budget_burst: o.budget_burst,
+            flags: if o.syscalls {
+                abi::CFG_SYSCALLS_COUNT
+            } else {
+                0
+            },
+        };
+        skel.maps
+            .cfg
+            .update(&0u32.to_le_bytes(), &cfg.to_bytes(), MapFlags::ANY)
+            .context("writing cfg")?;
+        skel.attach().context("attaching BPF programs")?;
+        Ok(Collector { skel, cfg })
     }
 
-    // SYSSCOPE_DEBUG_RAW=1 prints every decoded kernel record to stderr.
-    let debug_raw = std::env::var_os("SYSSCOPE_DEBUG_RAW").is_some();
+    /// The loaded skeleton.
+    pub fn skel(&self) -> &skel::SysscopeSkel<'obj> {
+        &self.skel
+    }
+
+    /// Follows the tree of `root`; returns how many processes were added.
+    pub fn follow(&mut self, root: u32) -> Result<usize> {
+        let n = crate::follow::start(&self.skel, root, self.cfg)?;
+        self.cfg.mode = abi::MODE_FOLLOW;
+        Ok(n)
+    }
+
+    /// Back to system-wide tracing; clears the followed set.
+    pub fn unfollow(&mut self) -> Result<()> {
+        self.cfg.mode = abi::MODE_SYSTEM;
+        self.skel
+            .maps
+            .cfg
+            .update(&0u32.to_le_bytes(), &self.cfg.to_bytes(), MapFlags::ANY)
+            .context("writing cfg")?;
+        let keys: Vec<Vec<u8>> = self.skel.maps.followed_tgid.keys().collect();
+        for k in keys {
+            let _ = self.skel.maps.followed_tgid.delete(&k);
+        }
+        Ok(())
+    }
+
+    /// Cumulative kernel loss counters.
+    pub fn loss(&self) -> Result<Loss> {
+        Ok(Loss {
+            ringbuf: read_drop(&self.skel.maps.drops, abi::DROP_RINGBUF)?,
+            budget: read_drop(&self.skel.maps.drops, abi::DROP_BUDGET)?,
+            scratch: read_drop(&self.skel.maps.drops, abi::DROP_SCRATCH)?,
+            since_ts_ns: 0,
+        })
+    }
+
+    /// (tgid, budget dropped, ring-buffer dropped), cumulative.
+    pub fn budget(&self) -> Vec<(u32, u64, u64)> {
+        let mut out = Vec::new();
+        for k in self.skel.maps.budget.keys() {
+            let Some(tgid) = k
+                .get(..4)
+                .and_then(|s| s.try_into().ok())
+                .map(u32::from_le_bytes)
+            else {
+                continue;
+            };
+            if let Ok(Some(v)) = self.skel.maps.budget.lookup(&k, MapFlags::ANY) {
+                out.push((tgid, u64_at(&v, 16), u64_at(&v, 24)));
+            }
+        }
+        out
+    }
+}
+
+/// The poller loop (T1): ring buffer, commands, 1 Hz counters, until `stop`.
+pub fn run_poller(
+    col: &mut Collector<'_>,
+    tx: &Sender<PollerMsg>,
+    cmds: &Receiver<PollerCmd>,
+    stop: &AtomicBool,
+) -> Result<()> {
     let mounts = Mounts::load();
     let next_id = Cell::new(1u64);
     let decode_errors = Cell::new(0u64);
-    let out = RefCell::new(std::io::BufWriter::new(std::io::stdout().lock()));
     let mut rb = RingBufferBuilder::new();
-    rb.add(&loaded.maps.events, |data: &[u8]| {
+    let tx_rb = tx.clone();
+    rb.add(&col.skel.maps.events, move |data: &[u8]| {
         match abi::decode(data) {
             Ok(raw) => {
-                if debug_raw {
-                    eprintln!("raw: {raw:?}");
-                }
                 let ev = convert::to_event(next_id.get(), &raw, &mounts);
                 next_id.set(next_id.get() + 1);
-                if let Ok(line) = serde_json::to_string(&ev) {
-                    let _ = writeln!(out.borrow_mut(), "{line}");
+                // Blocks when the core is behind: the kernel then counts drops.
+                if tx_rb.send(PollerMsg::Event(ev)).is_err() {
+                    return -1; // core gone: stop polling
                 }
             }
             Err(_) => decode_errors.set(decode_errors.get() + 1),
@@ -120,61 +226,49 @@ pub fn dump(o: &DumpOpts, stop: &AtomicBool) -> Result<()> {
     })
     .context("adding ring buffer")?;
     let rb = rb.build().context("building ring buffer")?;
-
-    eprintln!("sysscoped: tracing (dump mode); Ctrl-C to stop");
-    let mut next_sample = std::time::Instant::now();
+    let mut last_budget: BTreeMap<u32, u64> = BTreeMap::new();
+    let mut next_tick = Instant::now();
     while !stop.load(Ordering::Relaxed) {
-        if std::time::Instant::now() >= next_sample {
-            next_sample += Duration::from_secs(1);
-            let input = sysscope_core::Input::Samples {
-                ts_ns: crate::sampler::boot_ns(),
-                samples: crate::sampler::sample_all(),
-            };
-            if let Ok(line) = serde_json::to_string(&input) {
-                let _ = writeln!(out.borrow_mut(), "{line}");
-            }
-        }
         match rb.poll(Duration::from_millis(100)) {
             Ok(()) => {}
             Err(e) if e.kind() == libbpf_rs::ErrorKind::Interrupted => {}
+            // A signal that asks us to stop can interrupt the poll: not an error.
+            Err(_) if stop.load(Ordering::Relaxed) => break,
             Err(e) => return Err(e).context("polling ring buffer"),
         }
-        let _ = out.borrow_mut().flush();
-    }
-    let _ = rb.consume();
-    for ((tgid, nr), t) in crate::syscalls::read_all(&loaded)? {
-        let line = serde_json::json!({"sysstat": {
-            "tgid": tgid, "nr": nr, "name": crate::syscalls::name(nr), "count": t.count,
-            "lat_count": t.lat_count, "lat_total_ns": t.lat_total_ns, "lat_max_ns": t.lat_max_ns,
-        }});
-        let _ = writeln!(out.borrow_mut(), "{line}");
-    }
-    for k in loaded.maps.budget.keys() {
-        if let Some(v) = loaded.maps.budget.lookup(&k, MapFlags::ANY)? {
-            let field = |off: usize| {
-                v.get(off..off + 8)
-                    .and_then(|s| s.try_into().ok())
-                    .map(u64::from_le_bytes)
-                    .unwrap_or(0)
+        while let Ok(cmd) = cmds.try_recv() {
+            let res = match cmd {
+                PollerCmd::Follow(root) => col
+                    .follow(root)
+                    .map(|n| format!("following pid {root} ({n} processes)"))
+                    .map_err(|e| format!("{e:#}")),
+                PollerCmd::Unfollow => col
+                    .unfollow()
+                    .map(|()| "following stopped".to_string())
+                    .map_err(|e| format!("{e:#}")),
             };
-            let tgid = k
-                .get(..4)
-                .and_then(|s| s.try_into().ok())
-                .map(u32::from_le_bytes);
-            let line = serde_json::json!({"budget": {
-                "tgid": tgid, "dropped": field(16), "rb_dropped": field(24),
-            }});
-            let _ = writeln!(out.borrow_mut(), "{line}");
+            let _ = tx.send(PollerMsg::FollowResult(res));
+        }
+        if Instant::now() >= next_tick {
+            next_tick += Duration::from_secs(1);
+            let ts_ns = crate::sampler::boot_ns();
+            let _ = tx.send(PollerMsg::Loss(col.loss()?));
+            let mut per_tgid = Vec::new();
+            for (tgid, b, r) in col.budget() {
+                let total = b.saturating_add(r);
+                let prev = last_budget.insert(tgid, total).unwrap_or(0);
+                if total > prev {
+                    per_tgid.push((tgid, total - prev));
+                }
+            }
+            if !per_tgid.is_empty() {
+                let _ = tx.send(PollerMsg::Drops { ts_ns, per_tgid });
+            }
+            if let Ok(totals) = crate::syscalls::read_all(&col.skel) {
+                let _ = tx.send(PollerMsg::Sys { ts_ns, totals });
+            }
         }
     }
-    let _ = out.borrow_mut().flush();
-    let ringbuf = read_drop(&loaded.maps.drops, abi::DROP_RINGBUF)?;
-    let budget = read_drop(&loaded.maps.drops, abi::DROP_BUDGET)?;
-    let scratch = read_drop(&loaded.maps.drops, abi::DROP_SCRATCH)?;
-    eprintln!(
-        "sysscoped: received={} decode_errors={} dropped ringbuf={ringbuf} budget={budget} scratch={scratch}",
-        next_id.get() - 1,
-        decode_errors.get()
-    );
+    let _ = rb.consume();
     Ok(())
 }

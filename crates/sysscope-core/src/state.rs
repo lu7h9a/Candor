@@ -95,6 +95,20 @@ impl State {
             Input::Samples { ts_ns, samples } => self.apply_samples(*ts_ns, samples),
             Input::Loss { loss } => self.loss = *loss,
             Input::Decoys { .. } => {} // used by the engine (rules), not the state
+            Input::SysTotals { ts_ns, totals } => {
+                self.advance(*ts_ns);
+                for (k, stat) in totals {
+                    if let Some(p) = self.procs.get_mut(k)
+                        && (p.syscalls.contains_key(&stat.nr)
+                            || p.syscalls.len() < limits::PER_PROC_SYSCALLS)
+                    {
+                        p.syscalls.insert(stat.nr, stat.clone());
+                    }
+                }
+                for p in self.procs.values_mut() {
+                    p.n_sys = p.syscalls.values().map(|s| s.count).sum();
+                }
+            }
             Input::BudgetDrops { ts_ns, drops } => {
                 self.advance(*ts_ns);
                 for (k, n) in drops {

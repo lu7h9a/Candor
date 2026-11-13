@@ -10,9 +10,11 @@
  * ino). If there is no entry it falls back to bprm->filename
  * (F_PATH_FROM_ARG).
  *
- * Exit: sched_process_exit fires per thread. EXIT is emitted only when the
- * last thread of the group exits (signal->live == 0), which is the moment
- * the process is gone. A leader exiting before its threads emits nothing.
+ * Exit: sched_process_exit fires per thread. EXIT is emitted when a thread
+ * sees signal->live == 0 (the group is gone). Two threads can both see that
+ * (one still finishing do_exit when the last one exits), so exit_seen keeps
+ * it to exactly one EXIT per process. A leader exiting before its threads
+ * emits nothing.
  */
 
 static __always_inline __u64 file_dev(struct file *f)
@@ -135,6 +137,10 @@ int BPF_PROG(on_exit, struct task_struct *p)
 	if (BPF_CORE_READ(p, signal, live.counter) != 0)
 		return 0;
 	__u32 tgid = bpf_get_current_pid_tgid() >> 32;
+	struct proc_key pk = {.tgid = tgid, ._pad = 0, .start_boot_ns = leader_start(p)};
+	__u8 one = 1;
+	if (bpf_map_update_elem(&exit_seen, &pk, &one, BPF_NOEXIST) != 0)
+		return 0; /* another thread of this process already emitted EXIT */
 	if (!gate_emit(tgid)) {
 		bpf_map_delete_elem(&followed_tgid, &tgid);
 		return 0;

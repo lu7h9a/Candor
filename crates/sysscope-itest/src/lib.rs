@@ -310,3 +310,176 @@ pub fn action<'a>(m: &'a Manifest, name: &str) -> &'a serde_json::Value {
         .and_then(|a| a.iter().find(|x| x["action"] == name))
         .unwrap_or(&serde_json::Value::Null)
 }
+
+/// Socket of a daemon started with --dev.
+pub const DEV_SOCKET: &str = "/run/sysscope-dev/sysscope.sock";
+
+/// A running `sysscoped --dev` serving the socket.
+pub struct Daemon {
+    child: Child,
+    stderr: std::sync::Arc<std::sync::Mutex<Vec<String>>>,
+}
+
+impl Daemon {
+    /// Starts the daemon and waits until it serves the socket.
+    pub fn start(extra_args: &[&str]) -> Result<Daemon, String> {
+        Daemon::start_under(&[], extra_args)
+    }
+
+    /// Like `start`, but runs `wrapper... sysscoped` (e.g. strace).
+    pub fn start_under(wrapper: &[&str], extra_args: &[&str]) -> Result<Daemon, String> {
+        require_root()?;
+        let daemon = bin_dir().join("sysscoped");
+        let mut cmd = match wrapper.split_first() {
+            Some((prog, rest)) => {
+                let mut c = Command::new(prog);
+                c.args(rest).arg(&daemon);
+                c
+            }
+            None => Command::new(&daemon),
+        };
+        let mut child = cmd
+            .arg("--dev")
+            .args(extra_args)
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("starting sysscoped: {e}"))?;
+        let stderr = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let pipe = child.stderr.take().ok_or("no stderr pipe")?;
+        let sink = std::sync::Arc::clone(&stderr);
+        std::thread::spawn(move || {
+            for line in BufReader::new(pipe).lines().map_while(Result::ok) {
+                if let Ok(mut v) = sink.lock() {
+                    v.push(line);
+                }
+            }
+        });
+        let d = Daemon { child, stderr };
+        let deadline = Instant::now() + Duration::from_secs(20);
+        while Instant::now() < deadline {
+            if d.stderr_text().contains("serving") {
+                return Ok(d);
+            }
+            if let Ok(Some(status)) = d.child_status() {
+                return Err(format!("sysscoped exited {status}: {}", d.stderr_text()));
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        Err(format!("sysscoped did not start: {}", d.stderr_text()))
+    }
+
+    fn child_status(&self) -> std::io::Result<Option<std::process::ExitStatus>> {
+        // try_wait needs &mut; peek via /proc instead.
+        let alive = std::path::Path::new(&format!("/proc/{}", self.child.id())).exists();
+        Ok(if alive {
+            None
+        } else {
+            Some(std::process::ExitStatus::default())
+        })
+    }
+
+    /// The daemon's pid (from its "serving ... pid N" line).
+    pub fn pid(&self) -> u32 {
+        self.stderr_text()
+            .split("pid ")
+            .nth(1)
+            .and_then(|r| r.split(|c: char| !c.is_ascii_digit()).next())
+            .and_then(|p| p.parse().ok())
+            .unwrap_or_else(|| self.child.id())
+    }
+
+    /// Everything the daemon wrote to stderr so far.
+    pub fn stderr_text(&self) -> String {
+        self.stderr.lock().map(|v| v.join("\n")).unwrap_or_default()
+    }
+
+    /// Sends SIGTERM to the daemon and waits; returns the exit status, or
+    /// the daemon's stderr if it did not exit cleanly.
+    pub fn stop(mut self) -> Result<std::process::ExitStatus, String> {
+        Command::new("kill")
+            .args(["-TERM", &self.pid().to_string()])
+            .status()
+            .map_err(|e| e.to_string())?;
+        let status = self.child.wait().map_err(|e| e.to_string())?;
+        std::thread::sleep(Duration::from_millis(100));
+        if status.success() {
+            Ok(status)
+        } else {
+            Err(format!("sysscoped exited {status}: {}", self.stderr_text()))
+        }
+    }
+}
+
+impl Drop for Daemon {
+    /// A test that panics must not leave its daemon running (the next test
+    /// would find the socket busy).
+    fn drop(&mut self) {
+        if let Ok(None) = self.child.try_wait() {
+            let _ = Command::new("kill")
+                .args(["-KILL", &self.pid().to_string()])
+                .status();
+            let _ = self.child.wait();
+            let _ = std::fs::remove_file(DEV_SOCKET);
+        }
+    }
+}
+
+/// A protocol client over the dev socket.
+pub struct Client {
+    /// The connection.
+    pub stream: std::os::unix::net::UnixStream,
+}
+
+impl Client {
+    /// Connects (no Hello yet).
+    pub fn connect() -> Result<Client, String> {
+        let stream =
+            std::os::unix::net::UnixStream::connect(DEV_SOCKET).map_err(|e| e.to_string())?;
+        stream
+            .set_read_timeout(Some(Duration::from_secs(10)))
+            .map_err(|e| e.to_string())?;
+        Ok(Client { stream })
+    }
+
+    /// Connects and says Hello; returns the client and the first reply.
+    pub fn hello() -> Result<(Client, sysscope_proto::DaemonMsg), String> {
+        let mut c = Client::connect()?;
+        c.send(&sysscope_proto::ClientMsg::Hello {
+            proto: sysscope_proto::PROTO_VERSION,
+            client: sysscope_proto::ClientKind::Cli,
+            version: "itest".into(),
+        })?;
+        let reply = c.recv()?;
+        Ok((c, reply))
+    }
+
+    /// Sends one message.
+    pub fn send(&mut self, m: &sysscope_proto::ClientMsg) -> Result<(), String> {
+        let body = sysscope_proto::encode(m).map_err(|e| e.to_string())?;
+        sysscope_proto::write_frame(&mut self.stream, &body, sysscope_proto::MAX_CLIENT_FRAME)
+            .map_err(|e| e.to_string())
+    }
+
+    /// Receives one message (error on EOF or timeout).
+    pub fn recv(&mut self) -> Result<sysscope_proto::DaemonMsg, String> {
+        match sysscope_proto::read_frame(&mut self.stream, sysscope_proto::MAX_DAEMON_FRAME) {
+            Ok(Some(body)) => sysscope_proto::decode_daemon(&body).map_err(|e| e.to_string()),
+            Ok(None) => Err("eof".into()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
+    /// Receives until a message matches `f` (or an error).
+    pub fn recv_until(
+        &mut self,
+        f: impl Fn(&sysscope_proto::DaemonMsg) -> bool,
+    ) -> Result<sysscope_proto::DaemonMsg, String> {
+        loop {
+            let m = self.recv()?;
+            if f(&m) {
+                return Ok(m);
+            }
+        }
+    }
+}

@@ -5,23 +5,28 @@
 //! SysScope process that runs as root (invariant I1). The only `unsafe`
 //! code in the whole project lives in `abi.rs` (invariant I14).
 //!
-//! At this stage (WP04) it supports `--dev --dump`: load the lifecycle
-//! programs and print every decoded event as one JSON line on stdout.
+//! Usage: `sysscoped [--dev] [--record FILE]` serves clients on the Unix
+//! socket; `sysscoped --dev --dump` prints events as JSON lines instead
+//! (used by the integration tests).
 #![deny(unsafe_code)]
 
 mod abi;
 mod collector;
 mod convert;
+mod daemon;
+mod dump;
 mod follow;
+mod hostinfo;
 mod mounts;
 mod sampler;
+mod server;
 mod sockaddr;
 mod startup;
 mod syscalls;
 
 use anyhow::{Context, Result, bail};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 
 /// Command-line options.
 struct Opts {
@@ -32,6 +37,7 @@ struct Opts {
     follow: Option<u32>,
     budget_rate: u32,
     budget_burst: u32,
+    record: Option<std::path::PathBuf>,
 }
 
 fn parse_args() -> Result<Opts> {
@@ -43,6 +49,7 @@ fn parse_args() -> Result<Opts> {
         follow: None,
         budget_rate: collector::BUDGET_RATE,
         budget_burst: collector::BUDGET_BURST,
+        record: None,
     };
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
@@ -67,6 +74,9 @@ fn parse_args() -> Result<Opts> {
                 let (r, b) = v.split_once('/').context("--budget must be RATE/BURST")?;
                 opts.budget_rate = r.parse().context("budget rate")?;
                 opts.budget_burst = b.parse().context("budget burst")?;
+            }
+            "--record" => {
+                opts.record = Some(args.next().context("--record needs a file")?.into());
             }
             "--version" => {
                 println!("sysscoped {}", env!("CARGO_PKG_VERSION"));
@@ -97,23 +107,27 @@ fn main() {
 }
 
 fn run(opts: &Opts) -> Result<()> {
-    if !opts.dump {
-        bail!("only --dump mode exists so far (use: sysscoped --dev --dump)");
-    }
-    let _ = opts.dev;
     let stop = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(signal_hook::consts::SIGINT, Arc::clone(&stop))?;
     signal_hook::flag::register(signal_hook::consts::SIGTERM, Arc::clone(&stop))?;
-    collector::dump(
-        &collector::DumpOpts {
-            ringbuf_bytes: opts.ringbuf_bytes,
-            syscalls: opts.syscalls,
-            follow: opts.follow,
-            budget_rate: opts.budget_rate,
-            budget_burst: opts.budget_burst,
+    let load = collector::LoadOpts {
+        ringbuf_bytes: opts.ringbuf_bytes,
+        syscalls: opts.syscalls,
+        budget_rate: opts.budget_rate,
+        budget_burst: opts.budget_burst,
+    };
+    if opts.dump {
+        return dump::run(load, opts.follow, &stop);
+    }
+    if opts.follow.is_some() {
+        bail!("--follow is only for --dump; clients request follow mode over the socket");
+    }
+    daemon::run(
+        daemon::RunOpts {
+            load,
+            dev: opts.dev,
+            record: opts.record.clone(),
         },
-        &stop,
-    )?;
-    let _ = stop.load(Ordering::Relaxed);
-    Ok(())
+        stop,
+    )
 }

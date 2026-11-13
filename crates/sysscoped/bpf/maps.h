@@ -86,6 +86,16 @@ struct {
 	__type(value, __u64);
 } sys_start SEC(".maps");
 
+/* Processes whose EXIT was already emitted. Two threads can both see
+ * signal->live == 0 at sched_process_exit (a joined thread still inside
+ * do_exit while the last one exits); the first insert wins. */
+struct {
+	__uint(type, BPF_MAP_TYPE_LRU_HASH);
+	__uint(max_entries, EXIT_SEEN_MAX);
+	__type(key, struct proc_key);
+	__type(value, __u8);
+} exit_seen SEC(".maps");
+
 /* Per-CPU scratch for values too large for the 512-byte BPF stack. */
 struct {
 	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);

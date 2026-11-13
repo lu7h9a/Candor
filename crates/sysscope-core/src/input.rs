@@ -5,7 +5,7 @@
 //! an events recording, so any run can be replayed exactly (invariant I7).
 
 use serde::{Deserialize, Serialize};
-use sysscope_proto::{BStr, Event, Loss, ProcKey};
+use sysscope_proto::{BStr, Event, Loss, ProcKey, SysStat};
 
 /// One process as read from /proc by the sampler.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -83,6 +83,13 @@ pub enum Input {
         ts_ns: u64,
         /// (process, events dropped in that second).
         drops: Vec<(ProcKey, u64)>,
+    },
+    /// Cumulative syscall statistics per process (WP08), read once a second.
+    SysTotals {
+        /// Read time (boot ns).
+        ts_ns: u64,
+        /// (process, statistics of one syscall number).
+        totals: Vec<(ProcKey, SysStat)>,
     },
     /// Time passes (retention, rules).
     Tick {
