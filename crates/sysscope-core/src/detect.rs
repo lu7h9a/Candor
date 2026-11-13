@@ -238,6 +238,17 @@ impl Detector {
         }
     }
 
+    /// Forgets alert state of processes that are no longer in the state
+    /// (bounded, I8: the map can never outgrow the process table).
+    pub fn prune(&mut self, state: &State) {
+        self.alerted.retain(|k, _| state.get(k).is_some());
+    }
+
+    /// Number of processes with alert state (for tests).
+    pub fn alerted_len(&self) -> usize {
+        self.alerted.len()
+    }
+
     /// Band for a score.
     pub fn band(&self, score: u8) -> Band {
         if score == 0 {
@@ -286,46 +297,67 @@ impl Detector {
 
     /// Score of a process and all its descendants still in the state.
     pub fn tree_score(&self, state: &State, proc: &ProcKey, now: u64) -> u8 {
-        let mut keys = vec![*proc];
-        let mut i = 0;
-        while let Some(k) = keys.get(i).copied() {
-            if let Some(p) = state.get(&k) {
-                for c in &p.children {
-                    if !keys.contains(c) {
-                        keys.push(*c);
+        self.tree_scores(state, now).get(proc).copied().unwrap_or(0)
+    }
+
+    /// Tree score of every process that has a flagged descendant (or is
+    /// flagged). Each flagged process pushes its per-rule contributions up
+    /// its ancestor chain once, so the cost is (flagged processes x depth),
+    /// never quadratic in the table size (a hostile fork chain cannot stall
+    /// the core).
+    pub fn tree_scores(&self, state: &State, now: u64) -> BTreeMap<ProcKey, u8> {
+        let mut per_proc: BTreeMap<ProcKey, BTreeMap<String, f64>> = BTreeMap::new();
+        for f in self.findings.values() {
+            let v = f64::from(f.weight)
+                * f64::from(f.confidence)
+                * decay(now.saturating_sub(f.ts_ns), self.rules.score.half_life_s);
+            let e = per_proc
+                .entry(f.proc)
+                .or_default()
+                .entry(f.rule.clone())
+                .or_insert(0.0);
+            if v > *e {
+                *e = v;
+            }
+        }
+        let mut tree: BTreeMap<ProcKey, BTreeMap<String, f64>> = BTreeMap::new();
+        for (k, contrib) in &per_proc {
+            let mut cur = Some(*k);
+            let mut seen = std::collections::BTreeSet::new();
+            while let Some(c) = cur {
+                if !seen.insert(c) {
+                    break; // defensive: the state refuses cycles anyway
+                }
+                let m = tree.entry(c).or_default();
+                for (rule, v) in contrib {
+                    let e = m.entry(rule.clone()).or_insert(0.0);
+                    if *v > *e {
+                        *e = *v;
                     }
                 }
+                cur = state.get(&c).and_then(|p| p.parent);
             }
-            i += 1;
         }
-        Self::combine(&self.contributions(&keys, now))
+        tree.into_iter()
+            .map(|(k, m)| (k, Self::combine(&m)))
+            .collect()
     }
 
     /// Fills score, tree_score and top_rule into snapshot rows.
     pub fn annotate(&self, state: &State, rows: &mut [ProcRow], now: u64) {
-        let flagged: std::collections::BTreeSet<ProcKey> =
-            self.findings.values().map(|f| f.proc).collect();
-        if flagged.is_empty() {
+        if self.findings.is_empty() {
             return;
         }
-        // Only flagged processes and their ancestors can have a tree score.
-        let mut ancestors = flagged.clone();
-        for k in &flagged {
-            let mut cur = state.get(k).and_then(|p| p.parent);
-            for _ in 0..state.len() {
-                match cur {
-                    Some(a) if ancestors.insert(a) => cur = state.get(&a).and_then(|p| p.parent),
-                    _ => break,
-                }
-            }
-        }
+        let trees = self.tree_scores(state, now);
+        let flagged: std::collections::BTreeSet<ProcKey> =
+            self.findings.values().map(|f| f.proc).collect();
         for r in rows.iter_mut() {
             if flagged.contains(&r.key) {
                 r.score = self.score(&r.key, now);
                 r.top_rule = self.top_rule(&r.key, now);
             }
-            if ancestors.contains(&r.key) {
-                r.tree_score = self.tree_score(state, &r.key, now);
+            if let Some(t) = trees.get(&r.key) {
+                r.tree_score = *t;
             }
         }
     }

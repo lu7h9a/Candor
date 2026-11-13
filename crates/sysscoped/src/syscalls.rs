@@ -8,6 +8,7 @@ use crate::abi::skel::SysscopeSkel;
 use anyhow::{Context, Result};
 use libbpf_rs::{MapCore, MapFlags};
 use std::collections::BTreeMap;
+use sysscope_proto::ProcKey;
 
 include!(concat!(env!("OUT_DIR"), "/syscall_names.rs"));
 
@@ -33,10 +34,11 @@ pub struct SysTotals {
     pub lat_max_ns: u64,
 }
 
-fn key_parts(k: &[u8]) -> Option<(u32, u32)> {
+fn key_parts(k: &[u8]) -> Option<(ProcKey, u32)> {
     let tgid = u32::from_le_bytes(k.get(0..4)?.try_into().ok()?);
     let nr = u32::from_le_bytes(k.get(4..8)?.try_into().ok()?);
-    Some((tgid, nr))
+    let start_ticks = u64::from_le_bytes(k.get(8..16)?.try_into().ok()?);
+    Some((ProcKey { tgid, start_ticks }, nr))
 }
 
 fn u64_at(b: &[u8], off: usize) -> u64 {
@@ -47,8 +49,8 @@ fn u64_at(b: &[u8], off: usize) -> u64 {
 }
 
 /// Reads every (tgid, nr) counter and latency entry.
-pub fn read_all(skel: &SysscopeSkel) -> Result<BTreeMap<(u32, u32), SysTotals>> {
-    let mut out: BTreeMap<(u32, u32), SysTotals> = BTreeMap::new();
+pub fn read_all(skel: &SysscopeSkel) -> Result<BTreeMap<(ProcKey, u32), SysTotals>> {
+    let mut out: BTreeMap<(ProcKey, u32), SysTotals> = BTreeMap::new();
     for k in skel.maps.sys_count.keys() {
         let Some(id) = key_parts(&k) else { continue };
         let per_cpu = skel

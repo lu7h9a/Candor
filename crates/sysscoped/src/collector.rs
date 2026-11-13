@@ -20,7 +20,7 @@ use std::collections::BTreeMap;
 use std::mem::MaybeUninit;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
-use sysscope_proto::{Event, Loss};
+use sysscope_proto::{Event, Loss, ProcKey};
 
 /// Default per-tgid event budget (events per second) and burst (plan 4.3).
 pub const BUDGET_RATE: u32 = 2000;
@@ -34,19 +34,19 @@ pub enum PollerMsg {
     Event(Event),
     /// Kernel loss counters (cumulative).
     Loss(Loss),
-    /// Budget + ring-buffer drops per tgid during the last second.
+    /// Budget + ring-buffer drops per process during the last second.
     Drops {
         /// Boot ns.
         ts_ns: u64,
-        /// (tgid, events dropped in that second).
-        per_tgid: Vec<(u32, u64)>,
+        /// (process, events dropped in that second).
+        per_proc: Vec<(ProcKey, u64)>,
     },
-    /// Cumulative syscall totals per (tgid, nr).
+    /// Cumulative syscall totals per (process, nr).
     Sys {
         /// Boot ns.
         ts_ns: u64,
         /// Totals.
-        totals: BTreeMap<(u32, u32), SysTotals>,
+        totals: BTreeMap<(ProcKey, u32), SysTotals>,
     },
     /// Result of a follow/unfollow request.
     FollowResult(Result<String, String>),
@@ -55,8 +55,8 @@ pub enum PollerMsg {
 /// Requests the core thread sends to the poller.
 #[derive(Debug, Clone, Copy)]
 pub enum PollerCmd {
-    /// Follow the tree of this tgid.
-    Follow(u32),
+    /// Follow the tree of this process.
+    Follow(ProcKey),
     /// Back to system-wide.
     Unfollow,
 }
@@ -148,10 +148,18 @@ impl<'obj> Collector<'obj> {
     }
 
     /// Follows the tree of `root`; returns how many processes were added.
-    pub fn follow(&mut self, root: u32) -> Result<usize> {
-        let n = crate::follow::start(&self.skel, root, self.cfg)?;
-        self.cfg.mode = abi::MODE_FOLLOW;
-        Ok(n)
+    /// On failure tracing goes back to system-wide (never a silent filter).
+    pub fn follow(&mut self, root: ProcKey) -> Result<usize> {
+        match crate::follow::start(&self.skel, root, self.cfg) {
+            Ok(n) => {
+                self.cfg.mode = abi::MODE_FOLLOW;
+                Ok(n)
+            }
+            Err(e) => {
+                self.unfollow()?;
+                Err(e)
+            }
+        }
     }
 
     /// Back to system-wide tracing; clears the followed set.
@@ -162,10 +170,7 @@ impl<'obj> Collector<'obj> {
             .cfg
             .update(&0u32.to_le_bytes(), &self.cfg.to_bytes(), MapFlags::ANY)
             .context("writing cfg")?;
-        let keys: Vec<Vec<u8>> = self.skel.maps.followed_tgid.keys().collect();
-        for k in keys {
-            let _ = self.skel.maps.followed_tgid.delete(&k);
-        }
+        crate::follow::clear(&self.skel);
         Ok(())
     }
 
@@ -179,8 +184,8 @@ impl<'obj> Collector<'obj> {
         })
     }
 
-    /// (tgid, budget dropped, ring-buffer dropped), cumulative.
-    pub fn budget(&self) -> Vec<(u32, u64, u64)> {
+    /// (process, budget dropped, ring-buffer dropped), cumulative.
+    pub fn budget(&self) -> Vec<(ProcKey, u64, u64)> {
         let mut out = Vec::new();
         for k in self.skel.maps.budget.keys() {
             let Some(tgid) = k
@@ -190,8 +195,12 @@ impl<'obj> Collector<'obj> {
             else {
                 continue;
             };
+            let key = ProcKey {
+                tgid,
+                start_ticks: convert::start_ticks(u64_at(&k, 8)),
+            };
             if let Ok(Some(v)) = self.skel.maps.budget.lookup(&k, MapFlags::ANY) {
-                out.push((tgid, u64_at(&v, 16), u64_at(&v, 24)));
+                out.push((key, u64_at(&v, 16), u64_at(&v, 24)));
             }
         }
         out
@@ -226,7 +235,7 @@ pub fn run_poller(
     })
     .context("adding ring buffer")?;
     let rb = rb.build().context("building ring buffer")?;
-    let mut last_budget: BTreeMap<u32, u64> = BTreeMap::new();
+    let mut last_budget: BTreeMap<ProcKey, u64> = BTreeMap::new();
     let mut next_tick = Instant::now();
     while !stop.load(Ordering::Relaxed) {
         match rb.poll(Duration::from_millis(100)) {
@@ -240,7 +249,7 @@ pub fn run_poller(
             let res = match cmd {
                 PollerCmd::Follow(root) => col
                     .follow(root)
-                    .map(|n| format!("following pid {root} ({n} processes)"))
+                    .map(|n| format!("following pid {} ({n} processes)", root.tgid))
                     .map_err(|e| format!("{e:#}")),
                 PollerCmd::Unfollow => col
                     .unfollow()
@@ -253,16 +262,21 @@ pub fn run_poller(
             next_tick += Duration::from_secs(1);
             let ts_ns = crate::sampler::boot_ns();
             let _ = tx.send(PollerMsg::Loss(col.loss()?));
-            let mut per_tgid = Vec::new();
-            for (tgid, b, r) in col.budget() {
+            let mut per_proc = Vec::new();
+            let mut seen = BTreeMap::new();
+            for (key, b, r) in col.budget() {
                 let total = b.saturating_add(r);
-                let prev = last_budget.insert(tgid, total).unwrap_or(0);
-                if total > prev {
-                    per_tgid.push((tgid, total - prev));
+                let prev = last_budget.get(&key).copied().unwrap_or(0);
+                // An LRU-evicted and re-created entry restarts from zero.
+                let delta = if total >= prev { total - prev } else { total };
+                if delta > 0 {
+                    per_proc.push((key, delta));
                 }
+                seen.insert(key, total);
             }
-            if !per_tgid.is_empty() {
-                let _ = tx.send(PollerMsg::Drops { ts_ns, per_tgid });
+            last_budget = seen; // forget entries the kernel no longer has
+            if !per_proc.is_empty() {
+                let _ = tx.send(PollerMsg::Drops { ts_ns, per_proc });
             }
             if let Ok(totals) = crate::syscalls::read_all(&col.skel) {
                 let _ = tx.send(PollerMsg::Sys { ts_ns, totals });

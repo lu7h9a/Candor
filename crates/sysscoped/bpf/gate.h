@@ -20,6 +20,13 @@ static __always_inline struct cfg *get_cfg(void)
 	return bpf_map_lookup_elem(&cfg, &zero);
 }
 
+/* Start time of the current process (group leader), boot ns. */
+static __always_inline __u64 current_start_ns(void)
+{
+	struct task_struct *t = bpf_get_current_task_btf();
+	return t->group_leader->start_boottime;
+}
+
 /* Returns 1 if events of the current task should be recorded. */
 static __always_inline int gate_pass(__u32 tgid)
 {
@@ -27,7 +34,9 @@ static __always_inline int gate_pass(__u32 tgid)
 		return 0;
 	struct cfg *c = get_cfg();
 	if (c && c->mode == MODE_FOLLOW) {
-		if (bpf_map_lookup_elem(&followed_tgid, &tgid))
+		struct follow_val *fv = bpf_map_lookup_elem(&followed_tgid, &tgid);
+		/* Same tgid AND same start time: a recycled pid is not followed. */
+		if (fv && fv->start_ticks == current_start_ns() / NS_PER_TICK)
 			return 1;
 		__u64 cg = bpf_get_current_cgroup_id();
 		if (bpf_map_lookup_elem(&followed_cgroup, &cg))
@@ -46,14 +55,15 @@ static __always_inline int take_token(__u32 tgid)
 	if (!c || c->budget_rate == 0)
 		return 1; /* budget disabled */
 	__u64 now = bpf_ktime_get_boot_ns();
-	struct budget *b = bpf_map_lookup_elem(&budget, &tgid);
+	struct proc_key pk = {.tgid = tgid, ._pad = 0, .start_boot_ns = current_start_ns()};
+	struct budget *b = bpf_map_lookup_elem(&budget, &pk);
 	if (!b) {
 		struct budget init = {.tokens = c->budget_burst,
 				      .last_refill_ns = now,
 				      .dropped = 0,
 				      .rb_dropped = 0};
-		bpf_map_update_elem(&budget, &tgid, &init, BPF_NOEXIST);
-		b = bpf_map_lookup_elem(&budget, &tgid);
+		bpf_map_update_elem(&budget, &pk, &init, BPF_NOEXIST);
+		b = bpf_map_lookup_elem(&budget, &pk);
 		if (!b)
 			return 1; /* map full and LRU could not evict: do not lose silently */
 	}
@@ -93,7 +103,8 @@ static __always_inline int take_token(__u32 tgid)
 static __always_inline void count_rb_drop(__u32 tgid)
 {
 	count_drop(DROP_RINGBUF);
-	struct budget *b = bpf_map_lookup_elem(&budget, &tgid);
+	struct proc_key pk = {.tgid = tgid, ._pad = 0, .start_boot_ns = current_start_ns()};
+	struct budget *b = bpf_map_lookup_elem(&budget, &pk);
 	if (b)
 		__sync_fetch_and_add(&b->rb_dropped, 1);
 }

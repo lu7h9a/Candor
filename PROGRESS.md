@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: M1/M2 gate slice   Status: IN_PROGRESS
-Next action: run `make lint test vm-test`, then the fresh-subagent adversarial review of the repo against the SKILL.md invariants; fix findings with regression tests
+Milestone: M0   Current WP: M1/M2 gate - fixing adversarial review findings   Status: IN_PROGRESS
+Next action: re-run VM itests (debian12, ubuntu2204) for the ProcKey-keyed BPF maps and follow fixes (UNTESTED in a VM), then fix remaining review findings 2, 5, 9, 10, 11 (see log), then WP20 kittest + screenshot descriptions
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
@@ -357,3 +357,9 @@ test result: ok. 9 passed; 0 failed; 0 ignored
 ```
 `make lint` green.
 Result: PASS
+
+### 2026-11-13 14:30 Gate review (fresh subagent) - partial fixes, session stopped by usage limit
+Review findings (subagent, read-only): 1 O(n^3) tree score; 2 snapshot/Detail > 16 MiB silently skipped; 3 follow scans on poller unbounded + bare tgid; 4 follow switch/failure leaves kernel filtering; 5 alerts_dropped / decode_errors not surfaced; 6 BPF maps keyed by bare tgid (pid reuse), exe_facts no start check, budget delta after LRU eviction; 7 alerted map unbounded; 8 newline injection in CLI explanation; 9 maps read whole file / exe stat on core thread; 10 truncated walks lose PATH_TRUNCATED, mount table read once; 11 doc comment in bstr.rs overstates safety, idle clients hold slots.
+FIXED with regression tests (host unit tests pass): 1 (tree_scores linear, test deep_fork_chain_annotates_quickly), 7 (Detector::prune, test alert_state_is_pruned_with_evicted_processes), 8 (explain::render_safe per line, test rendered_explanation_cannot_gain_lines_from_a_path).
+FIXED in code, NOT YET VERIFIED in a VM: 3 (max 20 scans, root start-time check, descendants must start after root), 4 (follow clears old set; failure -> system-wide; busy -> Error reply), 6 (followed_tgid value carries start_ticks checked in gate/fork; budget, sys_count, sys_lat keyed with start time; budget delta handles LRU reset; last_budget pruned).
+OPEN: 2, 5, 9, 10, 11; exe_facts start-time check (part of 6). GUI: WP20 kittest tests and the 6 screenshot descriptions still to record (screenshots generate and pass the colour check).

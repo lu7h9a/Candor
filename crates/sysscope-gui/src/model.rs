@@ -45,8 +45,9 @@ pub enum ConnState {
 /// What the reader thread delivers.
 #[derive(Clone, Debug)]
 pub enum Incoming {
-    /// A message from the daemon (or a replay file).
-    Msg(DaemonMsg),
+    /// A message from the daemon (or a replay file). Boxed: messages are
+    /// large and the enum is moved through a channel.
+    Msg(Box<DaemonMsg>),
     /// The connection changed.
     Conn(ConnState),
 }
@@ -151,6 +152,8 @@ pub enum Action {
     Follow(ProcKey),
     /// Back to system-wide.
     Unfollow,
+    /// Export the table (handled by the app, which writes the file).
+    Export,
 }
 
 /// One row as displayed (already escaped, with tree depth).
@@ -260,7 +263,7 @@ impl Model {
     pub fn apply(&mut self, inc: Incoming) {
         match inc {
             Incoming::Conn(c) => self.conn = c,
-            Incoming::Msg(m) => self.apply_msg(m),
+            Incoming::Msg(m) => self.apply_msg(*m),
         }
     }
 
@@ -395,6 +398,7 @@ impl Model {
             }
             Action::Follow(k) => return vec![ClientMsg::Follow { root: k }],
             Action::Unfollow => return vec![ClientMsg::Unfollow {}],
+            Action::Export => {}
         }
         Vec::new()
     }
@@ -532,13 +536,13 @@ mod tests {
     }
 
     fn snap(seq: u64, procs: Vec<ProcRow>) -> Incoming {
-        Incoming::Msg(DaemonMsg::Snapshot {
+        Incoming::Msg(Box::new(DaemonMsg::Snapshot {
             seq,
             ts_ns: seq,
             mode: Mode::System(SystemMode::System),
             procs,
             loss: Loss::default(),
-        })
+        }))
     }
 
     fn pids(m: &Model) -> Vec<u32> {
@@ -665,7 +669,7 @@ mod tests {
                 evidence: vec![1],
                 evidence_events: vec![],
             };
-            m.apply(Incoming::Msg(DaemonMsg::Alert { finding: f }));
+            m.apply(Incoming::Msg(Box::new(DaemonMsg::Alert { finding: f })));
         }
         assert_eq!(m.alerts.len(), MAX_ALERTS);
         assert_eq!(m.alerts[0].id, u64::from(MAX_ALERTS as u32 + 9));
@@ -686,10 +690,10 @@ mod tests {
             !name.contains('\u{202e}') && !name.contains('\x1b'),
             "{name}"
         );
-        m.apply(Incoming::Msg(DaemonMsg::Error {
+        m.apply(Incoming::Msg(Box::new(DaemonMsg::Error {
             code: "proto_mismatch".into(),
             message: "x".into(),
-        }));
+        })));
         assert!(matches!(m.conn, ConnState::ProtoMismatch(_)));
         assert!(!m.multi_user());
         m.apply(snap(

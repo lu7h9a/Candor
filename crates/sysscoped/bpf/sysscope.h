@@ -199,12 +199,27 @@ struct budget {
 };
 _Static_assert(sizeof(struct budget) == 32, "budget size");
 
-/* Syscall statistics keys and values (no events: aggregated in maps, D8). */
+/* Syscall statistics keys and values (no events: aggregated in maps, D8).
+ * Keyed by tgid AND start time (ProcKey, I4) so a recycled pid never
+ * inherits another process's counters. */
 struct sys_key {
 	__u32 tgid;
 	__u32 nr;
+	__u64 start_ticks;
 };
-_Static_assert(sizeof(struct sys_key) == 8, "sys_key size");
+_Static_assert(sizeof(struct sys_key) == 16, "sys_key size");
+
+/* followed_tgid value: which follow and which process (start time in
+ * clock ticks, as /proc reports it), so a recycled pid is not followed. */
+struct follow_val {
+	__u32 follow_id;
+	__u32 _pad;
+	__u64 start_ticks;
+};
+_Static_assert(sizeof(struct follow_val) == 16, "follow_val size");
+
+/* Clock ticks (USER_HZ = 100) from boot-time ns, as in /proc/<pid>/stat. */
+#define NS_PER_TICK 10000000ULL
 
 struct sys_lat_val {
 	__u64 count;

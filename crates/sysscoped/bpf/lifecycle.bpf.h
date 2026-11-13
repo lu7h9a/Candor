@@ -110,10 +110,14 @@ int BPF_PROG(on_fork, struct task_struct *parent, struct task_struct *child)
 	 * tgid (not the forking thread), before any gate, so a daemonising
 	 * double fork stays followed. */
 	__u32 tgid = BPF_CORE_READ(parent, tgid);
-	__u32 *fid = bpf_map_lookup_elem(&followed_tgid, &tgid);
-	if (fid) {
-		__u32 id = *fid;
-		bpf_map_update_elem(&followed_tgid, &child_tgid, &id, BPF_ANY);
+	struct follow_val *fv = bpf_map_lookup_elem(&followed_tgid, &tgid);
+	if (fv && fv->start_ticks == leader_start(parent) / NS_PER_TICK) {
+		struct follow_val child_fv = {
+			.follow_id = fv->follow_id,
+			._pad = 0,
+			.start_ticks = BPF_CORE_READ(child, start_boottime) / NS_PER_TICK,
+		};
+		bpf_map_update_elem(&followed_tgid, &child_tgid, &child_fv, BPF_ANY);
 	}
 	if (!gate_emit(tgid))
 		return 0;

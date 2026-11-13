@@ -14,11 +14,15 @@ use std::time::{Duration, Instant};
 
 /// Runs dump mode until `stop` is set.
 pub fn run(o: LoadOpts, follow: Option<u32>, stop: &AtomicBool) -> Result<()> {
+    let follow = follow.map(|pid| sysscope_proto::ProcKey {
+        tgid: pid,
+        start_ticks: crate::follow::start_of(pid).unwrap_or(0),
+    });
     let mut storage = MaybeUninit::uninit();
     let mut col = Collector::load(&mut storage, o)?;
     if let Some(root) = follow {
         let n = col.follow(root)?;
-        eprintln!("sysscoped: following pid {root} ({n} processes)");
+        eprintln!("sysscoped: following pid {} ({n} processes)", root.tgid);
     }
     let (tx, rx) = crossbeam_channel::bounded::<PollerMsg>(65536);
     let (_cmd_tx, cmd_rx) = crossbeam_channel::bounded(1);
@@ -60,16 +64,16 @@ pub fn run(o: LoadOpts, follow: Option<u32>, stop: &AtomicBool) -> Result<()> {
     let received = printer.join().unwrap_or(0);
 
     let mut out = std::io::stdout().lock();
-    for ((tgid, nr), t) in crate::syscalls::read_all(col.skel())? {
+    for ((key, nr), t) in crate::syscalls::read_all(col.skel())? {
         let line = serde_json::json!({"sysstat": {
-            "tgid": tgid, "nr": nr, "name": crate::syscalls::name(nr), "count": t.count,
+            "tgid": key.tgid, "start": key.start_ticks, "nr": nr, "name": crate::syscalls::name(nr), "count": t.count,
             "lat_count": t.lat_count, "lat_total_ns": t.lat_total_ns, "lat_max_ns": t.lat_max_ns,
         }});
         let _ = writeln!(out, "{line}");
     }
-    for (tgid, dropped, rb_dropped) in col.budget() {
+    for (key, dropped, rb_dropped) in col.budget() {
         let line = serde_json::json!({"budget": {
-            "tgid": tgid, "dropped": dropped, "rb_dropped": rb_dropped,
+            "tgid": key.tgid, "start": key.start_ticks, "dropped": dropped, "rb_dropped": rb_dropped,
         }});
         let _ = writeln!(out, "{line}");
     }

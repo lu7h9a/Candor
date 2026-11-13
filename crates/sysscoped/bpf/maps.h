@@ -20,7 +20,7 @@ struct {
 	__uint(type, BPF_MAP_TYPE_HASH);
 	__uint(max_entries, FOLLOWED_TGID_MAX);
 	__type(key, __u32);
-	__type(value, __u32);
+	__type(value, struct follow_val);
 } followed_tgid SEC(".maps");
 
 struct {
@@ -41,7 +41,7 @@ struct {
 struct {
 	__uint(type, BPF_MAP_TYPE_LRU_HASH);
 	__uint(max_entries, BUDGET_MAX);
-	__type(key, __u32);
+	__type(key, struct proc_key);
 	__type(value, struct budget);
 } budget SEC(".maps");
 

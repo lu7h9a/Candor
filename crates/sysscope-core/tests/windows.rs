@@ -76,3 +76,47 @@ fn rule_windows_are_capped() {
         (WINDOW_ENTRIES, WINDOW_ENTRIES)
     );
 }
+
+/// Review finding 7: alert state is pruned with the process table.
+#[test]
+fn alert_state_is_pruned_with_evicted_processes() {
+    let mut e = Engine::with_defaults().unwrap();
+    for i in 0..3000u32 {
+        let k = ProcKey {
+            tgid: 10_000 + i,
+            start_ticks: 1,
+        };
+        let exec = EventKind::Exec {
+            exe: BStr::from("/tmp/x"),
+            argv: BStr::from("x"),
+            argv_trunc: false,
+            fileless: false,
+            dev: 1,
+            ino: 1,
+        };
+        e.apply(&Input::RawEvent {
+            event: Event {
+                id: u64::from(i),
+                ts_ns: u64::from(i),
+                proc: k,
+                tid: k.tgid,
+                uid: 1000,
+                kind: exec,
+            },
+        });
+        e.apply(&Input::RawEvent {
+            event: Event {
+                id: 100_000 + u64::from(i),
+                ts_ns: u64::from(i),
+                proc: k,
+                tid: k.tgid,
+                uid: 1000,
+                kind: EventKind::Exit {},
+            },
+        });
+    }
+    e.apply(&Input::Tick { ts_ns: 4000 });
+    // Exited processes beyond MAX_EXITED_PROCS were evicted; so was their alert state.
+    assert!(e.detector.alerted_len() <= sysscope_core::limits::MAX_EXITED_PROCS);
+    assert!(e.detector.alerted_len() > 0);
+}

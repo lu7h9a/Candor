@@ -99,8 +99,9 @@ vm-test: release itest-bin
 vm-matrix:
 	@echo "make vm-matrix: not implemented yet (WP31)"; exit 1
 
-gui-shot:
-	@echo "make gui-shot: not implemented yet (WP20)"; exit 1
+gui-shot: sysroot
+	$(CARGO) build -p sysscope-gui -p sysscope-cli
+	scripts/gui-shots.sh
 
 fuzz:
 	@echo "make fuzz: not implemented yet (WP29)"; exit 1

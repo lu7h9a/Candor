@@ -82,17 +82,10 @@ fn session(mut stream: UnixStream, out: &Sender<Incoming>, req: &Receiver<Client
             }
         }
     });
-    loop {
-        match read_frame(&mut stream, MAX_DAEMON_FRAME) {
-            Ok(Some(body)) => match decode_daemon(&body) {
-                Ok(m) => {
-                    if out.send(Incoming::Msg(m)).is_err() {
-                        return false; // UI gone
-                    }
-                }
-                Err(_) => break,
-            },
-            _ => break,
+    while let Ok(Some(body)) = read_frame(&mut stream, MAX_DAEMON_FRAME) {
+        let Ok(m) = decode_daemon(&body) else { break };
+        if out.send(Incoming::Msg(Box::new(m))).is_err() {
+            return false; // UI gone
         }
     }
     let _ = stream.shutdown(std::net::Shutdown::Both);
@@ -186,7 +179,7 @@ pub fn replay(path: PathBuf, pace: Pace) -> Source {
                 }
                 last_ts = Some(*ts_ns);
             }
-            if out_tx.send(Incoming::Msg(m)).is_err() {
+            if out_tx.send(Incoming::Msg(Box::new(m))).is_err() {
                 return;
             }
         }
@@ -234,7 +227,7 @@ mod tests {
         let mut got_lost = false;
         for _ in 0..20 {
             match src.rx.recv_timeout(Duration::from_secs(10)).unwrap() {
-                Incoming::Msg(DaemonMsg::Welcome { .. }) => got_welcome = true,
+                Incoming::Msg(m) if matches!(*m, DaemonMsg::Welcome { .. }) => got_welcome = true,
                 Incoming::Conn(ConnState::DaemonDown(m)) if got_welcome => {
                     got_lost = m.contains("lost");
                     break;
@@ -262,7 +255,9 @@ mod tests {
         let src = replay(path.clone(), Pace::Max);
         let mut pongs = 0;
         while let Ok(m) = src.rx.recv_timeout(Duration::from_secs(2)) {
-            if let Incoming::Msg(DaemonMsg::Pong { n: 7 }) = m {
+            if let Incoming::Msg(m) = m
+                && matches!(*m, DaemonMsg::Pong { n: 7 })
+            {
                 pongs += 1;
             }
         }

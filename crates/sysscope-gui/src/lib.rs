@@ -3,5 +3,7 @@
 //! UI tests use it directly.
 #![forbid(unsafe_code)]
 
+pub mod app;
 pub mod model;
 pub mod net;
+pub mod ui;

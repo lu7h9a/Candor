@@ -32,7 +32,8 @@ commands:
   detail PID                  files, connections, syscalls, findings of PID
   findings                    explanations of all flagged processes
   export --format json|csv [--raw] [--redact-ips]   redacted by default
-  replay FILE                 run a *.events.jsonl recording through the detector offline
+  replay FILE [--frames OUT]  run a *.events.jsonl recording through the detector offline;
+                              --frames also writes a *.frames.jsonl for `sysscope-gui --replay`
   glasshouse run FILE [ARGS]  not available yet
 exit codes: 0 ok, 1 error, 2 usage, 3 daemon not running, 4 permission denied, 5 daemon error";
 
@@ -404,8 +405,12 @@ fn replay(rest: &[String], json: bool) -> Result<(), CliError> {
                 None
             }
         });
-    let alerts = sysscope_core::replay::replay_engine(&mut engine, lines)
-        .map_err(|e| CliError::Other(format!("{path}: {e}")))?;
+    let frames_out = opt(rest, "--frames");
+    let alerts = match &frames_out {
+        Some(out) => write_frames(&mut engine, lines, out)?,
+        None => sysscope_core::replay::replay_engine(&mut engine, lines)
+            .map_err(|e| CliError::Other(format!("{path}: {e}")))?,
+    };
     if let Some(e) = read_error {
         return Err(CliError::Other(format!("{path}: {e}")));
     }
@@ -431,7 +436,117 @@ fn replay(rest: &[String], json: bool) -> Result<(), CliError> {
     Ok(())
 }
 
+/// Replays inputs and writes what a daemon would have sent to a GUI: a
+/// Welcome, a Snapshot at every Tick, Alerts as they happen, and at the end
+/// a Detail for every flagged process and the 20 busiest ones.
+fn write_frames<S: AsRef<str>>(
+    engine: &mut Engine,
+    lines: impl Iterator<Item = S>,
+    out: &str,
+) -> Result<Vec<Finding>, CliError> {
+    use std::io::Write;
+    let file = std::fs::File::create(out).map_err(|e| CliError::Other(format!("{out}: {e}")))?;
+    let mut w = std::io::BufWriter::new(file);
+    let put = |w: &mut std::io::BufWriter<std::fs::File>, m: &DaemonMsg| {
+        if let Ok(line) = serde_json::to_string(m) {
+            let _ = writeln!(w, "{line}");
+        }
+    };
+    let mut lines = lines.peekable();
+    let header: serde_json::Value = lines
+        .peek()
+        .and_then(|l| serde_json::from_str(l.as_ref()).ok())
+        .unwrap_or_default();
+    let welcome = DaemonMsg::Welcome {
+        proto: sysscope_proto::PROTO_VERSION,
+        daemon_version: header
+            .get("daemon_version")
+            .and_then(|v| v.as_str())
+            .unwrap_or("replay")
+            .into(),
+        kernel: header
+            .get("kernel")
+            .and_then(|v| v.as_str())
+            .unwrap_or("replay")
+            .into(),
+        boot_to_wall_ns: header
+            .get("boot_to_wall_ns")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0),
+        features: Vec::new(),
+        act_enabled: false,
+    };
+    put(&mut w, &welcome);
+    let mut alerts = Vec::new();
+    let mut seq = 0u64;
+    sysscope_core::replay::for_each_input(lines, |input| {
+        let tick = matches!(input, sysscope_core::Input::Tick { .. });
+        for a in engine.apply(&input) {
+            put(&mut w, &DaemonMsg::Alert { finding: a.clone() });
+            alerts.push(a);
+        }
+        if tick {
+            seq += 1;
+            put(&mut w, &engine.snapshot(seq));
+        }
+    })
+    .map_err(|e| CliError::Other(e.to_string()))?;
+    let snap = engine.snapshot(seq + 1);
+    let mut rows = rows_of(&snap);
+    rows.sort_by(|a, b| b.cpu_pct.total_cmp(&a.cpu_pct));
+    let mut keys: Vec<ProcKey> = rows.iter().take(20).map(|r| r.key).collect();
+    keys.extend(
+        rows.iter()
+            .filter(|r| r.score > 0 || r.tree_score > 0)
+            .map(|r| r.key),
+    );
+    keys.sort();
+    keys.dedup();
+    for k in keys {
+        if let Some(DaemonMsg::Detail {
+            proc,
+            series,
+            recent,
+            files,
+            conns,
+            syscalls,
+            children,
+            ..
+        }) = engine.state.detail(&k)
+        {
+            let findings = engine.detector.findings_for(&proc);
+            put(
+                &mut w,
+                &DaemonMsg::Detail {
+                    proc,
+                    series,
+                    recent,
+                    files,
+                    conns,
+                    syscalls,
+                    children,
+                    maps: None,
+                    findings,
+                },
+            );
+        }
+    }
+    put(&mut w, &snap);
+    w.flush()
+        .map_err(|e| CliError::Other(format!("{out}: {e}")))?;
+    Ok(alerts)
+}
+
 fn main() {
+    // `sysscope findings | head`: stdout closes early; exit quietly like
+    // other command-line tools instead of printing a panic.
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        if info.to_string().contains("Broken pipe") {
+            std::process::exit(0);
+        }
+        default_hook(info);
+    }));
     let result = parse().and_then(run);
     if let Err(e) = result {
         eprintln!("sysscope: {e}");

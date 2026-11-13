@@ -19,7 +19,8 @@ int BPF_PROG(on_sys_enter, struct pt_regs *regs, long id)
 	__u32 tgid = pid_tgid >> 32;
 	if (!gate_pass(tgid))
 		return 0;
-	struct sys_key k = {.tgid = tgid, .nr = (__u32)id};
+	struct sys_key k = {
+		.tgid = tgid, .nr = (__u32)id, .start_ticks = current_start_ns() / NS_PER_TICK};
 	__u64 *n = bpf_map_lookup_elem(&sys_count, &k);
 	if (n) {
 		*n += 1; /* per-CPU value: no atomic needed */
@@ -50,7 +51,9 @@ int BPF_PROG(on_sys_exit, struct pt_regs *regs, long ret)
 	long id = BPF_CORE_READ(regs, orig_ax);
 	if (id < 0)
 		return 0;
-	struct sys_key k = {.tgid = pid_tgid >> 32, .nr = (__u32)id};
+	struct sys_key k = {.tgid = pid_tgid >> 32,
+			    .nr = (__u32)id,
+			    .start_ticks = current_start_ns() / NS_PER_TICK};
 	struct sys_lat_val *v = bpf_map_lookup_elem(&sys_lat, &k);
 	if (!v) {
 		struct sys_lat_val init = {.count = 0, .total_ns = 0, .max_ns = 0};

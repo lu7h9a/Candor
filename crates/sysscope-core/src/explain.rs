@@ -137,6 +137,17 @@ pub fn render(f: &Finding, ctx: &ExplainCtx) -> String {
     out
 }
 
+/// The explanation as terminal-safe text: each line is passed through
+/// `display::safe_str` separately, so the only newlines are the ones the
+/// renderer put there (a traced path can never inject a line).
+pub fn render_safe(f: &Finding, ctx: &ExplainCtx) -> String {
+    render(f, ctx)
+        .lines()
+        .map(crate::display::safe_str)
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 /// 0.6 -> "0.6", 1.0 -> "1", 0.9000001 -> "0.9".
 fn trim_float(v: f32) -> String {
     let s = format!("{:.2}", v);

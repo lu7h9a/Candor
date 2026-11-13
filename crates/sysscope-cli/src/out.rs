@@ -161,7 +161,7 @@ pub fn finding(
         boot_to_wall_ns: boot_to_wall,
         tz_offset_s: 0,
     };
-    safe_str(&explain::render(f, &ctx)).replace("\\u{000A}", "\n")
+    explain::render_safe(f, &ctx)
 }
 
 /// Status summary from Welcome + Snapshot.

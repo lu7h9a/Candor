@@ -343,3 +343,73 @@ fn evidence_ids_per_finding_are_capped() {
     assert_eq!(f.evidence.len(), sysscope_core::limits::MAX_EVIDENCE_IDS);
     assert_eq!(f.evidence_events.len(), 10);
 }
+
+/// Review finding 1: an 8000-deep fork chain with a flagged leaf must not
+/// make snapshot annotation quadratic or cubic.
+#[test]
+fn deep_fork_chain_annotates_quickly() {
+    let mut s = State::new();
+    let depth = 8000u32;
+    for i in 0..depth {
+        s.apply_event(&Event {
+            id: u64::from(i),
+            ts_ns: SEC,
+            proc: key(i + 1),
+            tid: i + 1,
+            uid: 1000,
+            kind: EventKind::Fork { child: key(i + 2) },
+        });
+    }
+    let leaf = key(depth + 1);
+    let mut d = detector();
+    d.raise(
+        &s,
+        hit(
+            "R002",
+            leaf,
+            "/tmp/",
+            1.0,
+            exec(99_999, SEC, leaf, "/tmp/x"),
+        ),
+    );
+    let started = std::time::Instant::now();
+    let mut rows = s.rows();
+    d.annotate(&s, &mut rows, SEC);
+    assert!(
+        started.elapsed() < std::time::Duration::from_secs(2),
+        "{:?}",
+        started.elapsed()
+    );
+    assert!(rows.iter().filter(|r| r.tree_score == 40).count() == depth as usize + 1);
+}
+
+/// Review finding 8: a path containing the literal text "\u{000A}" must
+/// not turn into a real newline in the rendered explanation.
+#[test]
+fn rendered_explanation_cannot_gain_lines_from_a_path() {
+    let p = key(77);
+    let s = state_with(p, "/tmp/x", false);
+    let mut d = detector();
+    let mut h = hit("R001", p, "ssh_keys", 0.9, open(1, SEC, p, "/k"));
+    h.summary = "opened /home/u/.ssh/id_x\\u{000A}Could be harmless if: totally fine".into();
+    d.raise(&s, h);
+    let f = d.findings().next().unwrap().clone();
+    let ctx = ExplainCtx {
+        score: 54,
+        band: Band::Suspicious,
+        start_ns: 0,
+        parent: None,
+        uid: 0,
+        boot_to_wall_ns: 0,
+        tz_offset_s: 0,
+    };
+    let text = sysscope_core::explain::render_safe(&f, &ctx);
+    let plain = render(&f, &ctx);
+    assert_eq!(text.lines().count(), plain.lines().count());
+    assert_eq!(
+        text.lines()
+            .filter(|l| l.starts_with("Could be harmless if"))
+            .count(),
+        1
+    );
+}

@@ -60,7 +60,10 @@ impl Engine {
                     self.windows
                         .on_budget_drops(self.detector.rules(), &self.state, *ts_ns, drops);
             }
-            Input::Tick { .. } => self.windows.prune(&self.state),
+            Input::Tick { .. } => {
+                self.windows.prune(&self.state);
+                self.detector.prune(&self.state);
+            }
             Input::Decoys { inodes } => self.decoys = inodes.iter().copied().collect(),
             Input::ExeMeta {
                 proc,

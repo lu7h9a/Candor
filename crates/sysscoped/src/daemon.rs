@@ -142,17 +142,17 @@ impl Core {
                 }
             }
             PollerMsg::Loss(loss) => self.apply(Input::Loss { loss }),
-            PollerMsg::Drops { ts_ns, per_tgid } => {
-                let drops = self.keys_for(per_tgid.into_iter());
-                self.apply(Input::BudgetDrops { ts_ns, drops });
+            PollerMsg::Drops { ts_ns, per_proc } => {
+                self.apply(Input::BudgetDrops {
+                    ts_ns,
+                    drops: per_proc,
+                });
             }
             PollerMsg::Sys { ts_ns, totals } => {
-                let by_tgid = self.live_keys();
                 let totals = totals
                     .into_iter()
-                    .filter_map(|((tgid, nr), t)| {
-                        let key = *by_tgid.get(&tgid)?;
-                        Some((
+                    .map(|((key, nr), t)| {
+                        (
                             key,
                             SysStat {
                                 nr,
@@ -162,7 +162,7 @@ impl Core {
                                 lat_total_ns: t.lat_total_ns,
                                 lat_max_ns: t.lat_max_ns,
                             },
-                        ))
+                        )
                     })
                     .collect();
                 self.apply(Input::SysTotals { ts_ns, totals });
@@ -188,22 +188,6 @@ impl Core {
                 }
             }
         }
-    }
-
-    fn live_keys(&self) -> BTreeMap<u32, ProcKey> {
-        self.engine
-            .state
-            .procs()
-            .filter(|p| p.is_live())
-            .map(|p| (p.key.tgid, p.key))
-            .collect()
-    }
-
-    fn keys_for(&self, per_tgid: impl Iterator<Item = (u32, u64)>) -> Vec<(ProcKey, u64)> {
-        let by_tgid = self.live_keys();
-        per_tgid
-            .filter_map(|(t, n)| by_tgid.get(&t).map(|k| (*k, n)))
-            .collect()
     }
 
     fn on_client(&mut self, cmd: ClientCmd) {
@@ -307,15 +291,25 @@ impl Core {
                         code: "unknown_process".into(),
                         message: format!("process {} is not running", root.tgid),
                     });
-                } else if self.poller.try_send(PollerCmd::Follow(root.tgid)).is_ok() {
+                } else if self.poller.try_send(PollerCmd::Follow(root)).is_ok() {
                     self.follow = Some(root);
                     self.follow_requester = Some(id);
+                } else {
+                    q.put_reply(DaemonMsg::Error {
+                        code: "busy".into(),
+                        message: "a follow request is already being handled".into(),
+                    });
                 }
             }
             ClientMsg::Unfollow {} => {
                 if self.poller.try_send(PollerCmd::Unfollow).is_ok() {
                     self.follow = None;
                     self.follow_requester = Some(id);
+                } else {
+                    q.put_reply(DaemonMsg::Error {
+                        code: "busy".into(),
+                        message: "a follow request is already being handled".into(),
+                    });
                 }
             }
             ClientMsg::Act { .. } => q.put_reply(DaemonMsg::ActResult {
