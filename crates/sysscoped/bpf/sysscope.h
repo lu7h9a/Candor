@@ -45,6 +45,7 @@
 #define EV_UNLINK 6
 #define EV_CONNECT 7
 #define EV_LISTEN 8
+#define EV_PTRACE 9
 
 /* Header flags. */
 #define F_PATH_TRUNCATED (1 << 0)
@@ -187,6 +188,15 @@ struct ev_listen {
 	__u8 addr[16]; /* 4 bytes for AF_INET, 16 for AF_INET6 */
 };
 _Static_assert(sizeof(struct ev_listen) == 56, "ev_listen size");
+
+/* PTRACE (R011, optional): an ATTACH-mode access check on another process. */
+struct ev_ptrace {
+	struct ev_hdr h;
+	__u64 target_start_boot_ns;
+	__u32 target_tgid;
+	__u32 mode; /* PTRACE_MODE_* bits */
+};
+_Static_assert(sizeof(struct ev_ptrace) == 48, "ev_ptrace size");
 
 /* Per-tgid token bucket (plan 4.3 step 3) and per-process loss counters.
  * Updated from several CPUs without a lock: an update may be lost, but

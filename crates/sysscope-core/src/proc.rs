@@ -272,7 +272,7 @@ impl Proc {
                 self.note_file(path, *dev, *ino, *read, *write, ev.ts_ns);
             }
             EventKind::Rename { new, dev, ino, .. } => self.rename_file(*dev, *ino, new),
-            EventKind::Unlink { .. } | EventKind::Listen { .. } => {}
+            EventKind::Unlink { .. } | EventKind::Listen { .. } | EventKind::Ptrace { .. } => {}
             EventKind::Connect {
                 family,
                 addr,

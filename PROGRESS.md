@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M4   Current WP: WP28   Status: IN_PROGRESS
-Next action: WP28 - rules R009, R011 (ptrace hook, VM first), R100 (experimental, off by default)
+Milestone: M4   Current WP: WP16-WP18 (root parts)   Status: IN_PROGRESS
+Next action: unblocked root parts of WP16-WP18 (simulator end-to-end for R001-R008/R012, R006 with the Q3 test override, fp-eval benign corpus incl. R009/R011), then WP29
 Open questions for owner: Q4 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -39,7 +39,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204 (after M4 fixes); ubuntu2404 refusal | WP25 + M4 commits | |
 | WP26 | Real-sample protocol | DONE | detonate.sh with fake_malware.py zip: full report over serial; network overrides refused | WP26 commit | |
 | WP27 | Act mode (experimental) | DONE | 5 act itests + all itests on debian12 and ubuntu2204 | WP27 commit | host run pending Q1 |
-| WP28 | R009, R011, R100 | TODO | | | |
+| WP28 | R009, R011, R100 | DONE | fixtures 6+6 each; e2e simulators in 2 VMs + host; R100 unit tests | WP28 commit | benign-corpus check runs with WP18 |
 | WP29 | Hardening | TODO | | | |
 | WP30 | Packaging | TODO | | | |
 | WP31 | Distro matrix | TODO | | | |
@@ -97,6 +97,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 - 2026-11-13 WP03: plan says images are verified by SHA256 -> Debian only publishes SHA512SUMS for its cloud images, so debian12 is verified with SHA-512; the others with SHA-256 - published checksum files, fetched over HTTPS from the official origin - allowed: the intent (verify against the published checksum) is met
 - 2026-11-13 WP25: unit property LimitCORE=1 instead of the plan's LimitCORE=0. With 0, a piped kernel.core_pattern still ran the host's root core handler for box processes (probe ESCAPED, see VERIFIED.md). 1 is the kernel's "no piped dump" value.
 - 2026-11-13 WP25: `make vm-hostile` runs debian12, ubuntu2204 and ubuntu2404. On ubuntu2404 no box can start (AppArmor userns restriction, WP23), so there the suite only checks the clean refusal; ubuntu2204 is added so a second kernel is attacked. Hostile probes cannot see /etc/sysscope-test-vm or DMI from inside the box, so in-box guards are hostname "glasshouse" + HOME + uid 1000 + the CPU "hypervisor" flag. The runner (outside the box) checks the marker file and DMI=QEMU before anything starts.
+- 2026-11-14 WP28: rules.toml gained R009, R011 and R100 with the plan 5.4 weights and confidences (R009 0.5/0.6, R011 0.6/0.7, R100 0.3/0.5, R100 `disabled = true`). The pattern lists are my choice, since the plan names classes only: R009 `programs` (shells and interpreters), `parents` (viewers, office, browsers, mail, web servers); R011 `debuggers` (gdb, lldb, strace, ltrace, valgrind, rr, perf, sysprof, heaptrack, gcore, uftrace, bpftrace, criu, crash handlers). R100 is evaluated per finished run (at exit), not on a rolling 5-minute window. A run is the natural unit for a per-executable baseline, and long-lived processes are where a rolling window would matter; noted for the owner. No existing threshold changed.
 
 ## Log
 ### 2026-11-13 05:58 WP00 Preflight
@@ -689,3 +690,24 @@ follow: test result: ok. 4 passed (x3)
 dmesg new err/warn after every host BPF run: none
 ```
 Result: host root tests PASS except the one act test that needs Q4.
+
+### 2026-11-14 06:30 WP28 R009, R011, R100
+Did:
+- **R009** (core `rules/procs.rs`): on Exec of an exe in class `programs` (shells and interpreters), whose parent's exe is in class `parents` (viewers, office, browsers, mail, web servers). Subject: the parent's name.
+- **R011:** new optional BPF program `fentry/security_ptrace_access_check`, which emits only ATTACH-mode checks on another tgid (new EV_PTRACE / EventKind::Ptrace). It is loaded only if the kernel BTF has the function; Welcome feature "ptrace". The rule fires when the target is not in the caller's own tree and the caller is not in class `debuggers`.
+- **R100** (core `baseline.rs`, experimental, `disabled = true`):
+  - per-run behaviour vector (top 32 syscalls, file dir classes, destinations, children) and Jensen-Shannon divergence (base 2);
+  - flags a run only after 20 runs and 6 h, above the baseline's own p99, and does not learn flagged runs;
+  - bounded, versioned store at /var/lib/sysscope/baselines.json, loaded and saved by the daemon only when enabled (atomic write, 0600).
+  The UI shows the rule title "Unlike itself (experimental)".
+- **Fixtures:** R009 and R011 each have 3+ positive, 3 negative and 2 boundary cases (sibling attach, own parent, unknown target, debugger, own child and grandchild; renamed viewer copy, versioned interpreter).
+- **Simulators:** `testkit/sim/doc_spawns_shell.py` (a renamed copy of /bin/sh named "evince" starts a shell) and `testkit/sim/ptrace_attach.py` (attach to its own child's sibling), plus the new itest `rules_e2e`. The new BPF program ran in VMs first.
+Verify command: `make lint && make test`, `make itest-bin` + VM runs of wp05_itest.sh (debian12, ubuntu2204) with SYSSCOPE_SIM_DIR, then host `sudo -E cargo test -p sysscope-itest --release --no-fail-fast` and `sudo dmesg --level=err,warn`
+Verify output (real):
+```
+make test: integrity OK; core lib incl. baseline x5 (divergence bounds/symmetry, p99 nearest rank, young/small baselines never flag then an unlike run is flagged and not learned, bounded store + JSON round trip + version check, dir classes); every_rule_fixture_matches_expected ok (R009, R011 included)
+debian12 + ubuntu2204: all itest binaries ok except rules_e2e R009, where my assertion wanted "/sh" but the alert said "evince (pid 1588) started /usr/bin/dash" (real detection; assertion fixed). Re-run debian12: r009 ok, r011 ok; dmesg 0 bpf/BUG/WARNING lines
+host: act 4/5 (Q4 group), cli 5, files 5, follow 4, lifecycle 5, network 1, proc 3, rules_e2e 2, server 7, syscalls 1; dmesg new err/warn: none
+```
+Pending: "benign corpus still within thresholds with R009/R011 on" needs the WP18 benign corpus (fp-eval), now unblocked and next.
+Result: PASS.

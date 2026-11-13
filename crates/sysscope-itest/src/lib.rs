@@ -277,6 +277,7 @@ pub fn kind_name(e: &Event) -> &'static str {
         EventKind::Unlink { .. } => "Unlink",
         EventKind::Connect { .. } => "Connect",
         EventKind::Listen { .. } => "Listen",
+        EventKind::Ptrace { .. } => "Ptrace",
     }
 }
 

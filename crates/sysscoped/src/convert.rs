@@ -62,6 +62,18 @@ pub fn to_event(id: u64, raw: &RawEvent, mounts: &Mounts) -> Event {
             },
         ),
         RawEvent::Exit { h, .. } => (h, EventKind::Exit {}),
+        RawEvent::Ptrace {
+            h,
+            target_tgid,
+            target_start_boot_ns,
+            mode,
+        } => (
+            h,
+            EventKind::Ptrace {
+                target: key(*target_tgid, *target_start_boot_ns),
+                attach: mode & crate::abi::PTRACE_MODE_ATTACH != 0,
+            },
+        ),
         RawEvent::Connect { h, sock_type, addr } => {
             let (family, text, port) = sockaddr::parse(addr);
             (

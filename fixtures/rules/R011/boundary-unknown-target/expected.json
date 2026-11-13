@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R011",
+      "subject": "pid 999",
+      "tgid": 200,
+      "confidence": 0.7
+    }
+  ],
+  "scores": {
+    "200": 42
+  }
+}

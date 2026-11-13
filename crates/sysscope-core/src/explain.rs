@@ -72,6 +72,9 @@ pub fn describe(e: &Event) -> String {
         EventKind::Unlink { path, .. } => format!("Unlink {path}"),
         EventKind::Connect { addr, port, .. } => format!("Connect {addr}:{port}"),
         EventKind::Listen { addr, port } => format!("Listen {addr}:{port}"),
+        EventKind::Ptrace { target, .. } => {
+            format!("Ptrace attach check on pid {}", target.tgid)
+        }
     }
 }
 

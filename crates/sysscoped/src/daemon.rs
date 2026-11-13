@@ -637,6 +637,44 @@ fn boot_to_wall_ns() -> u64 {
     now.saturating_sub(crate::sampler::boot_ns())
 }
 
+/// Where R100 keeps its baselines (only when R100 is enabled).
+const BASELINES: &str = "/var/lib/sysscope/baselines.json";
+
+/// Loads R100 baselines; a missing, unreadable or wrong-version file starts
+/// empty (and says so).
+fn load_baselines() -> sysscope_core::baseline::Baselines {
+    match std::fs::read(BASELINES) {
+        Ok(b) if b.len() <= 16 << 20 => {
+            match sysscope_core::baseline::Baselines::from_json(&String::from_utf8_lossy(&b)) {
+                Ok(bl) => bl,
+                Err(e) => {
+                    eprintln!("sysscoped: ignoring {BASELINES} ({e}); R100 starts learning again");
+                    Default::default()
+                }
+            }
+        }
+        _ => Default::default(),
+    }
+}
+
+/// Saves R100 baselines atomically (0600 root).
+fn save_baselines(bl: &sysscope_core::baseline::Baselines) {
+    use std::os::unix::fs::OpenOptionsExt;
+    let tmp = format!("{BASELINES}.tmp");
+    let _ = std::fs::create_dir_all("/var/lib/sysscope");
+    let ok = std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .mode(0o600)
+        .open(&tmp)
+        .and_then(|mut f| f.write_all(bl.to_json().as_bytes()))
+        .and_then(|()| std::fs::rename(&tmp, BASELINES));
+    if let Err(e) = ok {
+        eprintln!("sysscoped: could not save {BASELINES}: {e}");
+    }
+}
+
 fn sampler_loop(tx: Sender<Vec<ProcSample>>, stop: Arc<AtomicBool>) {
     while !stop.load(Ordering::Relaxed) {
         let started = Instant::now();
@@ -658,6 +696,7 @@ fn core_loop(
 ) {
     let mut next_snapshot = Instant::now() + Duration::from_millis(500);
     let mut next_tick = Instant::now() + Duration::from_secs(1);
+    let mut next_baseline_save = Instant::now() + Duration::from_secs(600);
     while !stop.load(Ordering::Relaxed) {
         let now = Instant::now();
         if now >= next_snapshot {
@@ -669,6 +708,12 @@ fn core_loop(
             core.apply(Input::Tick {
                 ts_ns: crate::sampler::boot_ns(),
             });
+            if now >= next_baseline_save {
+                next_baseline_save += Duration::from_secs(600);
+                if let Some(bl) = &core.engine.baselines {
+                    save_baselines(bl);
+                }
+            }
             let fx = core.gh.watchdog();
             core.gh_effects(&fx);
             for (owner, msg) in fx.replies {
@@ -703,6 +748,9 @@ fn core_loop(
     for c in core.clients.values() {
         c.queue.close();
     }
+    if let Some(bl) = &core.engine.baselines {
+        save_baselines(bl);
+    }
     if let Some(mut w) = core.record.take() {
         let _ = w.flush();
     }
@@ -731,6 +779,9 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     ];
     if load.syscalls {
         features.push("syscalls".into());
+    }
+    if col.ptrace {
+        features.push("ptrace".into());
     }
     // Glasshouse is offered only where a real sandbox start works (the
     // helper's probe; it never changes a system setting).
@@ -775,7 +826,14 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         gh,
         last_loss: sysscope_proto::Loss::default(),
         act_enabled: opts.enable_act,
-        engine: Engine::new(rules, allow),
+        engine: {
+            let mut e = Engine::new(rules, allow);
+            if e.r100_enabled() {
+                e.baselines = Some(load_baselines());
+                eprintln!("sysscoped: R100 (experimental) enabled; baselines in {BASELINES}");
+            }
+            e
+        },
         clients: BTreeMap::new(),
         homes: hostinfo::load_homes(),
         poller: cmd_tx,

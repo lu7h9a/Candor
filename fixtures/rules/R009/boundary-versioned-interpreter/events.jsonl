@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/sbin/apache2", "argv": "/usr/sbin/apache2", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 17}}}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Fork", "child": {"tgid": 101, "start": 1}}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 101, "start": 1}, "tid": 101, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/python3.12", "argv": "/usr/bin/python3.12", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 19}}}

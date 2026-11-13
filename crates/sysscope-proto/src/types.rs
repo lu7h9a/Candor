@@ -142,6 +142,14 @@ pub enum EventKind {
     },
     /// The process exited.
     Exit {},
+    /// The process asked for ptrace-level access to another process
+    /// (attach, /proc/<pid>/mem, process_vm_*); seen even if refused (R011).
+    Ptrace {
+        /// The target process.
+        target: ProcKey,
+        /// ATTACH mode (always true today; READ mode is not reported).
+        attach: bool,
+    },
     /// A file was opened.
     Open {
         /// Resolved path (display only).

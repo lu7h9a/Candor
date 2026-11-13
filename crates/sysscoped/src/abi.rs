@@ -44,6 +44,10 @@ pub const EV_UNLINK: u16 = 6;
 pub const EV_CONNECT: u16 = 7;
 /// LISTEN kind.
 pub const EV_LISTEN: u16 = 8;
+/// PTRACE kind (R011, optional program).
+pub const EV_PTRACE: u16 = 9;
+/// PTRACE_MODE_ATTACH bit of the access-check mode.
+pub const PTRACE_MODE_ATTACH: u32 = 0x02;
 /// Maximum sockaddr bytes in a CONNECT record.
 pub const SOCKADDR_CAP: usize = 128;
 
@@ -182,6 +186,16 @@ struct EvConnectLayout {
     addr: [u8; SOCKADDR_CAP],
 }
 #[repr(C)]
+struct EvPtraceLayout {
+    h: EvHdrLayout,
+    target_start_boot_ns: u64,
+    target_tgid: u32,
+    mode: u32,
+}
+/// Size of `struct ev_ptrace`.
+pub const PTRACE_SIZE: usize = 48;
+const _: () = assert!(std::mem::size_of::<EvPtraceLayout>() == PTRACE_SIZE);
+#[repr(C)]
 struct EvListenLayout {
     h: EvHdrLayout,
     family: u16,
@@ -316,6 +330,18 @@ pub enum RawEvent {
         sock_type: u16,
         /// Raw sockaddr bytes (at most SOCKADDR_CAP).
         addr: Vec<u8>,
+    },
+    /// ATTACH-mode access check on another process (ptrace attach,
+    /// /proc/<pid>/mem, process_vm_*).
+    Ptrace {
+        /// Header (the caller).
+        h: Hdr,
+        /// Target tgid.
+        target_tgid: u32,
+        /// Target start time (boot ns).
+        target_start_boot_ns: u64,
+        /// PTRACE_MODE_* bits.
+        mode: u32,
     },
     /// Socket started listening.
     Listen {
@@ -491,6 +517,15 @@ pub fn decode(b: &[u8]) -> Result<RawEvent, AbiError> {
                 addr,
             })
         }
+        EV_PTRACE => {
+            need(b, h.kind, PTRACE_SIZE)?;
+            Ok(RawEvent::Ptrace {
+                h,
+                target_start_boot_ns: u64_at(b, 32),
+                target_tgid: u32_at(b, 40),
+                mode: u32_at(b, 44),
+            })
+        }
         k => Err(AbiError::UnknownKind(k)),
     }
 }
@@ -520,6 +555,27 @@ mod tests {
         b.extend_from_slice(&kind.to_le_bytes());
         b.extend_from_slice(&flags.to_le_bytes());
         b
+    }
+
+    #[test]
+    fn decodes_ptrace() {
+        let mut b = hdr_bytes(EV_PTRACE, 0);
+        b.extend_from_slice(&5_000_000_000u64.to_le_bytes());
+        b.extend_from_slice(&4242u32.to_le_bytes());
+        b.extend_from_slice(&0x12u32.to_le_bytes());
+        match decode(&b).unwrap() {
+            RawEvent::Ptrace {
+                target_tgid,
+                target_start_boot_ns,
+                mode,
+                ..
+            } => assert_eq!(
+                (target_tgid, target_start_boot_ns, mode),
+                (4242, 5_000_000_000, 0x12)
+            ),
+            other => panic!("{other:?}"),
+        }
+        assert!(decode(&b[..40]).is_err(), "short record refused");
     }
 
     #[test]

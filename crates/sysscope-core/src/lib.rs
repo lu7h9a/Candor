@@ -6,6 +6,7 @@
 //! what makes the detector testable by replaying fixture files.
 #![forbid(unsafe_code)]
 
+pub mod baseline;
 pub mod config;
 pub mod detect;
 pub mod display;

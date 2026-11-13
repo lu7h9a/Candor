@@ -101,6 +101,19 @@ pub struct LoadOpts {
 pub struct Collector<'obj> {
     skel: skel::SysscopeSkel<'obj>,
     cfg: abi::Cfg,
+    /// The optional ptrace access-check program is loaded (R011).
+    pub ptrace: bool,
+}
+
+/// True if the running kernel's BTF has a function of this name (an
+/// optional fentry program is only loaded when its target exists).
+fn kernel_has_function(name: &str) -> bool {
+    let Ok(btf) = std::fs::read("/sys/kernel/btf/vmlinux") else {
+        return false;
+    };
+    let mut needle = name.as_bytes().to_vec();
+    needle.push(0);
+    btf.windows(needle.len()).any(|w| w == needle.as_slice())
 }
 
 /// Sum of the per-CPU `drops` counters for one reason index.
@@ -135,6 +148,10 @@ impl<'obj> Collector<'obj> {
     ) -> Result<Collector<'obj>> {
         let builder = skel::SysscopeSkelBuilder::default();
         let mut open = builder.open(storage).context("opening BPF object")?;
+        let ptrace = kernel_has_function("security_ptrace_access_check");
+        if !ptrace {
+            open.progs.on_ptrace_check.set_autoload(false);
+        }
         if let Some(bytes) = o.ringbuf_bytes {
             open.maps
                 .events
@@ -166,7 +183,7 @@ impl<'obj> Collector<'obj> {
             .update(&0u32.to_le_bytes(), &cfg.to_bytes(), MapFlags::ANY)
             .context("writing cfg")?;
         skel.attach().context("attaching BPF programs")?;
-        Ok(Collector { skel, cfg })
+        Ok(Collector { skel, cfg, ptrace })
     }
 
     /// The loaded skeleton.

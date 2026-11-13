@@ -130,6 +130,15 @@ pub struct RuleCfg {
     pub confidence_write: Option<f64>,
     /// R012.
     pub confidence_read: Option<f64>,
+    /// R009: shells and interpreters (exe patterns).
+    #[serde(default)]
+    pub programs: Vec<String>,
+    /// R009: parents that should not start them (exe patterns).
+    #[serde(default)]
+    pub parents: Vec<String>,
+    /// R011: known debuggers and tracers (exe patterns).
+    #[serde(default)]
+    pub debuggers: Vec<String>,
 }
 
 /// A named group of path patterns.
