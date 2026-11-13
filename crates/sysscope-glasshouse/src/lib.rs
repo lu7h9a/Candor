@@ -4,3 +4,5 @@
 //! report builder (docs/MASTER_PLAN.md section 6). Glasshouse is a
 //! behaviour-demonstration sandbox, not a malware containment system.
 #![forbid(unsafe_code)]
+
+pub mod decoys;

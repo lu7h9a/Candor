@@ -33,7 +33,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP19 | GUI model + transport | DONE | host | WP19 commit | 9 unit tests (model + net) |
 | WP20 | GUI views | DONE | host (Xvfb + kittest) | WP20 commit | 6 screenshots described below |
 | WP21 | Follow UX, loss, robustness | DONE | host (Xvfb, fake daemon) | WP21 commit | GUI threads 6-7 % CPU, 125 MiB; real-GPU check left to the owner |
-| WP22 | Decoys + manifest | TODO | | | |
+| WP22 | Decoys + manifest | DONE | host | WP22 commit | 42 decoys per plan 6.2 |
 | WP23 | Launcher | TODO | | | |
 | WP24 | Trace integration, differ, report, UI | TODO | | | |
 | WP25 | Adversarial suite | TODO | | | |
@@ -417,3 +417,18 @@ restart-1-connected.png 692 colours OK / restart-2-down.png 860 colours OK / res
 ```
 Screenshots: restart-2-down shows red "daemon not running", badge "Not connected", Pause/Export greyed, last table kept (now with the amber stale-data banner); restart-3-recovered shows green "daemon 0.0.1 on 6.19.14+kali-amd64 (fixture)", "System-wide", controls enabled, live table. system-wide now shows all ten columns incl. score with the loss banner.
 Result: PASS (CPU on GUI threads; see Deviations)
+
+### 2026-11-13 18:10 WP22 Decoys + manifest
+Did: crates/sysscope-glasshouse/src/decoys.rs: per-run fake decoys exactly as listed in plan 6.2 (SSH key pair from ssh-keygen with comment victim@glasshouse - a fake PEM in seeded mode -, known_hosts, AWS documented example credentials, Chrome Login Data, Firefox logins.json + key4.db, .bash_history, passwords.txt, wallet.dat, GnuPG key, 20 Documents with real magic headers, 10 JPEGs, decoy /etc/shadow with fake hashes), manifest (path, sandbox path, dev, ino, size, sha256, entropy, mode) written 0600 as manifest.json; SplitMix64 generator for reproducible tests; no file copied from the host.
+Verify command: `cargo test -p sysscope-glasshouse`
+Verify output (trimmed, real):
+```
+test decoys::tests::entropy_bounds ... ok
+test decoys::tests::b64_matches_known_values ... ok
+test decoys::tests::manifest_matches_files_on_disk ... ok        (re-hash, (dev,ino), size, entropy, mode for all 42)
+test decoys::tests::same_seed_same_content_other_seed_differs ... ok
+test decoys::tests::no_decoy_contains_host_data ... ok          (real ssh-keygen run; no $USER, hostname or $HOME bytes in any of the 42 files)
+test decoys::manifest_tests::manifest_round_trips_through_json ... ok
+test result: ok. 6 passed; 0 failed
+```
+Result: PASS
