@@ -1,0 +1,14 @@
+# Kernel-like style for the BPF C sources (checked by `make lint`).
+BasedOnStyle: LLVM
+UseTab: Always
+IndentWidth: 8
+TabWidth: 8
+ContinuationIndentWidth: 8
+ColumnLimit: 100
+BreakBeforeBraces: Linux
+AllowShortIfStatementsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortLoopsOnASingleLine: false
+IndentCaseLabels: false
+AlignConsecutiveMacros: false
+SortIncludes: Never

@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP04 BPF skeleton + lifecycle   Status: IN_PROGRESS
-Next action: unpack libelf/libzstd dev files into target/sysroot (scripts/sysroot.sh), build the BPF skeleton, verify in the debian12 VM
+Milestone: M0   Current WP: WP05 Ground-truth workload + harness   Status: IN_PROGRESS
+Next action: write testkit/wl (C, raw syscalls, JSON manifest) and the itest run_wl helper
 Open questions for owner: Q1, Q2
 Tree state: clean after WP00 commit
 Last green gate: none yet
@@ -15,7 +15,7 @@ Last green gate: none yet
 | WP01 | Scaffold | DONE | host + GitHub CI | WP01 commit | CI run 43337978651 green; libbpf dep deferred to WP04 (needs libelf-dev, Q1) |
 | WP02 | Protocol crate | DONE | host | | | |
 | WP03 | VM harness | DONE | debian12, ubuntu2204, ubuntu2404 | WP03 commit | fedora/arch refused by E5 RAM guard (Q2), in UNVERIFIED.md |
-| WP04 | BPF skeleton + lifecycle | TODO | | | needs root (Q1) |
+| WP04 | BPF skeleton + lifecycle | BLOCKED(E1) | debian12 | WP04 commit | debian12 verify PASS; host pending Q1; ubuntu2204 refused by E5 guard |
 | WP05 | Ground-truth workload + harness | TODO | | | needs root (Q1) |
 | WP06 | File events | TODO | | | needs root (Q1) |
 | WP07 | Network events | TODO | | | needs root (Q1) |
@@ -59,6 +59,11 @@ Last green gate: none yet
 - 2026-11-13 WP02: plan names `FileStat`, `ConnStat`, `SysStat`, `MapRow`, `GhReport` without fields; defined them from plan 6.3 and 4.3 (see crates/sysscope-proto/src/types.rs). Adding fields later is additive (no proto bump).
 - 2026-11-13 WP02: Rust field `ProcKey.start_ticks` is sent as `"start"` on the wire, matching 4.5 while keeping the I4 name in code.
 - 2026-11-13 WP02: the 4.5 escaping leaves valid-UTF-8 C1 controls (U+0080-U+009F) and bidi overrides (U+202A-U+202E, U+2066-U+2069) unescaped. Wire format kept exactly as specified; terminal/GUI display code must additionally neutralise these (to do in WP13/WP20, tracked in docs/UNVERIFIED.md once it exists).
+
+- 2026-11-13 WP04: libelf-dev, libzstd-dev and clang-format-21 (all pre-authorised, official Kali repo) are unpacked with `apt-get download` + `dpkg-deb -x` into the gitignored target/sysroot by scripts/sysroot.sh, because they cannot be installed without sudo (Q1). Nothing outside the repo is written; apt checks the packages against the signed index. Becomes a no-op once the packages are installed - to reverse: `rm -rf target/sysroot`.
+- 2026-11-13 WP04: VM-first verification of BPF WPs uses host-built binaries. The vendored libbpf, compiled against glibc 2.43 headers, references `__isoc23_*` (GLIBC_2.38); crates/sysscoped/compat/glibc_compat.c provides those three entry points via the classic functions so the daemon needs only GLIBC_2.34 and runs on debian12/ubuntu2204. WP30 still builds release packages on the oldest glibc.
+- 2026-11-13 WP04: exec path comes from `fentry/security_file_open` (bpf_d_path-legal) for `__FMODE_EXEC` opens, stashed by (tid, dev, ino) and picked up by the `sched_process_exec` tracepoint, because `bpf_d_path` is not allowed in tp_btf programs. Fallback: the execve argument with flag F_PATH_FROM_ARG. Exec also carries the parent's ProcKey (additive to the 4.3 ABI).
+- 2026-11-13 WP04: WP04 rows are marked BLOCKED(E1), not DONE: verified in the debian12 VM, host verification waits for Q1. Same pattern for later kernel WPs.
 
 ## Deviations from the plan
 - 2026-11-13 WP03: plan says images are verified by SHA256 -> Debian only publishes SHA512SUMS for its cloud images, so debian12 is verified with SHA-512; the others with SHA-256 - published checksum files, fetched over HTTPS from the official origin - allowed: the intent (verify against the published checksum) is met
@@ -143,3 +148,18 @@ vm: only 5616 MiB RAM available; need 5722 (escalate E5)   rc=1   (retry: 5194 M
 vm: only 5614 MiB RAM available; need 5722 (escalate E5)   rc=1   (retry: 5188 MiB)
 ```
 Result: PASS for debian12 (the hard requirement) and both Ubuntu releases. fedora/arch not booted: E5 guard, NEEDS_USER Q2, recorded in docs/UNVERIFIED.md.
+
+### 2026-11-13 07:20 WP04 BPF skeleton + lifecycle
+Did: bpf/sysscope.h (ABI, _Static_assert sizes), maps.h, gate.h (ignored + follow gate), lifecycle.bpf.h (exec/fork/exit), file.bpf.h (exec-path stash), vmlinux.h committed with provenance; build.rs (libbpf-cargo skeleton, clang -Wall -Werror); abi.rs (skeleton include, only unsafe; length-checked safe decoding; const size assertions; kernel dev_t -> st_dev); startup checks (root, BTF, init pid ns; exit 3 for no BTF); `sysscoped --dev --dump` prints JSONL and drop counters. EXIT = last thread of the group (signal->live == 0), see VERIFIED.md. Found and fixed: ld.so exec-open overwrote the stash (now keyed by tid+dev+ino). `make vm-test` implemented; `make lint` now checks BPF formatting with clang-format 21.
+Verify command: `make release && vm/run.sh debian12 "$(cat vm/tests/wp04_lifecycle.sh)"`
+Verify output (trimmed, real):
+```
+sysscoped: tracing (dump mode); Ctrl-C to stop
+sysscoped: received=319 decode_errors=0 dropped ringbuf=0 budget=0 scratch=0
+parent=855 total_events=319 FORK=100 EXEC=100 EXEC_exe_ok=100 EXIT=100 expected_exe=/usr/bin/true
+sample exec: {"id": 17, ..., "proc": {"tgid": 856, "start": 11653}, ..., "kind": {"k": "Exec", "exe": "/usr/bin/true", "argv": "/bin/true\\x00", "argv_trunc": false, "fileless": false, "dev": 65025, "ino": 689}}
+WP04 LIFECYCLE PASS
+dmesg: no new bpf/BUG/WARNING/RCU lines
+```
+`make lint` rc=0; `make test` green (sysscoped: 8 tests incl. I2 forbidden-helper check).
+Result: PASS on debian12 (kernel 6.1.0-54). Host: BLOCKED(E1). ubuntu2204: refused by E5 guard (5499 MiB).
