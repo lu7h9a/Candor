@@ -11,3 +11,5 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+serde_json = "1.0.154"
+sysscope-proto = { version = "0.0.1", path = "../sysscope-proto" }

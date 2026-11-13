@@ -812,6 +812,10 @@ version = "0.0.1"
 [[package]]
 name = "sysscope-itest"
 version = "0.0.1"
+dependencies = [
+ "serde_json",
+ "sysscope-proto",
+]
 
 [[package]]
 name = "sysscope-proto"

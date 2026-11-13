@@ -26,7 +26,7 @@ APT_PKGS := build-essential clang llvm lld libelf-dev zlib1g-dev libzstd-dev pkg
 	libseccomp-dev clang-format rpm dpkg-dev fakeroot jq hyperfine
 
 .PHONY: setup build test test-root lint bench vm-test vm-matrix gui-shot fuzz vm-hostile \
-	fp-eval package gate integrity sysroot release
+	fp-eval package gate integrity sysroot release wl itest-bin
 
 setup:
 	@if ! sudo -n true 2>/dev/null; then \
@@ -48,15 +48,31 @@ build: sysroot
 release: sysroot
 	$(CARGO) build --workspace --release
 
+# Ground-truth workload, linked statically so it runs in every test VM.
+wl:
+	mkdir -p target/testkit target/release
+	gcc -static -O2 -Wall -Wextra -Werror -pthread -o target/testkit/wl testkit/wl/wl.c
+	cp target/testkit/wl target/release/sysscope-wl
+
+# Root integration test binaries copied next to the daemon as
+# target/release/sysscope-itest-<name>, so vm/run.sh ships them to guests.
+itest-bin: release wl
+	$(CARGO) test -p sysscope-itest --release --no-run --message-format=json 2>/dev/null | \
+		python3 -c 'import json,sys,shutil,os; \
+[shutil.copy(m["executable"], "target/release/sysscope-itest-" + m["target"]["name"]) \
+ for m in map(json.loads, sys.stdin) \
+ if m.get("reason") == "compiler-artifact" and m.get("executable") and m["target"]["kind"] == ["test"]]'
+	ls target/release/sysscope-itest-*
+
 # Unprivileged tests only. The root integration tests live in sysscope-itest and
 # run through `make test-root`; they are excluded here, not ignored.
 test: integrity sysroot
 	$(CARGO) test --workspace --exclude sysscope-itest
 
-test-root:
+test-root: release wl
 	@sudo -n true 2>/dev/null || { echo "make test-root: needs passwordless sudo (NEEDS_USER.md Q1)"; exit 1; }
 	CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER="sudo -E" \
-		$(CARGO) test -p sysscope-itest -- --test-threads=1
+		$(CARGO) test -p sysscope-itest --release -- --test-threads=1
 
 lint: sysroot
 	$(CARGO) fmt --all -- --check
@@ -74,7 +90,7 @@ bench:
 	@echo "make bench: not implemented yet (WP14)"; exit 1
 
 # Root tests inside a throw-away guest (SKILL.md: new BPF is loaded in a VM first).
-vm-test: release
+vm-test: release itest-bin
 	@set -e; for t in vm/tests/wp*.sh; do \
 		echo "== vm-test $(DISTRO) $$t"; \
 		vm/run.sh $(DISTRO) "$$(cat $$t)"; \
