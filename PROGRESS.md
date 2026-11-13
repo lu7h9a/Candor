@@ -431,4 +431,5 @@ test decoys::tests::no_decoy_contains_host_data ... ok          (real ssh-keygen
 test decoys::manifest_tests::manifest_round_trips_through_json ... ok
 test result: ok. 6 passed; 0 failed
 ```
+Correction: the first WP22 commit was pushed while manifest_round_trips_through_json failed (one entropy value lost its last digit through JSON). Fixed by enabling serde_json's float_roundtrip feature; the output above is from after the fix (3 consecutive runs green, make lint and make test green).
 Result: PASS
