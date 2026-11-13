@@ -22,4 +22,5 @@ sysscope-core = { version = "0.0.1", path = "../sysscope-core" }
 sysscope-proto = { version = "0.0.1", path = "../sysscope-proto" }
 
 [dev-dependencies]
+egui = "0.37.0"
 egui_kittest = "0.37.0"

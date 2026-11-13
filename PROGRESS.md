@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP20 GUI views   Status: IN_PROGRESS
-Next action: kittest UI tests for every labelled element and interaction, record the 6 screenshot descriptions; then WP21
+Milestone: M0   Current WP: WP21 Follow UX, loss, robustness   Status: IN_PROGRESS
+Next action: follow confirmation dialog + context menu, loss banner, 2000-process stress replay (frame time, CPU, RSS), daemon restart screenshot test
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -31,7 +31,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP17 | Rules R005-R008 | BLOCKED(E1) | host (fixtures) | WP17 commit | 36 new fixtures PASS; simulator end-to-end needs live daemon; R006 simulator conflict noted |
 | WP18 | False-positive evaluation | BLOCKED(E1) | | | needs recordings from the live daemon (WP12, root) |
 | WP19 | GUI model + transport | DONE | host | WP19 commit | 9 unit tests (model + net) |
-| WP20 | GUI views | TODO | | | |
+| WP20 | GUI views | DONE | host (Xvfb + kittest) | WP20 commit | 6 screenshots described below |
 | WP21 | Follow UX, loss, robustness | TODO | | | |
 | WP22 | Decoys + manifest | TODO | | | |
 | WP23 | Launcher | TODO | | | |
@@ -378,3 +378,28 @@ dmesg: no new bpf/BUG/WARNING/RCU lines   RC=0
 == ubuntu2204 (ProcKey-keyed maps): all 30 ok, dmesg clean
 ```
 Result: PASS for the gate slice. Full gate (host test-root, bench) still BLOCKED(E1).
+
+### 2026-11-13 16:20 WP20 GUI views
+Did: eframe 0.37 / egui 0.37 (glow) window: ui.rs (top bar with status, mode badge, search, pause, export, loss indicator, multi-user notice; table/tree with sortable headers and score shown as number + word + colour; detail tabs overview charts (egui_plot), files, network, syscalls, children, memory maps, findings in the 5.6 text; alerts list; Glasshouse section with the verbatim 6.4 text; states daemon-down / permission / protocol mismatch / connecting with the exact commands), app.rs (pumps the reader, actions -> requests, redacted export to $HOME with a review reminder, screenshot after N frames then exit), main.rs (refuses euid 0; --replay, --pace, --screenshot, --after-frames, --select, --tab, --socket, --paused). `sysscope replay FILE --frames OUT` builds a GUI replay from any events recording; scripts/gen_gui_fixture.py makes the deterministic demo recording; `make gui-shot` (scripts/gui-shots.sh + png_colours.py, stdlib PNG decoder). Accessibility labels set with widget_info. Two fixes found by looking at the PNGs: glyphs missing from the default font (now words), and a flat daemon-down page (now a highlighted warning box).
+Verify command: `cargo test -p sysscope-gui --test ui` and `make gui-shot`, then each PNG opened and inspected
+Verify output (trimmed, real):
+```
+test every_required_element_has_its_label ... ok        (status, mode, search, pause, export, loss, procs, alerts, detail-<7 tabs>)
+test search_sort_pause_tab_and_alert_click_change_the_model ... ok
+test glasshouse_limits_text_is_in_the_window ... ok
+test result: ok. 3 passed; 0 failed
+target/shots/system-wide.png 1400x900 961 colours OK
+target/shots/detail-files.png 1400x900 1221 colours OK
+target/shots/detail-findings.png 1400x900 1355 colours OK
+target/shots/following.png 1400x900 2227 colours OK
+target/shots/daemon-down.png 1400x900 1178 colours OK
+target/shots/paused.png 1400x900 976 colours OK
+```
+Screenshot descriptions (opened and read):
+- system-wide: top bar "replay of fixtures/gui/demo.frames.jsonl", badge "System-wide", search box, Pause, Export, red "LOST EVENTS: ring buffer 12, budget 340, scratch 0", "Monitoring all users on this machine"; table of 34 processes sorted by CPU% (rustc 95 %), kernel threads as [kthreadd] etc., /tmp/.cache-x/update-helper with "89 high" in red, ancestors with "tree 89"; right pane "Select a process" and a collapsed Glasshouse section; alerts list with R001 and R002.
+- detail-files: firefox (pid 1100) selected and highlighted, Files tab active, cache2 entry paths with open counts and r/rw.
+- detail-findings: update-helper selected, Findings tab shows three full explanations ([HIGH 89] header, rule line with ATT&CK, What happened, Why it is flagged, Could be harmless if, Evidence ids, To silence line) - all legible.
+- following: badge "Following /usr/bin/bash (1030)", followed row marked "*", "Stop following" button, Overview tab with CPU % and memory charts.
+- daemon-down: red status "daemon not running", badge "Not connected", Pause/Export disabled, orange-framed warning with the socket error, "sudo systemctl start sysscoped" and the dev command, "reconnects by itself", product statement.
+- paused: "Resume" button, orange "PAUSED (25 updates skipped)", table frozen at the first snapshot (33 processes), alerts still listed.
+Result: PASS
