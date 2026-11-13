@@ -741,3 +741,5 @@ benign regression test: ok; dmesg new err/warn: 0
 ```
 WP28's remaining check, "benign corpus within thresholds with R009/R011 on", is covered by the same run: both rules are on by default.
 Result: PASS.
+Correction: commit d111c33 was pushed with `config::tests::defaults_load` failing. That test pins the shipped allowlist size (24), and this work added 8 entries. My command committed without gating on `make test`. Fixed: the pin is now 32 (`grep -c '^\[\[allow\]\]' allow.toml` = 32), and `make test` is all green before the follow-up commit. From now on, commits are chained on a green `make test`.
+
