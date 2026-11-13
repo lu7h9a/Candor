@@ -4,7 +4,7 @@
 Updated: 2026-11-13 06:05 IST
 Milestone: M4   Current WP: WP28   Status: IN_PROGRESS
 Next action: WP28 - rules R009, R011 (ptrace hook, VM first), R100 (experimental, off by default)
-Open questions for owner: Q4 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
+Open questions for owner: Q1 (sudo removed again by owner after the first host run), Q4 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
 
