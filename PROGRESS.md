@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP13 CLI   Status: IN_PROGRESS
-Next action: sysscope CLI subcommands with escaping, redaction, --json, exit codes; itests against daemon and replay. Then M1 gate slice (make vm-test) + adversarial review
+Milestone: M0   Current WP: M1/M2 gate slice   Status: IN_PROGRESS
+Next action: run `make lint test vm-test`, then the fresh-subagent adversarial review of the repo against the SKILL.md invariants; fix findings with regression tests
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
@@ -24,8 +24,8 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 | WP10 | /proc sampler + identity | BLOCKED(E1) | debian12, ubuntu2204 | WP10 commit | 200/200 ProcKey equal, CPU and RSS checks PASS; host pending Q1 |
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
 | WP12 | Daemon assembly | BLOCKED(E1) | debian12, ubuntu2204 | WP12 commit | all server itests + 10-min RSS (118 MiB) PASS; host pending Q1 |
-| WP13 | CLI | TODO | | | |
-| WP14 | Overhead benchmarks | TODO | | | needs root (Q1) |
+| WP13 | CLI | DONE | debian12 (root itests) + host (unit) | WP13 commit | host-side runs need the daemon: VM only until Q1 |
+| WP14 | Overhead benchmarks | BLOCKED(E1) | | | thresholds are defined for the host; needs root |
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
 | WP16 | Rules R001-R004, R012 | BLOCKED(E1) | host (fixtures) | WP16 commit | 40 replay fixtures PASS; simulator end-to-end needs the live daemon (WP12, root) |
 | WP17 | Rules R005-R008 | BLOCKED(E1) | host (fixtures) | WP17 commit | 36 new fixtures PASS; simulator end-to-end needs live daemon; R006 simulator conflict noted |
@@ -77,6 +77,7 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 - 2026-11-13 setup: .cargo/config.toml sets C_INCLUDE_PATH / LIBBPF_SYS_LIBRARY_PATH to target/sysroot (relative) so plain `cargo` works, not only `make`.
 
 ## Deviations from the plan
+- 2026-11-13 WP13: explanations and event times in the CLI are shown in UTC (tz_offset 0): local time zone needs either libc (unsafe) or a zoneinfo parser; noted in docs/UNVERIFIED.md for WP20/WP33
 - 2026-11-13 WP12: EXIT is emitted by the first thread that sees signal->live == 0, de-duplicated per (tgid, start) with an LRU map; the VM showed two EXITs when a joined thread was still inside do_exit while the main thread exited - refines the WP04 choice (recorded in VERIFIED.md)
 - 2026-11-13 WP06: OPEN events are not emitted for exec-opens (`__FMODE_EXEC`: the binary, its interpreter, ld.so); they feed the exec-path stash and are represented by the EXEC event - plan silent; avoids double counting exec as open
 - 2026-11-13 WP17: limits.rs gained MAX_EVIDENCE_IDS (1000), WINDOW_ENTRIES (4096), BEACON_POINTS (64) - new caps required by I8 for finding evidence lists and rule windows; no existing value changed - allowed: plan 4.6 is silent on these
@@ -326,3 +327,18 @@ rounds=22649 daemon VmRSS=120508 kB VmHWM=120508 kB
 WP12 RSS PASS
 ```
 Result: PASS on debian12 and ubuntu2204. Host: BLOCKED(E1).
+
+### 2026-11-13 12:45 WP13 CLI
+Did: crates/sysscope-cli: conn.rs (socket discovery dev -> installed or --socket, Hello, errors mapped to exit codes 1/2/3/4/5 with the exact command to fix), out.rs (table, tree with tree scores, event lines, 5.6 explanations, JSON with C1/bidi escaped), export.rs (JSON/CSV, redaction on by default via sysscope_core::redact, --raw warns, --redact-ips, Exec argv redacted in evidence), main.rs (status, top, tree, tail [--proc] [--count|--seconds], follow, unfollow, detail [--maps], findings, export, replay FILE offline, glasshouse stub, --json everywhere). Core gained display.rs (C1 controls and bidi overrides -> \u{XXXX}, closing the WP02 gap) and redact.rs (homes, other homes -> ~userN, user/host placeholders, secret flags and KEY=VALUE, URL userinfo, IP pseudonyms). wl gained open-path and "--".
+Verify command: `make itest-bin && vm/run.sh debian12 "$(cat vm/tests/wp05_itest.sh)"` (plus unit tests on the host)
+Verify output (trimmed, real):
+```
+== sysscope-itest-cli   test result: ok. 5 passed; 0 failed; finished in 24.97s
+   exit_code_3_when_no_daemon_runs                    (status -> 3 "not running"; unknown command -> 2)
+   status_top_tree_and_json
+   hostile_file_names_are_escaped_in_output           (tail output: no ESC / control bytes; shows \x1B[31mred)
+   export_is_redacted_by_default_and_csv_parses       (R001 + R002 live; no "hunter2", "bob:pw", "/root/.ssh" in default export; --raw has them + warning; CSV parsed by python csv; findings text has "Why it is flagged:" and "To silence:")
+   replay_of_a_recording_finds_the_same_rules         (daemon --record, then `sysscope replay` shows R001 and R002)
+cli 5/5, files 5/5, follow 4/4, lifecycle 5/5, network 1/1, proc 3/3, server 6/6, syscalls 1/1; dmesg clean
+```
+Result: PASS

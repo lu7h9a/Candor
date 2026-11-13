@@ -14,7 +14,8 @@
  *          listen N, threads N, syscalls getppid N, flood N, longpath,
  *          badname, memfd-exec, leader-exits-first, open-relative,
  *          open-symlink, uring-open, gen3, sleep MS, nanosleep N,
- *          spawn-hold N MS, busy MS, alloc MB MS
+ *          spawn-hold N MS, busy MS, alloc MB MS, open-path PATH;
+ *          arguments after "--" are ignored (they only appear in argv)
  * option: wl --dir DIR --wait-stdin ... waits for one byte on stdin first
  *
  * Built statically (make wl) so the same binary runs in every test VM.
@@ -717,6 +718,19 @@ static void act_alloc(long mb, long ms)
 	end_action();
 }
 
+/* Opens PATH read-only once (tests that need a specific path). */
+static void act_open_path(const char *path)
+{
+	begin_action("open-path", 1);
+	mput(",\"path\":");
+	mput_bytes(path, strlen(path));
+	int fd = raw_open(path, O_RDONLY, 0);
+	mput(",\"ok\":%s", fd >= 0 ? "true" : "false");
+	if (fd >= 0)
+		raw_close(fd);
+	end_action();
+}
+
 static void act_leader_exits_first(void)
 {
 	begin_action("leader-exits-first", 1);
@@ -814,7 +828,15 @@ int main(int argc, char **argv)
 			act_badname();
 		else if (!strcmp(a, "memfd-exec"))
 			act_memfd_exec();
-		else if (!strcmp(a, "spawn-hold")) {
+		else if (!strcmp(a, "--"))
+			break; /* the rest only shows up in argv (tests) */
+		else if (!strcmp(a, "open-path")) {
+			if (i + 1 >= argc) {
+				fprintf(stderr, "wl: open-path needs a path\n");
+				return 2;
+			}
+			act_open_path(argv[++i]);
+		} else if (!strcmp(a, "spawn-hold")) {
 			long n = need_n(argc, argv, &i);
 			act_spawn_hold(n, need_n(argc, argv, &i));
 		} else if (!strcmp(a, "busy"))
