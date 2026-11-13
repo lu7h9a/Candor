@@ -62,6 +62,11 @@ pub struct Proc {
     pub exe_trusted: bool,
     /// Executable lives in a root-owned system directory.
     pub exe_system: bool,
+    /// For an interpreter: the script file it runs (from argv), else empty.
+    pub script: BStr,
+    /// That script is root-owned and not group/world-writable, nor is its
+    /// directory (daemon check, like `exe_trusted`).
+    pub script_trusted: bool,
     /// Home directory of the process's user, for "~/" path classes.
     pub home: BStr,
     /// CPU percent from the last two samples.
@@ -127,6 +132,40 @@ fn sock_text(s: SockType) -> &'static str {
         SockType::Dgram => "dgram",
         SockType::Other => "other",
     }
+}
+
+/// For an interpreter (shell, perl, python, ruby), the script path it was
+/// started with: the first argument after options; None for inline code
+/// (`-c`, `-e`, `-m`) or a non-interpreter.
+pub fn script_of(exe: &BStr, argv: &BStr) -> Option<BStr> {
+    let exe = exe.as_bytes();
+    let name = exe.rsplit(|&c| c == b'/').next().unwrap_or(exe);
+    let name = String::from_utf8_lossy(name);
+    let interp = ["sh", "bash", "dash", "zsh", "perl", "python", "ruby"]
+        .iter()
+        .any(|i| {
+            name == *i
+                || (name.starts_with(i)
+                    && name[i.len()..]
+                        .chars()
+                        .all(|c| c.is_ascii_digit() || c == '.'))
+        });
+    if !interp {
+        return None;
+    }
+    for a in argv.as_bytes().split(|&c| c == 0).skip(1) {
+        if a.is_empty() {
+            continue;
+        }
+        if a.first() == Some(&b'-') {
+            if matches!(a, b"-c" | b"-e" | b"-E" | b"-m" | b"--") {
+                return None;
+            }
+            continue;
+        }
+        return Some(BStr(a.to_vec()));
+    }
+    None
 }
 
 impl Proc {
@@ -246,11 +285,13 @@ impl Proc {
     pub fn count_event(&mut self, ev: &Event) {
         self.last_seen = self.last_seen.max(ev.ts_ns);
         match &ev.kind {
-            EventKind::Exec { exe, .. } => {
+            EventKind::Exec { exe, argv, .. } => {
                 self.exe = exe.clone();
                 // A new executable is untrusted until the daemon checks it.
                 self.exe_trusted = false;
                 self.exe_system = false;
+                self.script = script_of(exe, argv).unwrap_or_default();
+                self.script_trusted = false;
                 self.placeholder = false;
                 self.n_exec += 1;
             }

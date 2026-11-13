@@ -70,6 +70,25 @@ pub fn exe_facts(key: ProcKey, exe: &BStr, current_start: Option<u64>) -> (bool,
     (trusted, system, world_writable)
 }
 
+/// True if a script file is root-owned, not group/world-writable and a
+/// regular file, and so is its directory (the allowlist check of plan 5.3
+/// applied to an interpreter's script). Symlinks are resolved first.
+pub fn script_trusted(path: &BStr) -> bool {
+    let bytes = path.as_bytes();
+    if bytes.first() != Some(&b'/') {
+        return false; // relative to an unknown cwd: never trusted
+    }
+    let Ok(real) = std::fs::canonicalize(std::ffi::OsStr::from_bytes(bytes)) else {
+        return false;
+    };
+    let ok = |p: &std::path::Path, file: bool| {
+        std::fs::metadata(p)
+            .map(|m| m.uid() == 0 && m.mode() & 0o022 == 0 && (!file || m.is_file()))
+            .unwrap_or(false)
+    };
+    ok(&real, true) && real.parent().is_some_and(|d| ok(d, false))
+}
+
 /// /proc/<pid>/maps of a process, if its start time still matches the key
 /// (so a recycled pid is never read). At most `cap` rows.
 pub fn read_maps(key: ProcKey, cap: usize) -> Option<Vec<sysscope_proto::MapRow>> {

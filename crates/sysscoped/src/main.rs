@@ -41,6 +41,7 @@ struct Opts {
     budget_burst: u32,
     record: Option<std::path::PathBuf>,
     enable_act: bool,
+    rules_file: Option<std::path::PathBuf>,
 }
 
 fn parse_args() -> Result<Opts> {
@@ -54,12 +55,16 @@ fn parse_args() -> Result<Opts> {
         budget_burst: collector::BUDGET_BURST,
         record: None,
         enable_act: false,
+        rules_file: None,
     };
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
         match a.as_str() {
             "--dev" => opts.dev = true,
             "--enable-act" => opts.enable_act = true,
+            "--rules" => {
+                opts.rules_file = Some(args.next().context("--rules needs a file")?.into());
+            }
             "--dump" => opts.dump = true,
             "--ringbuf-bytes" => {
                 let v = args.next().context("--ringbuf-bytes needs a value")?;
@@ -128,12 +133,16 @@ fn run(opts: &Opts) -> Result<()> {
     if opts.follow.is_some() {
         bail!("--follow is only for --dump; clients request follow mode over the socket");
     }
+    if opts.rules_file.is_some() && !opts.dev {
+        bail!("--rules is only for --dev (tests); installed daemons read /etc/sysscope/rules.toml");
+    }
     daemon::run(
         daemon::RunOpts {
             load,
             dev: opts.dev,
             record: opts.record.clone(),
             enable_act: opts.enable_act,
+            rules_file: opts.rules_file.clone(),
         },
         stop,
     )

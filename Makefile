@@ -111,8 +111,21 @@ vm-hostile: release
 	vm/hostile.sh ubuntu2204 && vm/down.sh ubuntu2204
 	vm/hostile.sh ubuntu2404 && vm/down.sh ubuntu2404
 
-fp-eval:
-	@echo "make fp-eval: not implemented yet (WP18)"; exit 1
+# Benign corpus (plan 5.7(3)): records each workload on this host and in the
+# debian12 VM, replays it, writes docs/FP_REPORT.md. Host recordings stay in
+# target/fp (never committed); VM ones become fixtures/benign regression tests.
+fp-eval: release
+	scripts/fp-eval.sh host
+	vm/run.sh debian12 "$$(cat vm/tests/wp00_tools.sh)" > /dev/null
+	vm/run.sh debian12 "mkdir -p /opt/sysscope/repo/scripts /opt/sysscope/repo/testkit/benign
+	$$(vm/embed.sh scripts/fp-eval.sh:/opt/sysscope/repo/scripts/fp-eval.sh $$(for f in testkit/benign/*.sh; do printf '%s:/opt/sysscope/repo/%s ' $$f $$f; done))
+	apt-get -qq install -y rsync zip unzip curl git make gcc python3-venv > /dev/null 2>&1
+	bash /opt/sysscope/repo/scripts/fp-eval.sh vm-guest"
+	mkdir -p target/fp/vm; for w in git_build tar_zip rsync_tree editor_save pip_venv curl_local ssh_localhost apt; do \
+		vm/run.sh debian12 "cat /opt/sysscope/repo/target/fp/vm/$$w.summary.json" > target/fp/vm/$$w.summary.json; \
+		vm/run.sh debian12 "cat /opt/sysscope/repo/target/fp/vm/$$w.events.jsonl" > target/fp/vm/$$w.events.jsonl; done
+	vm/down.sh debian12
+	scripts/fp-eval.sh report
 
 package:
 	@echo "make package: not implemented yet (WP30)"; exit 1

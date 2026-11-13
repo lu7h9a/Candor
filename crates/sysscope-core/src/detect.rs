@@ -145,6 +145,11 @@ impl Detector {
             a.rule == hit.rule
                 && (a.subject == "*" || a.subject == hit.subject)
                 && glob::matches(a.exe.as_bytes(), p.exe.as_bytes())
+                && match &a.script {
+                    // An interpreter entry needs that exact, verified script.
+                    Some(s) => p.script_trusted && p.script.as_bytes() == s.as_bytes(),
+                    None => true,
+                }
         })
     }
 

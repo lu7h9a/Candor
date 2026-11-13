@@ -281,7 +281,7 @@ impl WindowState {
             return None;
         }
         let ip: IpAddr = addr.parse().ok()?;
-        if ip.is_loopback() {
+        if ip.is_loopback() && !cfg.include_loopback.unwrap_or(false) {
             return None;
         }
         let exe = st

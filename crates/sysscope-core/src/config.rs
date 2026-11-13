@@ -136,6 +136,10 @@ pub struct RuleCfg {
     /// R009: parents that should not start them (exe patterns).
     #[serde(default)]
     pub parents: Vec<String>,
+    /// R006: also count loopback destinations. Test-only (owner's Q3
+    /// answer A: the beacon simulator talks to 127.0.0.1); never in the
+    /// shipped rules.
+    pub include_loopback: Option<bool>,
     /// R011: known debuggers and tracers (exe patterns).
     #[serde(default)]
     pub debuggers: Vec<String>,
@@ -186,6 +190,12 @@ pub struct AllowEntry {
     pub subject: String,
     /// Why this is harmless.
     pub reason: String,
+    /// For an interpreter (`exe` is perl, python, a shell...): the script it
+    /// must be running. The script file must pass the same root-owned,
+    /// not-writable check as executables (an extension of plan 5.3 for
+    /// system scripts such as dpkg-preconfigure).
+    #[serde(default)]
+    pub script: Option<String>,
 }
 
 #[derive(Deserialize)]

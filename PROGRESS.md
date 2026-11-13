@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M4   Current WP: WP16-WP18 (root parts)   Status: IN_PROGRESS
-Next action: unblocked root parts of WP16-WP18 (simulator end-to-end for R001-R008/R012, R006 with the Q3 test override, fp-eval benign corpus incl. R009/R011), then WP29
+Milestone: M4   Current WP: WP14   Status: IN_PROGRESS
+Next action: WP14 overhead benchmarks on the host (now possible), then WP29 hardening
 Open questions for owner: Q4 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -11,31 +11,31 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 ## WP status
 | WP | Name | Status | Verified on | Commit | Notes |
 |---|---|---|---|---|---|
-| WP00 | Preflight | BLOCKED(E1) | host (non-root parts) | see log | Verify PASS; apt package install pending Q1 (no passwordless sudo) |
+| WP00 | Preflight | DONE | host | see log | `make setup` installed the packages 2026-11-14 (hyperfine via cargo later, not in Kali) |
 | WP01 | Scaffold | DONE | host + GitHub CI | WP01 commit | CI run 43337978651 green; libbpf dep deferred to WP04 (needs libelf-dev, Q1) |
 | WP02 | Protocol crate | DONE | host | | | |
 | WP03 | VM harness | DONE | debian12, ubuntu2204, ubuntu2404 | WP03 commit | fedora/arch refused by E5 RAM guard (Q2), in UNVERIFIED.md |
-| WP04 | BPF skeleton + lifecycle | BLOCKED(E1) | debian12 | WP04 commit | debian12 verify PASS; host pending Q1; ubuntu2204 refused by E5 guard |
-| WP05 | Ground-truth workload + harness | BLOCKED(E1) | debian12 | WP17 commit | debian12 itests 5/5 PASS; host `make test-root` pending Q1 |
-| WP06 | File events | BLOCKED(E1) | debian12, ubuntu2204 | WP06-08 commit | VM verify PASS on 6.1 and 5.15; host pending Q1 |
-| WP07 | Network events | BLOCKED(E1) | debian12, ubuntu2204 | WP06-08 commit | VM verify PASS on 6.1 and 5.15; host pending Q1 |
-| WP08 | Syscall stats | BLOCKED(E1) | debian12, ubuntu2204 | WP09 commit | count exact, followed nanosleep latency in range; host pending Q1 |
-| WP09 | Follow mode + budgets | BLOCKED(E1) | debian12, ubuntu2204 | WP09 commit | follow + loss identity PASS on 6.1/5.15; host pending Q1 |
-| WP10 | /proc sampler + identity | BLOCKED(E1) | debian12, ubuntu2204 | WP10 commit | 200/200 ProcKey equal, CPU and RSS checks PASS; host pending Q1 |
+| WP04 | BPF skeleton + lifecycle | DONE | debian12, host | WP04 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
+| WP05 | Ground-truth workload + harness | DONE | debian12, ubuntu2204, host | WP17 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
+| WP06 | File events | DONE | debian12, ubuntu2204, host | WP06-08 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
+| WP07 | Network events | DONE | debian12, ubuntu2204, host | WP06-08 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
+| WP08 | Syscall stats | DONE | debian12, ubuntu2204, host | WP09 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
+| WP09 | Follow mode + budgets | DONE | debian12, ubuntu2204, host | WP09 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
+| WP10 | /proc sampler + identity | DONE | debian12, ubuntu2204, host | WP10 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
-| WP12 | Daemon assembly | BLOCKED(E1) | debian12, ubuntu2204 | WP12 commit | all server itests + 10-min RSS (118 MiB) PASS; host pending Q1 |
+| WP12 | Daemon assembly | DONE | debian12, ubuntu2204, host | WP12 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
 | WP13 | CLI | DONE | debian12 (root itests) + host (unit) | WP13 commit | host-side runs need the daemon: VM only until Q1 |
-| WP14 | Overhead benchmarks | BLOCKED(E1) | | | thresholds are defined for the host; needs root |
+| WP14 | Overhead benchmarks | TODO | | | unblocked (sudo since 2026-11-14); next after WP18 |
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
-| WP16 | Rules R001-R004, R012 | BLOCKED(E1) | host (fixtures) | WP16 commit | 40 replay fixtures PASS; simulator end-to-end needs the live daemon (WP12, root) |
-| WP17 | Rules R005-R008 | BLOCKED(E1) | host (fixtures) | WP17 commit | 36 new fixtures PASS; simulator end-to-end needs live daemon; R006 simulator conflict noted |
-| WP18 | False-positive evaluation | BLOCKED(E1) | | | needs recordings from the live daemon (WP12, root) |
+| WP16 | Rules R001-R004, R012 | DONE | host (fixtures + live daemon) | WP16 + 2026-11-14 commits | simulators end to end on the host with --rules test classes; R012 end to end = WP24 Glasshouse demo |
+| WP17 | Rules R005-R008 | DONE | host (fixtures + live daemon) | WP17 + 2026-11-14 commits | simulators end to end on the host; R006 with the test-only loopback override (Q3 A) |
+| WP18 | False-positive evaluation | DONE | host + debian12 | WP18 commit | 31.8 recorded min, 16 workloads: 0 findings; docs/FP_REPORT.md; fixtures/benign regression |
 | WP19 | GUI model + transport | DONE | host | WP19 commit | 9 unit tests (model + net) |
 | WP20 | GUI views | DONE | host (Xvfb + kittest) | WP20 commit | 6 screenshots described below |
 | WP21 | Follow UX, loss, robustness | DONE | host (Xvfb, fake daemon) | WP21 commit | GUI threads 6-7 % CPU, 125 MiB; real-GPU check left to the owner |
 | WP22 | Decoys + manifest | DONE | host | WP22 commit | 42 decoys per plan 6.2 |
-| WP23 | Launcher | BLOCKED(E1) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run pending Q1 |
-| WP24 | Trace integration, differ, report, UI | BLOCKED(E1) | debian12 + ubuntu2204 exact demo report and attribution; ubuntu2404 correctly unavailable | WP24 commit | host run pending Q1 |
+| WP23 | Launcher | BLOCKED(Q4) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run needs the sysscope-box user (Q4) |
+| WP24 | Trace integration, differ, report, UI | BLOCKED(Q4) | debian12 + ubuntu2204 exact demo report; ubuntu2404 correctly unavailable | WP24 commit | host run needs the sysscope-box user (Q4) |
 | WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204 (after M4 fixes); ubuntu2404 refusal | WP25 + M4 commits | |
 | WP26 | Real-sample protocol | DONE | detonate.sh with fake_malware.py zip: full report over serial; network overrides refused | WP26 commit | |
 | WP27 | Act mode (experimental) | DONE | 5 act itests + all itests on debian12 and ubuntu2204 | WP27 commit | host run pending Q1 |
@@ -81,6 +81,9 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 - 2026-11-13 WP24: the sample name, arguments and timeout travel in a job file (`RUNS/<id>.job.json`, then `<run>/job.json`), not on the systemd-run command line, so systemd never expands `$`/`%` in untrusted text. The helper protocol (`sysscope_proto::helper`) uses deny_unknown_fields and a 16 MiB line cap. A report timeline keeps 20 000 events; a report frame over 16 MiB is shrunk by halving the timeline, with a note.
 - 2026-11-13 WP24: protocol additions are additive and defaulted, as WP15 did: GhStatus.decoys (live tiles), CreatedFile.kind, GhReport.notes. Goldens GhStatus/GhReport were re-blessed (diff = only those lines); proto stays 1.
 - 2026-11-13 WP24: the GUI file picker is an in-window directory browser (no native dialog dependency). Hidden files and names that would need escaping are not listed; any path can still be typed.
+- 2026-11-14 WP18: allowlist entries may name the `script` an interpreter runs (with the same root-owned/not-writable check on the script). This extends plan 5.3, which matches executables only, because allowlisting /usr/bin/perl itself would cover every perl script.
+- 2026-11-14 WP18: host benign recordings are never committed (they contain everything the machine did, including personal file names); only the debian12 VM recordings become fixtures.
+- 2026-11-14 WP18: default R006 allowlist for browser and mail binaries, based on the Chromium ~297 s polling seen while idle. A compromised browser that starts something is still R009.
 
 ## Deviations from the plan
 - 2026-11-13 WP21: GUI CPU budget (< 10 % of one core) is measured on the GUI's own threads; under Xvfb, Mesa's llvmpipe threads do the rasterising that a GPU does on real hardware, and the whole process including them uses ~33 %. Real-GPU measurement is a human check (UNVERIFIED.md)
@@ -710,4 +713,31 @@ debian12 + ubuntu2204: all itest binaries ok except rules_e2e R009, where my ass
 host: act 4/5 (Q4 group), cli 5, files 5, follow 4, lifecycle 5, network 1, proc 3, rules_e2e 2, server 7, syscalls 1; dmesg new err/warn: none
 ```
 Pending: "benign corpus still within thresholds with R009/R011 on" needs the WP18 benign corpus (fp-eval), now unblocked and next.
+Result: PASS.
+
+### 2026-11-14 10:30 WP16/WP17 simulator end to end, WP18 false-positive evaluation
+Did:
+- **WP16/WP17 end to end** (itest `rules_e2e`, live daemon, host). Each simulator runs in a marked work dir. Where the plan has the test config add that dir to a class, the daemon runs with the new dev-only `--rules FILE`. Checked: R001 (sim class), R002 (/tmp), R003, R004 (sim class), R005 (dir as user data), R006 (14 connects 5 s apart, so 65 s; test-only `include_loopback = true` per Q3 A; also checked that the shipped rules ignore loopback), R007 (201 ports), R008 (`--budget 100/200` + wl flood, via Detail). Each finding must carry evidence ids, with its full events among them and from the flagged process.
+- **WP18:**
+  - `testkit/benign/*.sh`: git_build, cargo_build, tar_zip, rsync_tree, editor_save, pip_venv (offline), curl_local, ssh_localhost (VM only), apt (VM only), idle (30 min). Each has an unrecorded setup step and a recorded run step, and works inside its own dir.
+  - `scripts/fp-eval.sh host|vm-guest|report` and `make fp-eval` record with `sysscoped --dev --record`, replay with `sysscope replay`, and write `docs/FP_REPORT.md`.
+  - The VM recordings (gzipped, 1.2 MB, no host data) are in `fixtures/benign/`, with the regression test `crates/sysscope-core/tests/benign.rs`. Host recordings stay in target/fp (they hold everything the machine did).
+- **What the corpus found, and the fixes:**
+  1. Work dirs in /tmp made freshly built programs honest R002 hits. Workloads now use ordinary dirs, as real builds do.
+  2. dpkg-preconfigure (perl) read /etc/shadow during apt. Allowlist entries can now name an interpreter's `script`, verified like executables (root-owned, not writable, same for its directory; `script_of` + `hostinfo::script_trusted`). Entry added.
+  3. systemd's login child read /etc/shadow before exec. Forked children now inherit the parent's verified facts, and the daemon verifies processes it first meets in a /proc scan (pid 1 and anything started before it).
+  4. Chromium contacted two endpoints every ~297 s while idle (R006). Default R006 allowlist entries were added for browser and mail binaries.
+Verify command: `make release`, `sudo -E cargo test -p sysscope-itest --release --test rules_e2e`, the fpvm run (debian12) and `scripts/fp-eval.sh host` + `report`, `cargo test -p sysscope-core --test benign`, `sudo dmesg --level=err,warn`
+Verify output (real):
+```
+rules_e2e (host): r001_and_r004 ok, r002_r003 ok, r005 ok, r006 ok, r007 ok, r008 ok, r009 ok, r011 ok -> 8 passed
+first fp-eval: VM ssh_localhost R001 systemd, apt R001 perl x2; host idle R006 chromium x2 -> FAIL (3 suspicious in 31.7 min)
+after the fixes:
+VM:   git_build tar_zip rsync_tree editor_save pip_venv curl_local ssh_localhost apt -> findings: [] each
+host: git_build cargo_build tar_zip rsync_tree editor_save pip_venv curl_local idle(1805 s, 248626 events) -> findings: [] each
+Recorded: 31.8 minutes in 16 workloads; high findings: 0; suspicious findings: 0 (0.00 per recorded hour).
+Result: PASS against the 5.7(3) threshold.
+benign regression test: ok; dmesg new err/warn: 0
+```
+WP28's remaining check, "benign corpus within thresholds with R009/R011 on", is covered by the same run: both rules are on by default.
 Result: PASS.

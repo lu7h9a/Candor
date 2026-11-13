@@ -47,7 +47,9 @@ fn read_optional(path: &str) -> Result<Option<String>> {
 
 /// Loads the daemon config and the rules/allowlist overrides. Any error
 /// means the daemon refuses to start.
-pub fn load_config() -> Result<(DaemonConfig, Rules, Vec<sysscope_core::config::AllowEntry>)> {
+pub fn load_config(
+    rules_file: Option<&std::path::Path>,
+) -> Result<(DaemonConfig, Rules, Vec<sysscope_core::config::AllowEntry>)> {
     let cfg: DaemonConfig = match read_optional("/etc/sysscope/sysscoped.toml")? {
         Some(t) => toml::from_str(&t).context("/etc/sysscope/sysscoped.toml")?,
         None => DaemonConfig {
@@ -57,7 +59,14 @@ pub fn load_config() -> Result<(DaemonConfig, Rules, Vec<sysscope_core::config::
     if cfg.syscalls != "count" && cfg.syscalls != "off" {
         bail!("/etc/sysscope/sysscoped.toml: syscalls must be \"count\" or \"off\"");
     }
-    let rules = Rules::load(read_optional("/etc/sysscope/rules.toml")?.as_deref())?;
+    // `--rules FILE` (dev mode only, tests) replaces /etc/sysscope/rules.toml.
+    let override_text = match rules_file {
+        Some(p) => {
+            Some(std::fs::read_to_string(p).with_context(|| format!("reading {}", p.display()))?)
+        }
+        None => read_optional("/etc/sysscope/rules.toml")?,
+    };
+    let rules = Rules::load(override_text.as_deref())?;
     let allow = load_allow(
         &rules,
         read_optional("/etc/sysscope/allow.toml")?.as_deref(),
@@ -75,6 +84,8 @@ pub struct RunOpts {
     pub record: Option<std::path::PathBuf>,
     /// Experimental act mode (D19).
     pub enable_act: bool,
+    /// Rules override file instead of /etc/sysscope/rules.toml (dev only).
+    pub rules_file: Option<std::path::PathBuf>,
 }
 
 struct Client {
@@ -101,6 +112,8 @@ struct Core {
     gh: crate::glasshouse::Glasshouse,
     last_loss: sysscope_proto::Loss,
     act_enabled: bool,
+    /// Processes already verified (exec or scan); see `unchecked`.
+    checked: std::collections::BTreeSet<ProcKey>,
 }
 
 impl Core {
@@ -133,12 +146,12 @@ impl Core {
                     }
                 }
                 let exec = match &ev.kind {
-                    EventKind::Exec { exe, .. } => Some(exe.clone()),
+                    EventKind::Exec { exe, argv, .. } => Some((exe.clone(), argv.clone())),
                     _ => None,
                 };
                 let (key, uid) = (ev.proc, ev.uid);
                 self.apply(Input::RawEvent { event: ev });
-                if let Some(exe) = exec {
+                if let Some((exe, argv)) = exec {
                     // A box process's exe path names a file in the sandbox's
                     // view: never stat it on the host; it is untrusted.
                     let (trusted, system_dir, world_writable_dir) = if self.gh.in_box(&key) {
@@ -152,12 +165,16 @@ impl Core {
                     } else {
                         self.homes.get(&uid).cloned().unwrap_or_default()
                     };
+                    let script_trusted = !self.gh.in_box(&key)
+                        && sysscope_core::proc::script_of(&exe, &argv)
+                            .is_some_and(|s| hostinfo::script_trusted(&s));
                     self.apply(Input::ExeMeta {
                         proc: key,
                         trusted,
                         system_dir,
                         home: sysscope_proto::BStr(home),
                         world_writable_dir,
+                        script_trusted,
                     });
                 }
             }
@@ -403,6 +420,43 @@ impl Core {
         if let Some(inodes) = &fx.decoys {
             self.apply(Input::Decoys {
                 inodes: inodes.clone(),
+            });
+        }
+    }
+
+    /// Processes in a scan that the daemon has not verified yet (they were
+    /// running before it started, or it missed their exec). The set of
+    /// checked keys is bounded by what the latest scan contains.
+    fn unchecked(&mut self, samples: &[ProcSample]) -> Vec<(ProcKey, sysscope_proto::BStr, u32)> {
+        let now: std::collections::BTreeSet<ProcKey> = samples.iter().map(|s| s.key).collect();
+        self.checked.retain(|k| now.contains(k));
+        samples
+            .iter()
+            .filter(|s| {
+                !s.kthread && !s.exe.as_bytes().is_empty() && !self.checked.contains(&s.key)
+            })
+            .filter(|s| self.engine.state.get(&s.key).is_none_or(|p| !p.exe_trusted))
+            .map(|s| (s.key, s.exe.clone(), s.uid))
+            .collect()
+    }
+
+    /// The same verification an exec gets, for processes found by a scan.
+    fn check_existing(&mut self, fresh: Vec<(ProcKey, sysscope_proto::BStr, u32)>) {
+        for (key, exe, uid) in fresh {
+            self.checked.insert(key);
+            if self.gh.in_box(&key) {
+                continue;
+            }
+            let (trusted, system_dir, world_writable_dir) =
+                hostinfo::exe_facts(key, &exe, crate::follow::start_of(key.tgid));
+            let home = self.homes.get(&uid).cloned().unwrap_or_default();
+            self.apply(Input::ExeMeta {
+                proc: key,
+                trusted,
+                system_dir,
+                home: sysscope_proto::BStr(home),
+                world_writable_dir,
+                script_trusted: false,
             });
         }
     }
@@ -734,7 +788,9 @@ fn core_loop(
                 Err(_) => break,
             },
             recv(samples) -> s => if let Ok(samples) = s {
+                let fresh = core.unchecked(&samples);
                 core.apply(Input::Samples { ts_ns: crate::sampler::boot_ns(), samples });
+                core.check_existing(fresh);
             },
             recv(clients) -> c => if let Ok(c) = c {
                 core.on_client(c);
@@ -758,7 +814,7 @@ fn core_loop(
 
 /// Runs the daemon until SIGINT/SIGTERM.
 pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
-    let (cfg, rules, allow) = load_config()?;
+    let (cfg, rules, allow) = load_config(opts.rules_file.as_deref())?;
     let mut load = opts.load;
     load.syscalls = load.syscalls && cfg.syscalls == "count";
     let spec = if opts.dev {
@@ -826,6 +882,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         gh,
         last_loss: sysscope_proto::Loss::default(),
         act_enabled: opts.enable_act,
+        checked: std::collections::BTreeSet::new(),
         engine: {
             let mut e = Engine::new(rules, allow);
             if e.r100_enabled() {

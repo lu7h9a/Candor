@@ -312,3 +312,54 @@ proptest! {
         prop_assert_eq!(s.procs().filter(|p| p.is_live()).count(), s.live_count());
     }
 }
+
+#[test]
+fn a_forked_child_inherits_the_parents_verified_facts() {
+    use sysscope_core::Input;
+    use sysscope_proto::{BStr, Event, EventKind, ProcKey};
+    let parent = ProcKey {
+        tgid: 1,
+        start_ticks: 9,
+    };
+    let child = ProcKey {
+        tgid: 50,
+        start_ticks: 99,
+    };
+    let mut s = sysscope_core::State::new();
+    let ev = |id, p: ProcKey, kind| Event {
+        id,
+        ts_ns: id * 1000,
+        proc: p,
+        tid: p.tgid,
+        uid: 0,
+        kind,
+    };
+    s.apply(&Input::RawEvent {
+        event: ev(
+            1,
+            parent,
+            EventKind::Exec {
+                exe: BStr::from("/usr/lib/systemd/systemd"),
+                argv: BStr::from("/sbin/init"),
+                argv_trunc: false,
+                fileless: false,
+                dev: 1,
+                ino: 2,
+            },
+        ),
+    });
+    s.apply(&Input::ExeMeta {
+        proc: parent,
+        trusted: true,
+        system_dir: true,
+        home: BStr::from("/root"),
+        world_writable_dir: false,
+        script_trusted: false,
+    });
+    s.apply(&Input::RawEvent {
+        event: ev(2, parent, EventKind::Fork { child }),
+    });
+    let c = s.get(&child).unwrap();
+    assert!(c.exe_trusted && c.exe_system);
+    assert_eq!(c.exe.as_bytes(), b"/usr/lib/systemd/systemd");
+}

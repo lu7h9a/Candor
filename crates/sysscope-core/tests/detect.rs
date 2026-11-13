@@ -73,6 +73,7 @@ fn state_with(p: ProcKey, exe: &str, trusted: bool) -> State {
         system_dir: trusted,
         home: BStr::from("/home/u"),
         world_writable_dir: false,
+        script_trusted: false,
     });
     s
 }
@@ -412,4 +413,81 @@ fn rendered_explanation_cannot_gain_lines_from_a_path() {
             .count(),
         1
     );
+}
+
+/// An interpreter running `argv`, with the daemon's trust verdicts.
+fn interp_state(p: ProcKey, argv: &str, trusted: bool, script_trusted: bool) -> State {
+    let mut s = State::new();
+    let mut ev = exec(1, SEC, p, "/usr/bin/perl");
+    if let EventKind::Exec { argv: a, .. } = &mut ev.kind {
+        *a = BStr(argv.replace(' ', "\0").into_bytes());
+    }
+    s.apply(&Input::RawEvent { event: ev });
+    s.apply(&Input::ExeMeta {
+        proc: p,
+        trusted,
+        system_dir: trusted,
+        home: BStr::from("/root"),
+        world_writable_dir: false,
+        script_trusted,
+    });
+    s
+}
+
+#[test]
+fn interpreter_allowlist_entries_need_the_verified_script() {
+    let p = key(77);
+    let shadow = |d: &mut Detector, s: &State| {
+        d.raise(
+            s,
+            hit("R001", p, "shadow", 0.5, open(2, SEC, p, "/etc/shadow")),
+        )
+        .is_some()
+            || d.score(&p, SEC) > 0
+    };
+    // dpkg-preconfigure, verified: allowlisted.
+    let s = interp_state(
+        p,
+        "/usr/bin/perl -w /usr/sbin/dpkg-preconfigure --apt",
+        true,
+        true,
+    );
+    let mut d = detector();
+    assert!(
+        !shadow(&mut d, &s),
+        "the verified system script must be allowlisted"
+    );
+    // The same name, but the script failed the ownership check: flagged.
+    let s = interp_state(
+        p,
+        "/usr/bin/perl -w /usr/sbin/dpkg-preconfigure --apt",
+        true,
+        false,
+    );
+    let mut d = detector();
+    assert!(shadow(&mut d, &s));
+    // Another perl script, or inline code: flagged.
+    for argv in ["/usr/bin/perl /home/u/steal.pl", "/usr/bin/perl -e print"] {
+        let s = interp_state(p, argv, true, true);
+        let mut d = detector();
+        assert!(shadow(&mut d, &s), "{argv}");
+    }
+}
+
+#[test]
+fn script_of_finds_the_script_argument() {
+    use sysscope_core::proc::script_of;
+    let b = |s: &str| BStr(s.replace(' ', "\0").into_bytes());
+    let got = |exe: &str, argv: &str| script_of(&BStr::from(exe), &b(argv)).map(|x| x.to_string());
+    assert_eq!(
+        got("/usr/bin/perl", "perl -w /usr/sbin/x --apt").as_deref(),
+        Some("/usr/sbin/x")
+    );
+    assert_eq!(
+        got("/usr/bin/python3.11", "python3 -u /opt/a.py").as_deref(),
+        Some("/opt/a.py")
+    );
+    assert_eq!(got("/usr/bin/python3", "python3 -c code"), None);
+    assert_eq!(got("/usr/bin/bash", "bash"), None);
+    assert_eq!(got("/usr/bin/cat", "cat /etc/x"), None);
 }

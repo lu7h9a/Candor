@@ -69,6 +69,10 @@ pub enum Input {
         /// The executable's directory is world-writable (R002).
         #[serde(default)]
         world_writable_dir: bool,
+        /// The interpreter's script (Proc::script) passed the same check
+        /// as `trusted` (for allowlist entries with `script`).
+        #[serde(default)]
+        script_trusted: bool,
     },
     /// Files whose (dev, ino) are decoys: Glasshouse manifest entries or
     /// host canaries from /etc/sysscope/canaries.toml (R012). Replaces the set.

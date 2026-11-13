@@ -122,10 +122,12 @@ impl State {
                 trusted,
                 system_dir,
                 home,
+                script_trusted,
                 ..
             } => {
                 if let Some(p) = self.procs.get_mut(proc) {
                     p.exe_trusted = *trusted;
+                    p.script_trusted = *script_trusted && !p.script.as_bytes().is_empty();
                     p.exe_system = *system_dir;
                     p.home = home.clone();
                 }
@@ -212,18 +214,27 @@ impl State {
         }
         if let EventKind::Fork { child } = &ev.kind {
             let child = *child;
-            let inherited = self
-                .procs
-                .get(&ev.proc)
-                .map(|p| (p.exe.clone(), p.comm.clone(), p.placeholder));
+            // fork does not change the executable: the child also inherits
+            // the parent's verified facts (until it execs something else).
+            let inherited = self.procs.get(&ev.proc).map(|p| {
+                (
+                    p.exe.clone(),
+                    p.comm.clone(),
+                    p.placeholder,
+                    (p.exe_trusted, p.exe_system, p.home.clone()),
+                    (p.script.clone(), p.script_trusted),
+                )
+            });
             if self.ensure(child, ev.uid, ev.ts_ns) {
-                if let (Some((exe, comm, placeholder)), Some(c)) =
+                if let (Some((exe, comm, placeholder, facts, script)), Some(c)) =
                     (inherited, self.procs.get_mut(&child))
                     && c.placeholder
                 {
                     c.exe = exe;
                     c.comm = comm;
                     c.placeholder = placeholder;
+                    (c.exe_trusted, c.exe_system, c.home) = facts;
+                    (c.script, c.script_trusted) = script;
                 }
                 self.link(child, ev.proc);
             }
