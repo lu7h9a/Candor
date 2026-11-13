@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M4   Current WP: WP26   Status: IN_PROGRESS
-Next action: WP26 - real-sample detonation VM (docs/REAL_SAMPLES.md, vm/detonate.sh; never fetch samples)
+Milestone: M4   Current WP: WP27   Status: IN_PROGRESS
+Next action: WP27 - act mode (experimental, --enable-act, peer authorisation)
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -37,7 +37,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP23 | Launcher | BLOCKED(E1) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run pending Q1 |
 | WP24 | Trace integration, differ, report, UI | BLOCKED(E1) | debian12 + ubuntu2204 exact demo report and attribution; ubuntu2404 correctly unavailable | WP24 commit | host run pending Q1 |
 | WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204 (after M4 fixes); ubuntu2404 refusal | WP25 + M4 commits | |
-| WP26 | Real-sample protocol | TODO | | | |
+| WP26 | Real-sample protocol | DONE | detonate.sh with fake_malware.py zip: full report over serial; network overrides refused | WP26 commit | |
 | WP27 | Act mode (experimental) | TODO | | | |
 | WP28 | R009, R011, R100 | TODO | | | |
 | WP29 | Hardening | TODO | | | |
@@ -609,3 +609,37 @@ ubuntu2404: HOSTILE UNAVAILABLE-CORRECTLY PASS   VM-HOSTILE ubuntu2404 PASS
 make lint: clean; make test: all ok (glasshouse lib 13 incl. hostile_trees_stay_bounded_and_honest, core display json_safe test)
 ```
 Result: Gate M4 slice PASS (lint, tests, VM functional and adversarial runs, review fixed). The full gate (host `make test-root`) and the host Glasshouse run stay BLOCKED(E1) on Q1.
+
+### 2026-11-14 02:10 WP26 Real-sample protocol
+Did:
+- `vm/build-detonation-image.sh`: a one-time build with network and no sample. It takes a Debian 12 cloud image, adds bubblewrap and the SysScope release binaries, runs sysusers, and installs the `sysscope-detonate.service` autorun, which acts only when a disc labelled SYSSCOPESAMPLE is attached. It then disables cloud-init and SSH, removes the build key, powers off cleanly from inside, and flattens the disk to `~/.cache/sysscope-vm/detonation/detonation.qcow2` (0600).
+- `vm/detonation/autorun.sh` (guest): mounts the read-only disc, extracts exactly one file from the ZipCrypto archive with the password, runs `sysscope --json glasshouse run` under the daemon, and writes the report (or an error object) between marker lines to /dev/ttyS1 in raw mode. Then `poweroff -f`.
+- `vm/detonate.sh ARCHIVE PASSWORD [TIMEOUT]`:
+  - puts the archive, password and timeout in a read-only ISO;
+  - runs QEMU with `-nodefaults -no-user-config -snapshot -nic none -display none`, the second serial port writing to a file, and no shared folders;
+  - refuses without KVM, while a VirtualBox VM runs, or if its own final argument list holds any -nic other than `none`, any -netdev/-net, or a NIC or USB device;
+  - kills QEMU at timeout + 60 s;
+  - reads the serial file as untrusted text: capped at 64 MiB, only the marked block, CRLF-tolerant, strict JSON, shown through `sysscope glasshouse report` (escaped). The header file records the date, the archive's sha256 and the exact QEMU command line.
+- `docs/REAL_SAMPLES.md`: 10 numbered steps, each with a "why" line, plus the remaining risk. No sample sources are named or linked.
+Deviation: plan 6.6 step 1 asks for `~/sysscope-quarantine/` (0700). The script accepts any path and the doc tells the owner to use that folder. I may not write there (SKILL.md write allowlist), so the verify zip lives in ~/.cache/sysscope-vm/wp26.
+Verify command: `make release && vm/build-detonation-image.sh`, then `(cd testkit/sim && zip -P infected ~/.cache/sysscope-vm/wp26/fake.zip fake_malware.py)`, `DETONATE_QEMU_EXTRA="-nic user" vm/detonate.sh .../fake.zip infected 30`, `DETONATE_QEMU_EXTRA="-netdev user,id=n0" vm/detonate.sh ...`, and `vm/detonate.sh .../fake.zip infected 60`
+Verify output (trimmed, real):
+```
+vm: refusing: network option '-nic user' in the QEMU command line          refusal rc=1
+vm: refusing: '-netdev user,id=n0' in the QEMU command line                refusal2 rc=1
+detonate: booting the detonation guest (no network, disk changes discarded)
+SysScope detonation report header
+archive: fake.zip sha256 d4f2162b8665180938cd8644e0fe6f6ed17259111f9295d8c2c5ca8055c3c39e
+timeout: 60s (QEMU killed at 120s)
+qemu: qemu-system-x86_64 -name sysscope-detonation -nodefaults -no-user-config -machine q35\,accel=kvm -enable-kvm -cpu host -m 2048 -smp 2 -drive file=.../detonation.qcow2\,if=virtio\,format=qcow2 -snapshot -drive file=.../sample.iso\,media=cdrom\,readonly=on -nic none -display none -serial file:.../console.log -serial file:.../report.serial
+Glasshouse report 1794560579-1
+sample: fake_malware.py
+ran 0.3 s, exited with code 0
+decoys: 2 read, 20 modified, 20 renamed, 10 deleted (of 42); 1 new file(s); 1 connection attempt(s)
+  ... (findings R001 R004 R005 R012, as in WP24)
+detonate: report files: .../report-header.txt and .../report.json            rc=0
+```
+Bugs found on the way:
+- The first image build lost its SSH key before `poweroff`, so it was killed rather than shut down. The guest now powers off by itself, and the build fails if it does not.
+- The guest's serial tty sent `\r\n`, so the markers were missed. Fixed on both sides: raw mode in the guest, CRLF tolerance on the host.
+Result: PASS. Only the harmless demo sample was used; no real sample was fetched or run.
