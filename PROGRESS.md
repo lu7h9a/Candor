@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: M3 gate slice   Status: IN_PROGRESS
-Next action: fresh-subagent review of the GUI/CLI/proto changes; full gate and the v0.1.0 tag wait for Q1 (test-root on the host)
+Milestone: M0   Current WP: M3 gate review fixes   Status: IN_PROGRESS
+Next action: fix the GUI/CLI review findings (redaction gaps, unescaped daemon text, replay line limits, reconnect thread leak, loss overflow), then WP24
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -34,7 +34,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP20 | GUI views | DONE | host (Xvfb + kittest) | WP20 commit | 6 screenshots described below |
 | WP21 | Follow UX, loss, robustness | DONE | host (Xvfb, fake daemon) | WP21 commit | GUI threads 6-7 % CPU, 125 MiB; real-GPU check left to the owner |
 | WP22 | Decoys + manifest | DONE | host | WP22 commit | 42 decoys per plan 6.2 |
-| WP23 | Launcher | TODO | | | |
+| WP23 | Launcher | BLOCKED(E1) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run pending Q1 |
 | WP24 | Trace integration, differ, report, UI | TODO | | | |
 | WP25 | Adversarial suite | TODO | | | |
 | WP26 | Real-sample protocol | TODO | | | |
@@ -433,3 +433,23 @@ test result: ok. 6 passed; 0 failed
 ```
 Correction: the first WP22 commit was pushed while manifest_round_trips_through_json failed (one entropy value lost its last digit through JSON). Fixed by enabling serde_json's float_roundtrip feature; the output above is from after the fix (3 consecutive runs green, make lint and make test green).
 Result: PASS
+
+### 2026-11-13 19:15 WP23 Launcher
+Did: sysscope-glasshouse binary: `prepare` (decoys + manifest, synthetic /etc with copies of ld.so.cache, ld.so.conf(.d), alternatives, ssl/certs, nsswitch.conf, localtime and generated passwd/group/hostname/hosts/resolv.conf, three seccomp filter files, home owned by sysscope-box, run dir 0750 root:sysscope-box), `stage2` (as sysscope-box in the transient unit: waits on the FIFO, execs /usr/bin/bwrap with the 6.2 arguments and --add-seccomp-fd x3; systemd starts it with only fds 0-2 so no close_range is needed), `run-local` (root: 512 MiB nodev,nosuid tmpfs run dir, prepare, systemd-run --wait with every 6.2 property - a rejected property makes the unit fail and the run refuse -, cgroup id = inode of the unit cgroup dir, FIFO release, output printed escaped, unmount + remove), `availability` (real bwrap start as sysscope-box via setpriv; reason includes the AppArmor/userns sysctl, which is never changed). seccomp.rs: seccompiler filters (EPERM list incl. clone with CLONE_NEW* and personality, clone3 -> ENOSYS) plus a hand-built x32 kill filter (seccompiler only checks AUDIT_ARCH, which x32 shares). packaging/sysusers/sysscope.conf.
+Verify command: `make release && vm/run.sh debian12 "$(cat vm/tests/wp00_tools.sh)"` then `wp23_availability.sh` and `wp23_glasshouse.sh` in debian12 and ubuntu2404
+Verify output (trimmed, real):
+```
+== debian12 (bubblewrap 0.8.0, systemd 252)
+available
+availability rc=0 run-local rc=0 leftover_run_dirs=0   WP23 AVAILABLE PASS
+glasshouse: unit sysscope-gh-832-1794544521 cgroup /sys/fs/cgroup/system.slice/sysscope-gh-832-1794544521.service id 2828
+OK uid 1000 / OK only the specified tree (bin dev etc home lib lib64 proc run sample sbin tmp usr var) / OK synthetic passwd / OK loopback only / OK no other interfaces
+OK NoNewPrivs 1 / OK Seccomp 2 / OK CapEff, CapPrm, CapBnd, CapInh, CapAmb zero / OK decoys in home / OK no /sys / OK only box processes (3) / OK fds 0-2 only
+run-local rc=0   WP23 GLASSHOUSE PASS
+== ubuntu2404 (bubblewrap 0.9.0)
+unavailable: bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted (kernel.apparmor_restrict_unprivileged_userns = 1: this system's AppArmor policy blocks unprivileged user namespaces; SysScope does not change that setting)
+availability rc=4 run-local rc=4 leftover_run_dirs=0   WP23 UNAVAILABLE-CORRECTLY PASS
+```
+Unit tests: seccomp namespaces_refused_and_clone3_falls_back, ordinary_syscalls_still_work, programs_serialize_to_eight_bytes_per_instruction ok.
+Bugs found on the way: the probe first lacked the /lib64 symlink (false "unavailable" on Debian) and my VM script accepted that; both fixed (script now derives the expected outcome from the sysctls).
+Result: PASS in VMs; host run BLOCKED(E1).

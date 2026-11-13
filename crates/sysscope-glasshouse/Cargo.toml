@@ -11,7 +11,16 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
+anyhow = "1.0.104"
+libc = "0.2.191"
+rustix = { version = "1.1.6", features = ["fs", "process"] }
+seccompiler = "0.5.0"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["float_roundtrip"] }
 sha2 = "0.11.1"
+sysscope-core = { version = "0.0.1", path = "../sysscope-core" }
+sysscope-proto = { version = "0.0.1", path = "../sysscope-proto" }
 thiserror = "2.0.21"
+
+[dev-dependencies]
+rustix = { version = "1.1.6", features = ["thread", "process"] }
