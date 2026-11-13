@@ -29,6 +29,8 @@ commands:
   tail [--proc PID] [--count N]       stream events (Ctrl-C to stop)
   follow PID                  trace only PID and its descendants
   unfollow                    back to system-wide tracing
+  act pause|resume|kill PID   EXPERIMENTAL: signal one process (daemon started with
+                              --enable-act; root or group sysscope-act; protected list applies)
   detail PID                  files, connections, syscalls, findings of PID
   findings                    explanations of all flagged processes
   export --format json|csv [--raw] [--redact-ips]   redacted by default
@@ -182,6 +184,7 @@ fn run(a: Args) -> Result<(), CliError> {
     }
     let known = [
         "status", "top", "tree", "tail", "follow", "unfollow", "detail", "findings", "export",
+        "act",
     ];
     if !known.contains(&cmd.as_str()) {
         return Err(CliError::Usage(format!("unknown command {cmd:?}\n{USAGE}")));
@@ -293,6 +296,32 @@ fn run(a: Args) -> Result<(), CliError> {
                 println!("{}", sysscope_core::display::safe_str(&message));
             }
             println!("other processes are not traced while following");
+        }
+        "act" => {
+            // Experimental (D19): only with sysscoped --enable-act, and only
+            // for root or members of sysscope-act. Never automatic.
+            let action = match rest.first().map(String::as_str) {
+                Some("pause") => sysscope_proto::ActAction::Pause,
+                Some("resume") => sysscope_proto::ActAction::Resume,
+                Some("kill") => sysscope_proto::ActAction::Kill,
+                _ => return Err(CliError::Usage("act pause|resume|kill PID".into())),
+            };
+            let pid = pid_arg(&rest, 1)?;
+            let rows = rows_of(&snapshot(&mut c)?);
+            c.send(&ClientMsg::Act {
+                proc: key_of(&rows, pid)?,
+                action,
+                nonce: format!("cli-{}", std::process::id()),
+            })?;
+            if let DaemonMsg::ActResult { ok, message } =
+                c.recv_until(|m| matches!(m, DaemonMsg::ActResult { .. }))?
+            {
+                let text = sysscope_core::display::safe_str(&message);
+                if !ok {
+                    return Err(CliError::Daemon(text));
+                }
+                println!("{text}");
+            }
         }
         "unfollow" => {
             c.send(&ClientMsg::Unfollow {})?;

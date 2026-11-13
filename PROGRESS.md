@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M4   Current WP: WP27   Status: IN_PROGRESS
-Next action: WP27 - act mode (experimental, --enable-act, peer authorisation)
+Milestone: M4   Current WP: WP28   Status: IN_PROGRESS
+Next action: WP28 - rules R009, R011 (ptrace hook, VM first), R100 (experimental, off by default)
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -38,7 +38,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP24 | Trace integration, differ, report, UI | BLOCKED(E1) | debian12 + ubuntu2204 exact demo report and attribution; ubuntu2404 correctly unavailable | WP24 commit | host run pending Q1 |
 | WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204 (after M4 fixes); ubuntu2404 refusal | WP25 + M4 commits | |
 | WP26 | Real-sample protocol | DONE | detonate.sh with fake_malware.py zip: full report over serial; network overrides refused | WP26 commit | |
-| WP27 | Act mode (experimental) | TODO | | | |
+| WP27 | Act mode (experimental) | DONE | 5 act itests + all itests on debian12 and ubuntu2204 | WP27 commit | host run pending Q1 |
 | WP28 | R009, R011, R100 | TODO | | | |
 | WP29 | Hardening | TODO | | | |
 | WP30 | Packaging | TODO | | | |
@@ -643,3 +643,31 @@ Bugs found on the way:
 - The first image build lost its SSH key before `poweroff`, so it was killed rather than shut down. The guest now powers off by itself, and the build fails if it does not.
 - The guest's serial tty sent `\r\n`, so the markers were missed. Fixed on both sides: raw mode in the guest, CRLF tolerance on the host.
 Result: PASS. Only the harmless demo sample was used; no real sample was fetched or run.
+
+### 2026-11-14 03:00 WP27 Act mode (experimental)
+Did:
+- **Daemon (`act.rs`).** `sysscoped --enable-act` (off by default; Welcome `act_enabled`). For each Act request:
+  1. Authorise: the peer from SO_PEERCRED (uid and pid now kept per client) must be root or have the `sysscope-act` gid in its /proc status.
+  2. `pidfd_open(tgid)` first, then re-read /proc/<tgid>/stat and compare the start ticks with the ProcKey (a recycled pid is refused).
+  3. Check the protected list: pid 1, kernel threads (PF_KTHREAD, pid 2), the daemon, the requesting client itself, any ancestor of it, display servers, session managers and the GUI in the requester's session (by comm), and for non-root requesters anything whose real or saved uid is not theirs.
+  4. Send the signal with `pidfd_send_signal` (STOP, CONT or KILL).
+  Every request is logged to stderr (the journal under systemd) with action, target, requester uid and pid, nonce and result. Never automatic.
+- **CLI.** `sysscope act pause|resume|kill PID`; a refusal exits 5 with the reason.
+- **GUI.** Controls appear only when the daemon enables act mode, under an EXPERIMENTAL label. Pause is one click, with "Undo (resume)". Kill stays disabled until the pid is typed.
+- **Tests.** Unit tests: stat parsing with a hostile name, protected self and pid 1, GUI kill confirmation and pause undo. `vm/tests/wp05_itest.sh` now creates the sysusers groups.
+Verify command: `make lint && make test && make itest-bin`, then `vm/run.sh <d> "$(cat vm/tests/wp05_itest.sh)"` for debian12 and ubuntu2204
+Verify output (real):
+```
+debian12 sysscope-itest-act:
+test a_recycled_pid_is_refused ... ok          (ns_last_pid forced; VM-only guard)
+test act_is_refused_unless_enabled ... ok
+test non_root_needs_the_group_and_ownership ... ok   (nobody: no group -> "not authorised"; with group, root's process -> "could not signal"; own process -> paused)
+test pause_resume_and_kill_a_workload_child ... ok   (state T, then not T, then SIGKILL; journal lines with uid 0)
+test protected_processes_are_refused ... ok    (pid 1, kthreadd, daemon, ancestor, a process named Xorg in the session)
+test result: ok. 5 passed
+ubuntu2204 (kernel 5.15): act 5, cli 5, files 5, follow 4, lifecycle 5, network 1, proc 3, server 7, syscalls 1 -> all ok; dmesg: no new bpf/BUG/WARNING/RCU lines
+debian12: all other itest binaries ok as well
+```
+Limit (to be recorded in THREAT_MODEL.md at WP29): a pid recycled within the same clock tick (10 ms) as the original's start cannot be told apart by start time. The test waits more than one tick.
+Bug found on the way: the test assumed the dev socket is group 0; under sudo it is SUDO_GID. The test now reads the socket's group.
+Result: PASS in VMs; host run BLOCKED(E1).

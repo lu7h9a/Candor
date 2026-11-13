@@ -3,6 +3,11 @@
 # (built on the host by `make itest-bin`), single-threaded, as root.
 set -euo pipefail
 export SYSSCOPE_BIN_DIR=/opt/sysscope/bin
+# Groups and the sandbox user from packaging/sysusers (act-mode and
+# Glasshouse tests need them).
+mkdir -p /usr/lib/sysusers.d
+printf 'g sysscope -\ng sysscope-act -\nu sysscope-box - "SysScope Glasshouse sandbox" / /usr/sbin/nologin\n' > /usr/lib/sysusers.d/sysscope.conf
+systemd-sysusers /usr/lib/sysusers.d/sysscope.conf
 dmesg_before=$(dmesg --level=err,warn | wc -l)
 rc=0
 for t in /opt/sysscope/bin/sysscope-itest-*; do

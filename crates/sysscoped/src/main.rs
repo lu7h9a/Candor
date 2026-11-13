@@ -11,6 +11,7 @@
 #![deny(unsafe_code)]
 
 mod abi;
+mod act;
 mod collector;
 mod convert;
 mod daemon;
@@ -39,6 +40,7 @@ struct Opts {
     budget_rate: u32,
     budget_burst: u32,
     record: Option<std::path::PathBuf>,
+    enable_act: bool,
 }
 
 fn parse_args() -> Result<Opts> {
@@ -51,11 +53,13 @@ fn parse_args() -> Result<Opts> {
         budget_rate: collector::BUDGET_RATE,
         budget_burst: collector::BUDGET_BURST,
         record: None,
+        enable_act: false,
     };
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
         match a.as_str() {
             "--dev" => opts.dev = true,
+            "--enable-act" => opts.enable_act = true,
             "--dump" => opts.dump = true,
             "--ringbuf-bytes" => {
                 let v = args.next().context("--ringbuf-bytes needs a value")?;
@@ -128,6 +132,7 @@ fn run(opts: &Opts) -> Result<()> {
             load,
             dev: opts.dev,
             record: opts.record.clone(),
+            enable_act: opts.enable_act,
         },
         stop,
     )

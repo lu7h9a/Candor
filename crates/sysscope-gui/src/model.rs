@@ -256,6 +256,14 @@ pub enum Action {
     GhCancel,
     /// Glasshouse: export the report (the app writes the files).
     GhExport,
+    /// Act (experimental): pause a process.
+    ActPause(ProcKey),
+    /// Act: resume a process (also the undo of a pause).
+    ActResume(ProcKey),
+    /// Act: the text typed to confirm a kill.
+    ActKillText(String),
+    /// Act: kill, only if the typed text is the pid.
+    ActKill(ProcKey),
 }
 
 /// One row as displayed (already escaped, with tree depth).
@@ -319,12 +327,35 @@ pub struct Model {
     pub page: Page,
     /// Glasshouse page state.
     pub gh: GhView,
+    /// Act: text typed to confirm a kill.
+    pub act_kill_text: String,
+    /// Act: the last process paused from this window (offers undo).
+    pub act_paused: Option<ProcKey>,
 }
 
 impl Default for Model {
     fn default() -> Self {
         Model::new()
     }
+}
+
+fn act_msg(k: ProcKey, action: sysscope_proto::ActAction) -> Vec<ClientMsg> {
+    vec![ClientMsg::Act {
+        proc: k,
+        action,
+        nonce: "gui".into(),
+    }]
+}
+
+/// True when the daemon runs with act mode enabled.
+pub fn act_enabled(m: &Model) -> bool {
+    matches!(
+        m.conn,
+        ConnState::Connected {
+            act_enabled: true,
+            ..
+        }
+    )
 }
 
 fn band(score: u8) -> &'static str {
@@ -371,6 +402,8 @@ impl Model {
             multi_user_cached: false,
             page: Page::Processes,
             gh: GhView::default(),
+            act_kill_text: String::new(),
+            act_paused: None,
         }
     }
 
@@ -607,6 +640,25 @@ impl Model {
             Action::GhCloseBrowse => self.gh.browse = None,
             // Done by the app (file system access): GhBrowse, GhRun, GhExport.
             Action::GhBrowse(_) | Action::GhRun | Action::GhExport => {}
+            Action::ActPause(k) => {
+                self.act_paused = Some(k);
+                return act_msg(k, sysscope_proto::ActAction::Pause);
+            }
+            Action::ActResume(k) => {
+                if self.act_paused == Some(k) {
+                    self.act_paused = None;
+                }
+                return act_msg(k, sysscope_proto::ActAction::Resume);
+            }
+            Action::ActKillText(t) => self.act_kill_text = t,
+            Action::ActKill(k) => {
+                // Typing the pid is the confirmation.
+                if self.act_kill_text.trim() == k.tgid.to_string() {
+                    self.act_kill_text.clear();
+                    return act_msg(k, sysscope_proto::ActAction::Kill);
+                }
+                self.notice = Some("type the pid to confirm the kill".into());
+            }
             Action::GhCancel => {
                 if self.gh.running() {
                     return vec![ClientMsg::GhCancel {}];
@@ -809,6 +861,23 @@ mod tests {
         assert!(m.on_action(Action::GhCancel).is_empty());
         m.on_action(Action::GhSetTimeout(0));
         assert_eq!(m.gh.timeout_s, 1);
+    }
+
+    #[test]
+    fn act_kill_needs_the_typed_pid_and_pause_offers_undo() {
+        let mut m = Model::new();
+        let k = key(4242);
+        assert_eq!(m.on_action(Action::ActKill(k)), vec![]);
+        assert!(m.notice.as_deref().unwrap_or("").contains("type the pid"));
+        m.on_action(Action::ActKillText("4241".into()));
+        assert_eq!(m.on_action(Action::ActKill(k)), vec![]);
+        m.on_action(Action::ActKillText(" 4242 ".into()));
+        assert_eq!(m.on_action(Action::ActKill(k)).len(), 1);
+        assert!(m.act_kill_text.is_empty());
+        assert_eq!(m.on_action(Action::ActPause(k)).len(), 1);
+        assert_eq!(m.act_paused, Some(k));
+        assert_eq!(m.on_action(Action::ActResume(k)).len(), 1);
+        assert_eq!(m.act_paused, None);
     }
 
     fn pids(m: &Model) -> Vec<u32> {

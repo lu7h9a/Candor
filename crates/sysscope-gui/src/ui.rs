@@ -418,6 +418,47 @@ fn proc_cells(row: &mut egui_extras::TableRow<'_, '_>, v: &RowView) {
     });
 }
 
+/// Act mode (experimental, D19): shown only when the daemon enables it.
+fn act_controls(ui: &mut Ui, m: &Model, sel: sysscope_proto::ProcKey, acts: &mut Vec<Action>) {
+    egui::Frame::group(ui.style()).show(ui, |ui| {
+        ui.horizontal_wrapped(|ui| {
+            ui.label(
+                RichText::new("EXPERIMENTAL")
+                    .strong()
+                    .color(Color32::from_rgb(0xd0, 0x90, 0x10)),
+            );
+            let r = ui.button("Pause");
+            tag(&r, Role::Button, "act-pause");
+            if r.clicked() {
+                acts.push(Action::ActPause(sel));
+            }
+            let undo = m.act_paused == Some(sel);
+            let r = ui.button(if undo { "Undo (resume)" } else { "Resume" });
+            tag(&r, Role::Button, "act-resume");
+            if r.clicked() {
+                acts.push(Action::ActResume(sel));
+            }
+            ui.separator();
+            let mut t = m.act_kill_text.clone();
+            let r = ui.add(
+                egui::TextEdit::singleline(&mut t)
+                    .hint_text("type the pid to kill")
+                    .desired_width(110.0),
+            );
+            tag(&r, Role::TextInput, "act-kill-pid");
+            if t != m.act_kill_text {
+                acts.push(Action::ActKillText(t));
+            }
+            let ok = m.act_kill_text.trim() == sel.tgid.to_string();
+            let r = ui.add_enabled(ok, egui::Button::new("Kill"));
+            tag(&r, Role::Button, "act-kill");
+            if r.clicked() {
+                acts.push(Action::ActKill(sel));
+            }
+        });
+    });
+}
+
 fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     let Some(sel) = m.selected else {
         ui.heading("Select a process");
@@ -444,6 +485,9 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             }
         }
     });
+    if crate::model::act_enabled(m) {
+        act_controls(ui, m, sel, acts);
+    }
     ui.horizontal_wrapped(|ui| {
         for t in Tab::all() {
             let label = match t {

@@ -73,10 +73,14 @@ pub struct RunOpts {
     pub dev: bool,
     /// Record core inputs to this file.
     pub record: Option<std::path::PathBuf>,
+    /// Experimental act mode (D19).
+    pub enable_act: bool,
 }
 
 struct Client {
     queue: Arc<ClientQueue>,
+    /// SO_PEERCRED of the connection (act mode authorisation).
+    peer: crate::act::Requester,
     hello: bool,
     snapshots: bool,
     alerts: bool,
@@ -96,6 +100,7 @@ struct Core {
     seq: u64,
     gh: crate::glasshouse::Glasshouse,
     last_loss: sysscope_proto::Loss,
+    act_enabled: bool,
 }
 
 impl Core {
@@ -211,12 +216,17 @@ impl Core {
 
     fn on_client(&mut self, cmd: ClientCmd) {
         match cmd {
-            ClientCmd::New { id, queue, uid } => {
-                let _ = uid;
+            ClientCmd::New {
+                id,
+                queue,
+                uid,
+                pid,
+            } => {
                 self.clients.insert(
                     id,
                     Client {
                         queue,
+                        peer: crate::act::Requester { uid, pid },
                         hello: false,
                         snapshots: false,
                         alerts: false,
@@ -332,10 +342,35 @@ impl Core {
                     });
                 }
             }
-            ClientMsg::Act { .. } => q.put_reply(DaemonMsg::ActResult {
-                ok: false,
-                message: "act mode is not enabled (sysscoped --enable-act)".into(),
-            }),
+            ClientMsg::Act {
+                proc,
+                action,
+                nonce,
+            } => {
+                let peer = c.peer;
+                let res = if self.act_enabled {
+                    crate::act::act(peer, proc, action)
+                } else {
+                    Err("act mode is not enabled (sysscoped --enable-act)".into())
+                };
+                // Every request is logged (journal under systemd).
+                eprintln!(
+                    "sysscoped: act {action:?} pid {} requested by uid {} pid {} (nonce {}): {}",
+                    proc.tgid,
+                    peer.uid,
+                    peer.pid,
+                    sysscope_core::display::safe_str(&nonce),
+                    match &res {
+                        Ok(m) => format!("done: {m}"),
+                        Err(e) => format!("refused: {e}"),
+                    }
+                );
+                let (ok, message) = match res {
+                    Ok(m) => (true, m),
+                    Err(e) => (false, e),
+                };
+                q.put_reply(DaemonMsg::ActResult { ok, message });
+            }
             ClientMsg::GhUploadBegin { name, size } => {
                 for m in self.gh.begin(id, &name, size) {
                     q.put_reply(m);
@@ -709,7 +744,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         kernel: kernel_release(),
         boot_to_wall_ns: boot_to_wall,
         features: features.clone(),
-        act_enabled: false,
+        act_enabled: opts.enable_act,
     };
     let record = match &opts.record {
         Some(path) => {
@@ -722,7 +757,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
                 serde_json::json!({
                     "sysscope_record": 1, "proto": PROTO_VERSION,
                     "daemon_version": env!("CARGO_PKG_VERSION"), "kernel": kernel_release(),
-                    "boot_to_wall_ns": boot_to_wall, "features": features, "act_enabled": false,
+                    "boot_to_wall_ns": boot_to_wall, "features": features, "act_enabled": opts.enable_act,
                 })
             )?;
             Some(w)
@@ -739,6 +774,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     let core = Core {
         gh,
         last_loss: sysscope_proto::Loss::default(),
+        act_enabled: opts.enable_act,
         engine: Engine::new(rules, allow),
         clients: BTreeMap::new(),
         homes: hostinfo::load_homes(),

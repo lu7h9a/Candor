@@ -149,6 +149,8 @@ pub enum ClientCmd {
         queue: Arc<ClientQueue>,
         /// Peer uid from SO_PEERCRED.
         uid: u32,
+        /// Peer pid from SO_PEERCRED.
+        pid: u32,
     },
     /// A decoded message from a client.
     Msg {
@@ -393,6 +395,7 @@ pub fn accept_loop(
             id,
             queue: Arc::clone(&queue),
             uid,
+            pid: u32::try_from(pid).unwrap_or(0),
         });
         let q2 = Arc::clone(&queue);
         let core2 = core.clone();
