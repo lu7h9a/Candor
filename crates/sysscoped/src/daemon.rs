@@ -92,6 +92,8 @@ struct Client {
     queue: Arc<ClientQueue>,
     /// SO_PEERCRED of the connection (act mode authorisation).
     peer: crate::act::Requester,
+    /// This client shows syscall statistics (WatchSyscalls).
+    watch_sys: bool,
     hello: bool,
     snapshots: bool,
     alerts: bool,
@@ -114,6 +116,8 @@ struct Core {
     act_enabled: bool,
     /// Processes already verified (exec or scan); see `unchecked`.
     checked: std::collections::BTreeSet<ProcKey>,
+    /// What the poller was last told about WatchSyscalls.
+    sys_wanted: bool,
 }
 
 impl Core {
@@ -244,6 +248,7 @@ impl Core {
                     Client {
                         queue,
                         peer: crate::act::Requester { uid, pid },
+                        watch_sys: false,
                         hello: false,
                         snapshots: false,
                         alerts: false,
@@ -256,6 +261,7 @@ impl Core {
                 if let Some(c) = self.clients.remove(&id) {
                     c.queue.close();
                 }
+                self.sync_watch_sys();
             }
             ClientCmd::Msg { id, msg } => self.on_message(id, msg),
         }
@@ -348,6 +354,10 @@ impl Core {
                     });
                 }
             }
+            ClientMsg::WatchSyscalls { on } => {
+                c.watch_sys = on;
+                self.sync_watch_sys();
+            }
             ClientMsg::Unfollow {} => {
                 if self.poller.try_send(PollerCmd::Unfollow).is_ok() {
                     self.follow = None;
@@ -421,6 +431,15 @@ impl Core {
             self.apply(Input::Decoys {
                 inodes: inodes.clone(),
             });
+        }
+    }
+
+    /// Tells the poller whether any client wants syscall statistics (only
+    /// when that changes; the poller command channel is small).
+    fn sync_watch_sys(&mut self) {
+        let want = self.clients.values().any(|c| c.hello && c.watch_sys);
+        if want != self.sys_wanted && self.poller.try_send(PollerCmd::WantSyscalls(want)).is_ok() {
+            self.sys_wanted = want;
         }
     }
 
@@ -887,6 +906,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         last_loss: sysscope_proto::Loss::default(),
         act_enabled: opts.enable_act,
         checked: std::collections::BTreeSet::new(),
+        sys_wanted: false,
         engine: {
             let mut e = Engine::new(rules, allow);
             if e.r100_enabled() {

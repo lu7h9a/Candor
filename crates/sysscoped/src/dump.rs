@@ -20,6 +20,8 @@ pub fn run(o: LoadOpts, follow: Option<u32>, stop: &AtomicBool) -> Result<()> {
     });
     let mut storage = MaybeUninit::uninit();
     let mut col = Collector::load(&mut storage, o)?;
+    // Dump mode has no viewers and always counts syscalls.
+    col.want_sys = true;
     if let Some(root) = follow {
         let n = col.follow(root)?;
         eprintln!("sysscoped: following pid {} ({n} processes)", root.tgid);

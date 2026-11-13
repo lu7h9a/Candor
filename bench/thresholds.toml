@@ -7,6 +7,9 @@ micro_open_close = 0.40
 micro_getppid_count = 0.60
 micro_getppid_syscalls_off = 0.05
 follow_mode_any = 0.03
+# Owner's Q5 answer B (2026-11-14): the file-open hook fires for every
+# process, so the open/close loop in follow mode gets the "on" limit.
+follow_mode_open_close = 0.40
 # Idle daemon: share of one core over 5 minutes, and resident memory.
 idle_cpu_share = 0.03
 rss_mib = 300

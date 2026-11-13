@@ -125,16 +125,22 @@ fn pause_resume_and_kill_a_workload_child() {
     assert!(o.status.success(), "{}", err(&o));
     let st = s.wait().unwrap();
     assert_eq!(std::os::unix::process::ExitStatusExt::signal(&st), Some(9));
-    // Every action is logged with the requester.
+    // Every action is logged with the requester. The daemon writes the line
+    // before it replies; the test's stderr reader may lag behind a little.
+    let want = [
+        format!("act Pause pid {pid} requested by uid 0"),
+        format!("act Kill pid {pid} requested by uid 0"),
+    ];
+    let deadline = std::time::Instant::now() + Duration::from_secs(3);
+    while std::time::Instant::now() < deadline
+        && !want.iter().all(|w| d.stderr_text().contains(w.as_str()))
+    {
+        std::thread::sleep(Duration::from_millis(50));
+    }
     let log = d.stderr_text();
-    assert!(
-        log.contains(&format!("act Pause pid {pid} requested by uid 0")),
-        "{log}"
-    );
-    assert!(
-        log.contains(&format!("act Kill pid {pid} requested by uid 0")),
-        "{log}"
-    );
+    for w in &want {
+        assert!(log.contains(w.as_str()), "{w} missing from: {log}");
+    }
     assert!(d.stop().unwrap().success());
 }
 
@@ -200,10 +206,12 @@ fn non_root_needs_the_group_and_ownership() {
     assert!(o.status.success(), "{}", err(&o));
     std::thread::sleep(Duration::from_millis(200));
     assert_eq!(state(mine.id()), 'T');
-    assert!(
-        d.stderr_text()
-            .contains(&format!("requested by uid {NOBODY}"))
-    );
+    let want = format!("requested by uid {NOBODY}");
+    let deadline = std::time::Instant::now() + Duration::from_secs(3);
+    while std::time::Instant::now() < deadline && !d.stderr_text().contains(&want) {
+        std::thread::sleep(Duration::from_millis(50));
+    }
+    assert!(d.stderr_text().contains(&want), "{}", d.stderr_text());
     for c in [&mut mine, &mut roots] {
         c.kill().unwrap();
         c.wait().unwrap();

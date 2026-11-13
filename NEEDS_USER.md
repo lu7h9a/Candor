@@ -56,7 +56,7 @@ Options (if it is a choice): A) create them now  B) leave them until the package
 If I hear nothing: the two host checks stay pending; VM results (all passing) stand for them.
 RESOLVED 2026-11-14: the owner ran systemd-sysusers: groups sysscope (968), sysscope-act (967), user sysscope-box (966).
 
-## Q5 - Follow-mode overhead target for micro-benchmarks cannot be met            (case E6, raised 2026-11-14)
+## Q5 - Follow-mode overhead target for micro-benchmarks cannot be met            RESOLVED (case E6, raised 2026-11-14)
 Blocks: WP14 only (the overhead gate). Everything else continues.
 What I need from you: choose A, B or C.
 Why I need it: the plan wants every benchmark at most 3% slower while SysScope follows an unrelated process. The real-work benchmarks meet it, but two tight-loop micro-benchmarks cannot. Measured on this laptop, `performance` governor, 10 rounds, after all the plan's levers:
@@ -74,3 +74,4 @@ Options (if it is a choice):
   C) Like A, but report the follow-mode micro numbers as information only and keep 3% for the macro benchmarks, which are the ones users feel.
   My recommendation: C. Real workloads (builds) stay within 3% in follow mode, and the micro loops are worst cases by design.
 If I hear nothing: WP14 is recorded as "macro, idle and on-mode targets met; follow-mode micro targets escalated", and I continue with WP29. Nothing is relaxed in bench/thresholds.toml without your answer.
+RESOLVED 2026-11-14: owner chose B ("q5 b multi follow later"): syscall hooks in follow mode only while a viewer looks; open/close follow limit 40%; multi-follow becomes a later feature.

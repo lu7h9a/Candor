@@ -71,6 +71,8 @@ pub enum PollerCmd {
         /// Host path of the run directory.
         run_dir: Vec<u8>,
     },
+    /// Whether any viewer currently wants syscall statistics.
+    WantSyscalls(bool),
     /// The box is gone: undo `GhBox`.
     GhBoxEnd {
         /// cgroup v2 id of the box unit.
@@ -105,6 +107,9 @@ pub struct Collector<'obj> {
     pub ptrace: bool,
     /// The syscall programs are loaded (`syscalls = "count"`).
     syscalls: bool,
+    /// Some viewer shows syscall statistics (or dump mode, which always
+    /// counts). In follow mode the syscall hooks run only while this is set.
+    pub want_sys: bool,
 }
 
 /// True if the running kernel's BTF has a function of this name (an
@@ -200,6 +205,7 @@ impl<'obj> Collector<'obj> {
             cfg,
             ptrace,
             syscalls: o.syscalls,
+            want_sys: false,
         })
     }
 
@@ -214,12 +220,7 @@ impl<'obj> Collector<'obj> {
         match crate::follow::start(&self.skel, root, self.cfg) {
             Ok(n) => {
                 self.cfg.mode = abi::MODE_FOLLOW;
-                if self.syscalls && self.skel.links.on_sys_exit.is_none() {
-                    match self.skel.progs.on_sys_exit.attach() {
-                        Ok(l) => self.skel.links.on_sys_exit = Some(l),
-                        Err(e) => eprintln!("sysscoped: syscall latency unavailable: {e}"),
-                    }
-                }
+                self.sync_sys_links();
                 Ok(n)
             }
             Err(e) => {
@@ -255,8 +256,37 @@ impl<'obj> Collector<'obj> {
             .update(&0u32.to_le_bytes(), &self.cfg.to_bytes(), MapFlags::ANY)
             .context("writing cfg")?;
         crate::follow::clear(&self.skel);
-        self.skel.links.on_sys_exit = None;
+        self.sync_sys_links();
         Ok(())
+    }
+
+    /// Attaches or detaches the syscall programs for the current mode
+    /// (owner's Q5 answer B, WP14). System-wide: sys_enter counts, sys_exit
+    /// is off. Follow mode: both run only while a viewer wants syscall
+    /// statistics, so unrelated processes pay nothing for them otherwise.
+    pub fn sync_sys_links(&mut self) {
+        if !self.syscalls {
+            return;
+        }
+        let follow = self.cfg.mode == abi::MODE_FOLLOW;
+        let enter = !follow || self.want_sys;
+        let exit = follow && self.want_sys;
+        if !enter {
+            self.skel.links.on_sys_enter = None;
+        } else if self.skel.links.on_sys_enter.is_none() {
+            match self.skel.progs.on_sys_enter.attach() {
+                Ok(l) => self.skel.links.on_sys_enter = Some(l),
+                Err(e) => eprintln!("sysscoped: syscall counting unavailable: {e}"),
+            }
+        }
+        if !exit {
+            self.skel.links.on_sys_exit = None;
+        } else if self.skel.links.on_sys_exit.is_none() {
+            match self.skel.progs.on_sys_exit.attach() {
+                Ok(l) => self.skel.links.on_sys_exit = Some(l),
+                Err(e) => eprintln!("sysscoped: syscall latency unavailable: {e}"),
+            }
+        }
     }
 
     /// Cumulative kernel loss counters.
@@ -362,6 +392,11 @@ pub fn run_poller(
                     }
                     col.set_cfg_flag(abi::CFG_HAS_CGROUPS, true);
                     let _ = tx.send(PollerMsg::GhReady);
+                    continue;
+                }
+                PollerCmd::WantSyscalls(on) => {
+                    col.want_sys = on;
+                    col.sync_sys_links();
                     continue;
                 }
                 PollerCmd::GhBoxEnd { cgroup, majmin } => {

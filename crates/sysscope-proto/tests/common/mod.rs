@@ -163,6 +163,7 @@ pub fn client_samples() -> Vec<(&'static str, ClientMsg)> {
             },
         ),
         ("Unfollow", ClientMsg::Unfollow {}),
+        ("WatchSyscalls", ClientMsg::WatchSyscalls { on: true }),
         (
             "GetDetail",
             ClientMsg::GetDetail {
@@ -586,6 +587,7 @@ pub fn arb_client() -> impl Strategy<Value = ClientMsg> {
         }),
         arb_key().prop_map(|root| ClientMsg::Follow { root }),
         Just(ClientMsg::Unfollow {}),
+        any::<bool>().prop_map(|on| ClientMsg::WatchSyscalls { on }),
         (arb_key(), any::<bool>()).prop_map(|(proc, maps)| ClientMsg::GetDetail { proc, maps }),
         (arb_bstr(), any::<u64>()).prop_map(|(name, size)| ClientMsg::GhUploadBegin { name, size }),
         (any::<u32>(), "[A-Za-z0-9+/=]{0,40}")

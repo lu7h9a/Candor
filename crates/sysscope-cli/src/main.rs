@@ -333,7 +333,20 @@ fn run(a: Args) -> Result<(), CliError> {
         }
         "detail" => {
             let pid = pid_arg(&rest, 0)?;
-            let rows = rows_of(&snapshot(&mut c)?);
+            let snap = snapshot(&mut c)?;
+            if matches!(
+                &snap,
+                DaemonMsg::Snapshot {
+                    mode: sysscope_proto::Mode::Follow { .. },
+                    ..
+                }
+            ) {
+                // In follow mode syscall hooks run only while someone looks
+                // (owner's Q5 B): ask for them and give them a moment.
+                c.send(&ClientMsg::WatchSyscalls { on: true })?;
+                std::thread::sleep(Duration::from_secs(6));
+            }
+            let rows = rows_of(&snap);
             let d = detail(&mut c, key_of(&rows, pid)?, flag(&rest, "--maps"))?;
             if a.json {
                 println!("{}", out::json(&d));

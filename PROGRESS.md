@@ -4,7 +4,7 @@
 Updated: 2026-11-13 06:05 IST
 Milestone: M4   Current WP: WP29   Status: IN_PROGRESS
 Next action: WP29 hardening (Q5 decides the WP14 follow-mode limits)
-Open questions for owner: Q5 (Q4 resolved; 2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
+Open questions for owner: none (Q5 answered B 2026-11-14; Q4 resolved; 2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
 
@@ -102,6 +102,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 - 2026-11-13 WP25: `make vm-hostile` runs debian12, ubuntu2204 and ubuntu2404. On ubuntu2404 no box can start (AppArmor userns restriction, WP23), so there the suite only checks the clean refusal; ubuntu2204 is added so a second kernel is attacked. Hostile probes cannot see /etc/sysscope-test-vm or DMI from inside the box, so in-box guards are hostname "glasshouse" + HOME + uid 1000 + the CPU "hypervisor" flag. The runner (outside the box) checks the marker file and DMI=QEMU before anything starts.
 - 2026-11-14 WP28: rules.toml gained R009, R011 and R100 with the plan 5.4 weights and confidences (R009 0.5/0.6, R011 0.6/0.7, R100 0.3/0.5, R100 `disabled = true`). The pattern lists are my choice, since the plan names classes only: R009 `programs` (shells and interpreters), `parents` (viewers, office, browsers, mail, web servers); R011 `debuggers` (gdb, lldb, strace, ltrace, valgrind, rr, perf, sysprof, heaptrack, gcore, uftrace, bpftrace, criu, crash handlers). R100 is evaluated per finished run (at exit), not on a rolling 5-minute window. A run is the natural unit for a per-executable baseline, and long-lived processes are where a rolling window would matter; noted for the owner. No existing threshold changed.
 - 2026-11-14 WP14: bench/thresholds.toml created with the plan WP14 values unchanged (macro +5%, open/close +40%, getppid +60% count / +5% off, follow +3%, idle CPU 3%, RSS 300 MiB, spread 10%).
+- 2026-11-14 WP14 (owner's Q5 answer B): in follow mode the syscall hooks run only while a viewer has the Syscalls view open (new ClientMsg::WatchSyscalls). The follow-mode limit for the open/close micro-benchmark is 40% (`follow_mode_open_close`); every other follow-mode limit stays 3%. "Watch several chosen apps, stop any one" (multi-follow) is a later feature (owner: "multi follow later").
 
 ## Log
 ### 2026-11-13 05:58 WP00 Preflight

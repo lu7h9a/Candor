@@ -310,3 +310,63 @@ fn follow_switch_and_stale_key() {
     assert!(from_b >= 50, "new followed tree: {from_b} events");
     assert!(d.stop().unwrap().success());
 }
+
+/// Follows a paused wl that will make `n` getppid calls; returns its
+/// getppid count from Detail after it ran (owner's Q5 B: in follow mode
+/// syscall hooks run only while some client sends WatchSyscalls on).
+fn followed_getppid_count(watch: bool, n: &str) -> u64 {
+    let w = PausedWl::start(&["syscalls", "getppid", n]).unwrap();
+    let pid = w.pid();
+    let (mut c, _) = Client::hello().unwrap();
+    subscribe(&mut c, EventSub::Simple(EventSubMode::None));
+    let key: ProcKey = loop {
+        if let DaemonMsg::Snapshot { procs, .. } = c.recv().unwrap()
+            && let Some(r) = procs.iter().find(|r| r.key.tgid == pid)
+        {
+            break r.key;
+        }
+    };
+    c.send(&ClientMsg::Follow { root: key }).unwrap();
+    c.recv_until(|m| matches!(m, DaemonMsg::ActResult { .. }))
+        .unwrap();
+    c.send(&ClientMsg::WatchSyscalls { on: watch }).unwrap();
+    std::thread::sleep(Duration::from_millis(500));
+    w.release().unwrap();
+    // Syscall totals are read every 5 s.
+    std::thread::sleep(Duration::from_secs(7));
+    c.send(&ClientMsg::GetDetail {
+        proc: key,
+        maps: false,
+    })
+    .unwrap();
+    let n = match c
+        .recv_until(|m| matches!(m, DaemonMsg::Detail { .. }))
+        .unwrap()
+    {
+        DaemonMsg::Detail { syscalls, .. } => syscalls
+            .iter()
+            .find(|s| s.name == "getppid")
+            .map(|s| s.count)
+            .unwrap_or(0),
+        _ => unreachable!(),
+    };
+    c.send(&ClientMsg::Unfollow {}).unwrap();
+    c.recv_until(|m| matches!(m, DaemonMsg::ActResult { .. }))
+        .unwrap();
+    n
+}
+
+#[test]
+fn follow_mode_counts_syscalls_only_while_someone_watches() {
+    let d = Daemon::start(&[]).unwrap();
+    assert_eq!(
+        followed_getppid_count(false, "20000"),
+        0,
+        "hooks ran without a viewer"
+    );
+    assert!(
+        followed_getppid_count(true, "20000") >= 20000,
+        "not counted while watched"
+    );
+    assert!(d.stop().unwrap().success());
+}

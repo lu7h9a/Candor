@@ -29,6 +29,8 @@ pub struct App {
     started: std::time::Instant,
     timed_done: Arc<std::sync::atomic::AtomicUsize>,
     timed_requested: usize,
+    /// What the daemon was last told about the Syscalls view (WatchSyscalls).
+    sys_watch_sent: bool,
 }
 
 impl App {
@@ -46,6 +48,7 @@ impl App {
             started: std::time::Instant::now(),
             timed_done: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
             timed_requested: 0,
+            sys_watch_sent: false,
         }
     }
 
@@ -90,6 +93,9 @@ impl App {
                     self.model.apply(inc);
                     // Requests in flight when the daemon went away are lost:
                     // ask again for what the window shows.
+                    if reconnected {
+                        self.sys_watch_sent = false; // a new daemon knows nothing yet
+                    }
                     if reconnected && let Some(k) = self.model.selected {
                         let maps = self.model.tab == crate::model::Tab::Maps;
                         self.send(sysscope_proto::ClientMsg::GetDetail { proc: k, maps });
@@ -97,6 +103,15 @@ impl App {
                 }
                 Err(_) => break,
             }
+        }
+        // The Syscalls view is open: in follow mode the daemon runs its
+        // syscall hooks only while some viewer says so (owner's Q5 B).
+        let want = self.model.page == crate::model::Page::Processes
+            && self.model.tab == crate::model::Tab::Syscalls
+            && self.model.selected.is_some();
+        if want != self.sys_watch_sent {
+            self.sys_watch_sent = want;
+            self.send(sysscope_proto::ClientMsg::WatchSyscalls { on: want });
         }
         if !self.initial.is_empty() && !self.model.rows.is_empty() {
             for a in std::mem::take(&mut self.initial) {

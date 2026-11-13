@@ -579,6 +579,14 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                 }
             }
             Tab::Syscalls => {
+                if matches!(m.mode, Mode::Follow { .. }) {
+                    ui.label(
+                        RichText::new(
+                            "Following: syscalls are counted only while this tab is open, so other programs are not slowed down.",
+                        )
+                        .italics(),
+                    );
+                }
                 let mut s = syscalls.clone();
                 s.sort_by_key(|x| std::cmp::Reverse(x.count));
                 for x in s.iter().take(100) {

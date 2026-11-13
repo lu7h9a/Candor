@@ -205,7 +205,7 @@ def main():
                 continue
             over = st[m][0] / base - 1
             if m == "follow":
-                lim = T["follow_mode_any"]
+                lim = T["follow_mode_open_close"] if key == "micro_open_close" else T["follow_mode_any"]
             elif key == "micro_getppid":
                 lim = T["micro_getppid_count"] if m == "on" else T["micro_getppid_syscalls_off"]
             else:

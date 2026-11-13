@@ -86,6 +86,13 @@ pub enum ClientMsg {
     },
     /// Return to system-wide mode.
     Unfollow {},
+    /// This client shows syscall statistics (or stopped showing them). In
+    /// follow mode the syscall hooks run only while some client asks for
+    /// them, so unrelated programs pay nothing for them (owner's Q5 B).
+    WatchSyscalls {
+        /// True while the syscall view is open.
+        on: bool,
+    },
     /// Ask for per-process detail.
     GetDetail {
         /// The process.
@@ -258,6 +265,7 @@ pub const CLIENT_TYPES: &[&str] = &[
     "Subscribe",
     "Follow",
     "Unfollow",
+    "WatchSyscalls",
     "GetDetail",
     "GhUploadBegin",
     "GhUploadChunk",
