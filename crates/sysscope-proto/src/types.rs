@@ -82,6 +82,10 @@ pub struct Loss {
     pub budget: u64,
     /// Per-CPU scratch buffer was unavailable.
     pub scratch: u64,
+    /// Kernel records the daemon could not decode (added in the M1/M2
+    /// gate review; additive).
+    #[serde(default)]
+    pub decode: u64,
     /// Boot-time ns since which these counts were accumulated.
     pub since_ts_ns: u64,
 }

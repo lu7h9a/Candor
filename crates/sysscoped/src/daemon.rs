@@ -130,7 +130,8 @@ impl Core {
                 let (key, uid) = (ev.proc, ev.uid);
                 self.apply(Input::RawEvent { event: ev });
                 if let Some(exe) = exec {
-                    let (trusted, system_dir, world_writable_dir) = hostinfo::exe_facts(key, &exe);
+                    let (trusted, system_dir, world_writable_dir) =
+                        hostinfo::exe_facts(key, &exe, crate::follow::start_of(key.tgid));
                     let home = self.homes.get(&uid).cloned().unwrap_or_default();
                     self.apply(Input::ExeMeta {
                         proc: key,
@@ -282,7 +283,7 @@ impl Core {
                         message: format!("process {} is not tracked", proc.tgid),
                     },
                 };
-                q.put_reply(reply);
+                q.put_reply(fit_detail(reply));
             }
             ClientMsg::Follow { root } => {
                 let known = self.engine.state.get(&root).is_some_and(|p| p.is_live());
@@ -333,31 +334,117 @@ impl Core {
             && let Some(root) = self.follow
         {
             *mode = Mode::Follow { follow: root };
-            let mut tree = std::collections::BTreeSet::from([root]);
-            // Parents come before children in creation order, not key order:
-            // repeat until nothing is added (bounded by the table size).
-            for _ in 0..procs.len() {
-                let before = tree.len();
-                for r in procs.iter() {
-                    if r.parent.is_some_and(|p| tree.contains(&p)) {
-                        tree.insert(r.key);
-                    }
+            // Breadth-first over a children index: linear in the table size
+            // (a hostile process tree cannot make this quadratic).
+            let mut children: BTreeMap<ProcKey, Vec<ProcKey>> = BTreeMap::new();
+            for r in procs.iter() {
+                if let Some(p) = r.parent {
+                    children.entry(p).or_default().push(r.key);
                 }
-                if tree.len() == before {
-                    break;
+            }
+            let mut tree = std::collections::BTreeSet::from([root]);
+            let mut todo = vec![root];
+            while let Some(k) = todo.pop() {
+                for c in children.get(&k).into_iter().flatten() {
+                    if tree.insert(*c) {
+                        todo.push(*c);
+                    }
                 }
             }
             for r in procs.iter_mut() {
                 r.followed = tree.contains(&r.key);
             }
         }
-        let Some(frame) = server::snapshot_frame(&msg) else {
+        let Some(frame) = fit_snapshot(msg) else {
             return;
         };
         for c in self.clients.values().filter(|c| c.hello && c.snapshots) {
             c.queue.put_snapshot(Arc::clone(&frame));
         }
     }
+}
+
+/// Encodes a snapshot so that it always fits in one frame (review finding
+/// 2): if it is too big, exited processes are left out, then executable
+/// names are shortened to 64 bytes (ending in "..."). Each step is logged.
+fn fit_snapshot(mut msg: DaemonMsg) -> Option<Arc<Vec<u8>>> {
+    if let Some(f) = server::snapshot_frame(&msg) {
+        return Some(f);
+    }
+    eprintln!("sysscoped: snapshot over the frame limit; leaving out exited processes");
+    if let DaemonMsg::Snapshot { procs, .. } = &mut msg {
+        procs.retain(|r| r.exited_ts.is_none());
+    }
+    if let Some(f) = server::snapshot_frame(&msg) {
+        return Some(f);
+    }
+    eprintln!("sysscoped: snapshot still too big; shortening executable names");
+    if let DaemonMsg::Snapshot { procs, .. } = &mut msg {
+        for r in procs.iter_mut() {
+            shorten(&mut r.exe.0, 64);
+            shorten(&mut r.comm.0, 64);
+        }
+    }
+    server::snapshot_frame(&msg)
+}
+
+fn shorten(b: &mut Vec<u8>, max: usize) {
+    if b.len() > max {
+        b.truncate(max.saturating_sub(3));
+        b.extend_from_slice(b"...");
+    }
+}
+
+/// Shrinks a Detail until it fits in one frame (review finding 2): lists
+/// are capped first (500 recent events, 1000 files, 1000 connections), then
+/// halved until the encoded message is under the frame limit.
+pub fn fit_detail(mut msg: DaemonMsg) -> DaemonMsg {
+    if let DaemonMsg::Detail {
+        recent,
+        files,
+        conns,
+        maps,
+        ..
+    } = &mut msg
+    {
+        let skip = recent.len().saturating_sub(500);
+        recent.drain(..skip);
+        files.sort_by_key(|f| std::cmp::Reverse(f.last_ts));
+        files.truncate(1000);
+        conns.truncate(1000);
+        if let Some(m) = maps.as_mut() {
+            m.truncate(5000);
+        }
+    }
+    for _ in 0..16 {
+        let size = sysscope_proto::encode(&msg)
+            .map(|b| b.len())
+            .unwrap_or(usize::MAX);
+        if size <= sysscope_proto::MAX_DAEMON_FRAME as usize {
+            break;
+        }
+        if let DaemonMsg::Detail {
+            recent,
+            files,
+            conns,
+            maps,
+            findings,
+            ..
+        } = &mut msg
+        {
+            let skip = recent.len() / 2 + 1;
+            recent.drain(..skip.min(recent.len()));
+            files.truncate(files.len() / 2);
+            conns.truncate(conns.len() / 2);
+            if let Some(m) = maps.as_mut() {
+                m.truncate(m.len() / 2);
+            }
+            for f in findings.iter_mut() {
+                f.evidence_events.truncate(1);
+            }
+        }
+    }
+    msg
 }
 
 fn kernel_release() -> String {
@@ -533,4 +620,91 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     server::remove_socket(&spec.path);
     eprintln!("sysscoped: stopped; BPF programs detached, socket removed");
     res
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sysscope_proto::{BStr, Event, EventKind, FileStat, Loss, ProcRow, Series, SystemMode};
+
+    /// Review finding 2: 10240 rows with 512-byte non-UTF-8 names (about
+    /// 4x when escaped) still produce a frame under 16 MiB.
+    #[test]
+    fn hostile_snapshot_still_fits_in_a_frame() {
+        let row = |i: u32, exited: bool| ProcRow {
+            key: ProcKey {
+                tgid: i,
+                start_ticks: 1,
+            },
+            exe: BStr(vec![0xff; 512]),
+            comm: BStr(vec![0xfe; 64]),
+            exited_ts: exited.then_some(1),
+            ..ProcRow::default()
+        };
+        let mut procs: Vec<ProcRow> = (0..8192).map(|i| row(i, false)).collect();
+        procs.extend((8192..10240).map(|i| row(i, true)));
+        let msg = DaemonMsg::Snapshot {
+            seq: 1,
+            ts_ns: 1,
+            mode: Mode::System(SystemMode::System),
+            procs,
+            loss: Loss::default(),
+        };
+        assert!(
+            server::snapshot_frame(&msg).is_none(),
+            "test must start over the limit"
+        );
+        let frame = fit_snapshot(msg).expect("reduced snapshot fits");
+        assert!(frame.len() <= sysscope_proto::MAX_DAEMON_FRAME as usize + 4);
+    }
+
+    #[test]
+    fn hostile_detail_is_shrunk_to_fit() {
+        let ev = |i: u64| Event {
+            id: i,
+            ts_ns: i,
+            proc: ProcKey::default(),
+            tid: 1,
+            uid: 0,
+            kind: EventKind::Exec {
+                exe: BStr(vec![0xff; 512]),
+                argv: BStr(vec![0x01; 256]),
+                argv_trunc: true,
+                fileless: false,
+                dev: 1,
+                ino: 1,
+            },
+        };
+        let files = (0..5000)
+            .map(|i| FileStat {
+                path: BStr(vec![0xff; 512]),
+                dev: 1,
+                ino: i,
+                opens: 1,
+                read: true,
+                write: false,
+                rbytes: 0,
+                wbytes: 0,
+                last_ts: i,
+            })
+            .collect();
+        let msg = DaemonMsg::Detail {
+            proc: ProcKey::default(),
+            series: Series::default(),
+            recent: (0..2000).map(ev).collect(),
+            files,
+            conns: vec![],
+            syscalls: vec![],
+            children: vec![],
+            maps: None,
+            findings: vec![],
+        };
+        let out = fit_detail(msg);
+        let size = sysscope_proto::encode(&out).unwrap().len();
+        assert!(size <= sysscope_proto::MAX_DAEMON_FRAME as usize, "{size}");
+        if let DaemonMsg::Detail { files, .. } = out {
+            assert!(!files.is_empty());
+            assert_eq!(files[0].last_ts, 4999, "newest files kept");
+        }
+    }
 }

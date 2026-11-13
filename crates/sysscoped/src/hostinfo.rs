@@ -38,7 +38,12 @@ const SYSTEM_DIRS: &[&[u8]] = &[
 ];
 
 /// (trusted, system_dir, world_writable_dir) for a running process.
-pub fn exe_facts(key: ProcKey, exe: &BStr) -> (bool, bool, bool) {
+/// `current_start` is the start time /proc reports now for that pid: if it
+/// is not the process's own (pid reused, or gone), nothing is trusted.
+pub fn exe_facts(key: ProcKey, exe: &BStr, current_start: Option<u64>) -> (bool, bool, bool) {
+    if current_start != Some(key.start_ticks) {
+        return (false, false, false);
+    }
     let link = format!("/proc/{}/exe", key.tgid);
     // Following the magic link reaches the file the process really runs.
     let file_ok = std::fs::metadata(&link)
@@ -149,7 +154,10 @@ mod tests {
         );
         // A test binary under target/ is not root-owned: untrusted.
         let exe = std::fs::read_link("/proc/self/exe").unwrap();
-        let (trusted, system, _) = exe_facts(key, &BStr(exe.into_os_string().into_encoded_bytes()));
+        let exe = BStr(exe.into_os_string().into_encoded_bytes());
+        let (trusted, system, _) = exe_facts(key, &exe, Some(start));
         assert!(!trusted && !system);
+        // Root-owned /proc/self/exe of a pid reused by another process: refused.
+        assert_eq!(exe_facts(key, &exe, Some(start + 1)), (false, false, false));
     }
 }

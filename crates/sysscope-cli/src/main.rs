@@ -138,8 +138,12 @@ fn detail(c: &mut Conn, key: ProcKey, maps: bool) -> Result<DaemonMsg, CliError>
 fn all_findings(c: &mut Conn, rows: &[ProcRow]) -> Result<Vec<Finding>, CliError> {
     let mut out = Vec::new();
     for r in rows.iter().filter(|r| r.score > 0) {
-        if let DaemonMsg::Detail { findings, .. } = detail(c, r.key, false)? {
-            out.extend(findings);
+        // One process that cannot be described must not hide all findings.
+        match detail(c, r.key, false) {
+            Ok(DaemonMsg::Detail { findings, .. }) => out.extend(findings),
+            Ok(_) => {}
+            Err(CliError::Daemon(e)) => eprintln!("sysscope: skipping pid {}: {e}", r.key.tgid),
+            Err(e) => return Err(e),
         }
     }
     Ok(out)

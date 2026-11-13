@@ -44,6 +44,7 @@
     "ringbuf": 0,
     "budget": 12,
     "scratch": 0,
+    "decode": 0,
     "since_ts_ns": 1000
   }
 }

@@ -4,8 +4,9 @@
 //! contain terminal escape sequences. On the wire they travel as JSON strings
 //! using a reversible escaping (plan section 4.5): a backslash becomes `\\`,
 //! and every control byte (< 0x20 or 0x7F) or byte that is not part of valid
-//! UTF-8 becomes `\xHH` with uppercase hex. The escaped form is what display
-//! code prints, so it is already safe for terminals (invariant I10).
+//! UTF-8 becomes `\xHH` with uppercase hex. Valid UTF-8 can still carry C1
+//! controls and bidi overrides, so display code must additionally use
+//! `sysscope_core::display::safe` before printing (invariant I10).
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;

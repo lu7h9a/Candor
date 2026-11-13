@@ -118,8 +118,16 @@ pub fn to_event(id: u64, raw: &RawEvent, mounts: &Mounts) -> Event {
         } => (
             h,
             EventKind::Rename {
-                old: BStr(mounts.walk_to_path(*dev, old_walk)),
-                new: BStr(mounts.walk_to_path(*dev, new_walk)),
+                old: BStr(mounts.walk_to_path_flagged(
+                    *dev,
+                    old_walk,
+                    h.flags & abi::F_PATH_TRUNCATED != 0,
+                )),
+                new: BStr(mounts.walk_to_path_flagged(
+                    *dev,
+                    new_walk,
+                    h.flags & abi::F_PATH_TRUNCATED != 0,
+                )),
                 dev: abi::kernel_dev_to_user(*dev),
                 ino: *ino,
                 // Rebuilt from dentries + mount table: always approximate.
@@ -129,7 +137,11 @@ pub fn to_event(id: u64, raw: &RawEvent, mounts: &Mounts) -> Event {
         RawEvent::Unlink { h, dev, ino, walk } => (
             h,
             EventKind::Unlink {
-                path: BStr(mounts.walk_to_path(*dev, walk)),
+                path: BStr(mounts.walk_to_path_flagged(
+                    *dev,
+                    walk,
+                    h.flags & abi::F_PATH_TRUNCATED != 0,
+                )),
                 dev: abi::kernel_dev_to_user(*dev),
                 ino: *ino,
                 approx: true,

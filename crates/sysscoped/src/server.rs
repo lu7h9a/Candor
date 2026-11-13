@@ -93,6 +93,18 @@ impl ClientQueue {
             if q.alerts.len() >= CLIENT_ALERTS {
                 q.alerts.pop_front();
                 q.alerts_dropped += 1;
+                // Surface the loss (I3): one coalesced notice per backlog.
+                if q.alerts_dropped == 1 || q.alerts_dropped.is_multiple_of(256) {
+                    let n = q.alerts_dropped;
+                    if q.replies.len() < CLIENT_REPLIES {
+                        q.replies.push_back(DaemonMsg::Error {
+                            code: "alerts_dropped".into(),
+                            message: format!(
+                                "{n} alerts were dropped because this client read too slowly"
+                            ),
+                        });
+                    }
+                }
             }
             q.alerts.push_back(f.clone());
         });
@@ -404,4 +416,43 @@ pub fn snapshot_frame(m: &DaemonMsg) -> Option<Arc<Vec<u8>>> {
     let mut frame = Vec::with_capacity(body.len() + 4);
     write_frame(&mut frame, &body, MAX_DAEMON_FRAME).ok()?;
     Some(Arc::new(frame))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Review finding 5: dropped alerts are reported to the client.
+    #[test]
+    fn dropped_alerts_are_reported() {
+        let q = ClientQueue::new();
+        let f = Finding {
+            id: 1,
+            rule: "R002".into(),
+            title: "t".into(),
+            subject: "s".into(),
+            attack: None,
+            proc: sysscope_proto::ProcKey::default(),
+            exe: sysscope_proto::BStr::default(),
+            ts_ns: 0,
+            weight: 0.4,
+            confidence: 1.0,
+            summary: String::new(),
+            why: vec![],
+            benign: vec![],
+            evidence: vec![1],
+            evidence_events: vec![],
+        };
+        for _ in 0..(CLIENT_ALERTS + 1) {
+            q.put_alert(&f);
+        }
+        let g = q.q.lock().unwrap();
+        assert_eq!(g.alerts.len(), CLIENT_ALERTS);
+        assert_eq!(g.alerts_dropped, 1);
+        assert!(
+            g.replies
+                .iter()
+                .any(|m| matches!(m, DaemonMsg::Error { code, .. } if code == "alerts_dropped"))
+        );
+    }
 }

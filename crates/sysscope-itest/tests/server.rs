@@ -240,3 +240,73 @@ fn daemon_uses_only_unix_and_netlink_sockets() {
         .collect();
     assert!(bad.is_empty(), "daemon used other families: {bad:?}");
 }
+
+fn key_of(c: &mut Client, pid: u32) -> ProcKey {
+    loop {
+        if let DaemonMsg::Snapshot { procs, .. } = c.recv().unwrap()
+            && let Some(r) = procs.iter().find(|r| r.key.tgid == pid)
+        {
+            return r.key;
+        }
+    }
+}
+
+/// Review findings 3/4: following a second tree stops tracing the first; a
+/// stale key is refused and tracing stays system-wide.
+#[test]
+fn follow_switch_and_stale_key() {
+    let d = Daemon::start(&[]).unwrap();
+    let a = PausedWl::start(&["sleep", "6000", "open-read", "50"]).unwrap();
+    let b = PausedWl::start(&["sleep", "6000", "open-read", "50"]).unwrap();
+    let (mut c, _) = Client::hello().unwrap();
+    subscribe(&mut c, EventSub::Simple(EventSubMode::All));
+    let ka = key_of(&mut c, a.pid());
+    let kb = key_of(&mut c, b.pid());
+    // Stale key: right pid, wrong start time.
+    c.send(&ClientMsg::Follow {
+        root: ProcKey {
+            tgid: ka.tgid,
+            start_ticks: ka.start_ticks + 1,
+        },
+    })
+    .unwrap();
+    let m = c
+        .recv_until(|m| matches!(m, DaemonMsg::Error { .. } | DaemonMsg::ActResult { .. }))
+        .unwrap();
+    assert!(matches!(m, DaemonMsg::Error { .. }), "{m:?}");
+    let s = c
+        .recv_until(|m| matches!(m, DaemonMsg::Snapshot { .. }))
+        .unwrap();
+    assert!(matches!(
+        s,
+        DaemonMsg::Snapshot {
+            mode: sysscope_proto::Mode::System(_),
+            ..
+        }
+    ));
+    // Follow A, then switch to B.
+    c.send(&ClientMsg::Follow { root: ka }).unwrap();
+    c.recv_until(|m| matches!(m, DaemonMsg::ActResult { ok: true, .. }))
+        .unwrap();
+    c.send(&ClientMsg::Follow { root: kb }).unwrap();
+    c.recv_until(|m| matches!(m, DaemonMsg::ActResult { ok: true, .. }))
+        .unwrap();
+    std::thread::sleep(Duration::from_millis(300));
+    let started = Instant::now();
+    let (ma, mb) = (
+        std::thread::spawn(move || a.release().unwrap()),
+        std::thread::spawn(move || b.release().unwrap()),
+    );
+    let (_ma, _mb) = (ma.join().unwrap(), mb.join().unwrap());
+    let mut from_a = 0;
+    let mut from_b = 0;
+    while started.elapsed() < Duration::from_secs(9) {
+        if let Ok(DaemonMsg::Events { events, .. }) = c.recv() {
+            from_a += events.iter().filter(|e| e.proc == ka).count();
+            from_b += events.iter().filter(|e| e.proc == kb).count();
+        }
+    }
+    assert_eq!(from_a, 0, "old followed tree still traced");
+    assert!(from_b >= 50, "new followed tree: {from_b} events");
+    assert!(d.stop().unwrap().success());
+}

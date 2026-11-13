@@ -2,11 +2,11 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: M1/M2 gate - fixing adversarial review findings   Status: IN_PROGRESS
-Next action: re-run VM itests (debian12, ubuntu2204) for the ProcKey-keyed BPF maps and follow fixes (UNTESTED in a VM), then fix remaining review findings 2, 5, 9, 10, 11 (see log), then WP20 kittest + screenshot descriptions
+Milestone: M0   Current WP: WP20 GUI views   Status: IN_PROGRESS
+Next action: kittest UI tests for every labelled element and interaction, record the 6 screenshot descriptions; then WP21
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
-Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
+Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
 
 ## WP status
 | WP | Name | Status | Verified on | Commit | Notes |
@@ -77,6 +77,8 @@ Last green gate: none yet (every gate includes `make test-root`, which needs Q1)
 - 2026-11-13 setup: .cargo/config.toml sets C_INCLUDE_PATH / LIBBPF_SYS_LIBRARY_PATH to target/sysroot (relative) so plain `cargo` works, not only `make`.
 
 ## Deviations from the plan
+- 2026-11-13 gate: protocol `Loss` gained `decode` (kernel records the daemon could not decode), additive with serde default like `subject`; goldens Snapshot.json/GhReport.json and fixtures/core/basic.snapshot.json regenerated (diff = only the new `"decode": 0` lines) - proto stays 1
+- 2026-11-13 gate: BPF maps `budget`, `sys_count`, `sys_lat` are keyed by tgid + start time and `followed_tgid` values carry start ticks checked by the gate (I4). Plan 4.3 lists them keyed by tgid alone; I4 (SKILL.md) forbids bare-pid keys, and pid reuse was a confirmed review finding - plan/SKILL conflict resolved in favour of the invariant, recorded here
 - 2026-11-13 WP13: explanations and event times in the CLI are shown in UTC (tz_offset 0): local time zone needs either libc (unsafe) or a zoneinfo parser; noted in docs/UNVERIFIED.md for WP20/WP33
 - 2026-11-13 WP12: EXIT is emitted by the first thread that sees signal->live == 0, de-duplicated per (tgid, start) with an LRU map; the VM showed two EXITs when a joined thread was still inside do_exit while the main thread exited - refines the WP04 choice (recorded in VERIFIED.md)
 - 2026-11-13 WP06: OPEN events are not emitted for exec-opens (`__FMODE_EXEC`: the binary, its interpreter, ld.so); they feed the exec-path stash and are represented by the EXEC event - plan silent; avoids double counting exec as open
@@ -363,3 +365,16 @@ Review findings (subagent, read-only): 1 O(n^3) tree score; 2 snapshot/Detail > 
 FIXED with regression tests (host unit tests pass): 1 (tree_scores linear, test deep_fork_chain_annotates_quickly), 7 (Detector::prune, test alert_state_is_pruned_with_evicted_processes), 8 (explain::render_safe per line, test rendered_explanation_cannot_gain_lines_from_a_path).
 FIXED in code, NOT YET VERIFIED in a VM: 3 (max 20 scans, root start-time check, descendants must start after root), 4 (follow clears old set; failure -> system-wide; busy -> Error reply), 6 (followed_tgid value carries start_ticks checked in gate/fork; budget, sys_count, sys_lat keyed with start time; budget delta handles LRU reset; last_budget pruned).
 OPEN: 2, 5, 9, 10, 11; exe_facts start-time check (part of 6). GUI: WP20 kittest tests and the 6 screenshot descriptions still to record (screenshots generate and pass the colour check).
+
+### 2026-11-13 15:30 M1/M2 gate slice: adversarial review fixed
+Did: fixed every confirmed finding of the fresh-subagent review, each with a regression test:
+1 tree score linear (deep_fork_chain_annotates_quickly; follow-mode tree in snapshot now BFS); 2 snapshots always fit (exited rows dropped, then names shortened, logged) and Detail shrunk to fit; CLI skips one failing Detail (hostile_snapshot_still_fits_in_a_frame, hostile_detail_is_shrunk_to_fit); 3 follow: at most 20 /proc rescans, root start-time check, descendants must start after root; 4 follow clears the old set, failure returns to system-wide, busy -> Error (follow_switch_and_stale_key itest); 5 dropped alerts reported as Error alerts_dropped, decode errors in Loss.decode (dropped_alerts_are_reported); 6 BPF maps keyed with start time, budget delta handles LRU reset, exe trust requires matching start time (own_process_facts_and_maps); 7 alert state pruned (alert_state_is_pruned_with_evicted_processes); 8 explanation rendered line by line (rendered_explanation_cannot_gain_lines_from_a_path); 9 /proc maps streamed with the 5000-line cap; 10 truncated walks shown as ".../..." without a mount prefix, mount table reloaded every 10 s (truncated_walk_is_marked_not_prefixed); 11 bstr doc comment corrected. Not changed (documented in UNVERIFIED.md): 8 idle clients can hold all slots (only sysscope-group members can connect); unknown client fields stay ignored (plan 4.5 requires forward compatibility).
+Verify command: `make lint && make test`, then `make itest-bin && vm/run.sh debian12 ... wp00_tools.sh, wp05_itest.sh` (and ubuntu2204 before the last batch)
+Verify output (trimmed, real):
+```
+make lint: clean; make test: all ok (sysscoped 22 unit tests)
+== debian12: cli 5/5, files 5/5, follow 4/4, lifecycle 5/5, network 1/1, proc 3/3, server 7/7 (incl. follow_switch_and_stale_key), syscalls 1/1
+dmesg: no new bpf/BUG/WARNING/RCU lines   RC=0
+== ubuntu2204 (ProcKey-keyed maps): all 30 ok, dmesg clean
+```
+Result: PASS for the gate slice. Full gate (host test-root, bench) still BLOCKED(E1).

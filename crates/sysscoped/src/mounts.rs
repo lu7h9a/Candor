@@ -65,6 +65,23 @@ impl Mounts {
         Mounts::parse(&std::fs::read("/proc/self/mountinfo").unwrap_or_default())
     }
 
+    /// Path from a kernel dev_t and a leaf-first NUL-separated walk. A walk
+    /// that stopped early (`truncated`) gets no mount prefix but a leading
+    /// ".../", so a partial path never looks like a complete one.
+    pub fn walk_to_path_flagged(&self, kdev: u64, walk: &[u8], truncated: bool) -> Vec<u8> {
+        if !truncated {
+            return self.walk_to_path(kdev, walk);
+        }
+        let mut comps: Vec<&[u8]> = walk.split(|&b| b == 0).filter(|c| !c.is_empty()).collect();
+        comps.reverse();
+        let mut out = b"...".to_vec();
+        for c in comps {
+            out.push(b'/');
+            out.extend_from_slice(c);
+        }
+        out
+    }
+
     /// Absolute path from a kernel dev_t and a leaf-first NUL-separated walk.
     pub fn walk_to_path(&self, kdev: u64, walk: &[u8]) -> Vec<u8> {
         let major = ((kdev >> 20) & 0xfff) as u32;
@@ -113,6 +130,19 @@ garbage line\n";
         assert_eq!(m.walk_to_path(99, b"x\0"), b"/x".to_vec());
         // Only a non-root bind mount known: used as best effort.
         assert_eq!(m.walk_to_path(50, b"x\0"), b"/bind/x".to_vec());
+    }
+
+    #[test]
+    fn truncated_walk_is_marked_not_prefixed() {
+        let m = Mounts::parse(SAMPLE);
+        assert_eq!(
+            m.walk_to_path_flagged(44, b"f\0d\0", true),
+            b".../d/f".to_vec()
+        );
+        assert_eq!(
+            m.walk_to_path_flagged(44, b"f\0d\0", false),
+            b"/tmp/d/f".to_vec()
+        );
     }
 
     #[test]

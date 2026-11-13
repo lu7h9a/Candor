@@ -9,3 +9,6 @@
 | WP04 lifecycle on the host kernel 6.19 | WP04 | no passwordless sudo (Q1) | `make test-root` / `sudo ./target/release/sysscoped --dev --dump` |
 | R006 end-to-end with the beacon simulator | WP17 | plan contradiction (loopback-only simulator vs non-loopback rule), NEEDS_USER Q3 | owner answer, then the WP17 e2e itest |
 | Simulator end-to-end tests for R001-R008 | WP16/17 | need the live daemon (WP12) and root (Q1) or a VM | itests driving testkit/sim against sysscoped |
+| Pid reuse against the kernel maps (followed_tgid, budget, sys_count) | gate | keys now include start time; forcing pid reuse needs ns_last_pid in a VM (planned for WP27) | WP27 pid-reuse itest |
+| Idle clients holding all 8 slots | gate | accepted: only root and sysscope-group members can connect; documented in THREAT_MODEL (WP29) | - |
+| Fedora 45 itests | WP31 | all 30 passed once (kernel 7.2.11) before the gate fixes; re-run in WP31 | make vm-matrix |

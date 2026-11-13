@@ -180,6 +180,7 @@ impl<'obj> Collector<'obj> {
             ringbuf: read_drop(&self.skel.maps.drops, abi::DROP_RINGBUF)?,
             budget: read_drop(&self.skel.maps.drops, abi::DROP_BUDGET)?,
             scratch: read_drop(&self.skel.maps.drops, abi::DROP_SCRATCH)?,
+            decode: 0,
             since_ts_ns: 0,
         })
     }
@@ -214,22 +215,26 @@ pub fn run_poller(
     cmds: &Receiver<PollerCmd>,
     stop: &AtomicBool,
 ) -> Result<()> {
-    let mounts = Mounts::load();
+    // The mount table is shared with the ring-buffer callback and reloaded
+    // every 10 s so mounts made after startup get the right prefix.
+    let mounts = std::rc::Rc::new(std::cell::RefCell::new(Mounts::load()));
+    let mounts_cb = std::rc::Rc::clone(&mounts);
     let next_id = Cell::new(1u64);
-    let decode_errors = Cell::new(0u64);
+    let decode_errors = std::rc::Rc::new(Cell::new(0u64));
+    let decode_errors_cb = std::rc::Rc::clone(&decode_errors);
     let mut rb = RingBufferBuilder::new();
     let tx_rb = tx.clone();
     rb.add(&col.skel.maps.events, move |data: &[u8]| {
         match abi::decode(data) {
             Ok(raw) => {
-                let ev = convert::to_event(next_id.get(), &raw, &mounts);
+                let ev = convert::to_event(next_id.get(), &raw, &mounts_cb.borrow());
                 next_id.set(next_id.get() + 1);
                 // Blocks when the core is behind: the kernel then counts drops.
                 if tx_rb.send(PollerMsg::Event(ev)).is_err() {
                     return -1; // core gone: stop polling
                 }
             }
-            Err(_) => decode_errors.set(decode_errors.get() + 1),
+            Err(_) => decode_errors_cb.set(decode_errors_cb.get() + 1),
         }
         0
     })
@@ -237,6 +242,7 @@ pub fn run_poller(
     let rb = rb.build().context("building ring buffer")?;
     let mut last_budget: BTreeMap<ProcKey, u64> = BTreeMap::new();
     let mut next_tick = Instant::now();
+    let mut tick_count = 0u64;
     while !stop.load(Ordering::Relaxed) {
         match rb.poll(Duration::from_millis(100)) {
             Ok(()) => {}
@@ -261,7 +267,13 @@ pub fn run_poller(
         if Instant::now() >= next_tick {
             next_tick += Duration::from_secs(1);
             let ts_ns = crate::sampler::boot_ns();
-            let _ = tx.send(PollerMsg::Loss(col.loss()?));
+            if tick_count.is_multiple_of(10) {
+                *mounts.borrow_mut() = Mounts::load();
+            }
+            tick_count += 1;
+            let mut loss = col.loss()?;
+            loss.decode = decode_errors.get();
+            let _ = tx.send(PollerMsg::Loss(loss));
             let mut per_proc = Vec::new();
             let mut seen = BTreeMap::new();
             for (key, b, r) in col.budget() {

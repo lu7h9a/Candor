@@ -128,6 +128,7 @@
       "ringbuf": 0,
       "budget": 0,
       "scratch": 0,
+      "decode": 0,
       "since_ts_ns": 0
     },
     "limitation": "Glasshouse is a behaviour-demonstration sandbox, not a malware containment system."
