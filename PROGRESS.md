@@ -2,9 +2,9 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M4   Current WP: WP14   Status: IN_PROGRESS
-Next action: WP14 overhead benchmarks on the host (now possible), then WP29 hardening
-Open questions for owner: Q4 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
+Milestone: M4   Current WP: WP29   Status: IN_PROGRESS
+Next action: WP29 hardening (Q5 decides the WP14 follow-mode limits)
+Open questions for owner: Q4, Q5 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
 
@@ -25,7 +25,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP11 | Core state | DONE | host | WP11 commit | 1M-event replay 14.25 s, peak RSS 80 MB |
 | WP12 | Daemon assembly | DONE | debian12, ubuntu2204, host | WP12 commit | host `make test-root` PASS 2026-11-14 (follow leak at attach found and fixed on the host) |
 | WP13 | CLI | DONE | debian12 (root itests) + host (unit) | WP13 commit | host-side runs need the daemon: VM only until Q1 |
-| WP14 | Overhead benchmarks | TODO | | | unblocked (sudo since 2026-11-14); next after WP18 |
+| WP14 | Overhead benchmarks | BLOCKED(Q5) | host | WP14 commit | all macro, on-mode, counting-off and idle targets met; follow-mode micro targets escalated (Q5) |
 | WP15 | Rule engine | DONE | host | WP15 commit | worked example = 72 |
 | WP16 | Rules R001-R004, R012 | DONE | host (fixtures + live daemon) | WP16 + 2026-11-14 commits | simulators end to end on the host with --rules test classes; R012 end to end = WP24 Glasshouse demo |
 | WP17 | Rules R005-R008 | DONE | host (fixtures + live daemon) | WP17 + 2026-11-14 commits | simulators end to end on the host; R006 with the test-only loopback override (Q3 A) |
@@ -744,3 +744,25 @@ WP28's remaining check, "benign corpus within thresholds with R009/R011 on", is 
 Result: PASS.
 Correction: commit d111c33 was pushed with `config::tests::defaults_load` failing. That test pins the shipped allowlist size (24), and this work added 8 entries. My command committed without gating on `make test`. Fixed: the pin is now 32 (`grep -c '^\[\[allow\]\]' allow.toml` = 32), and `make test` is all green before the follow-up commit. From now on, commits are chained on a green `make test`.
 
+### 2026-11-14 14:00 WP14 Overhead benchmarks
+Did:
+- **Runner.** `bench/run.py` (`make bench`) runs 10 rounds with off/on(/sysoff/follow) alternating within each round, reports the median and spread, reruns a benchmark whose spread is over 10%, measures the idle daemon over 5 min (CPU share and peak RSS), and writes docs/BENCH.md. The cargo benchmark builds a frozen copy of the source. Thresholds are in bench/thresholds.toml, with the plan's values.
+- **Levers applied** (plan order; the BPF changes ran in debian12 first, all 46 itests ok):
+  1. Gates earlier: in follow mode the followed set is checked first, and the cgroup lookup happens only while a Glasshouse box is registered (cfg flag CFG_HAS_CGROUPS).
+  2. With `syscalls=off`, the syscall programs are not loaded at all: attaching them puts every syscall on the traced slow path.
+  3. sys_exit (latency) is attached only while following.
+  4. Batched reads: per-CPU syscall totals are read every 5 s, not every second, and no snapshot is built without a subscriber.
+- **Process slips.** The first full run (powersave) was aborted after the owner switched the governor to `performance`. Its log is kept in target/bench-powersave-aborted.log; I should have set up the machine before starting. An earlier start was aborted because I edited source that the cargo benchmark was building, which is why it now builds a frozen copy.
+Verify command: `python3 bench/run.py` (full, governor performance), then after the levers `BENCH_ONLY=micro_open_close,micro_getppid,idle python3 bench/run.py`; `sudo dmesg --level=err,warn` after each
+Verify output (real):
+```
+full run before levers 2-4: cargo on +0.6% follow -0.4%; make on +4.8% follow +2.6%; open/close on +30.2% follow +22.3%; getppid on +60.5% sysoff +42.7% follow +61.4%; idle 4.78%, RSS 81 MiB -> FAIL (5 items)
+after: | 500 000 x open/close | on | 0.332 | 0.411 | +23.9% | 40% | 4.3% | yes |
+       | 500 000 x open/close | follow | 0.332 | 0.399 | +20.2% | 3% | 4.9% | NO |
+       | 5 000 000 x getppid | on | 0.335 | 0.463 | +38.2% | 60% | 4.3% | yes |
+       | 5 000 000 x getppid | sysoff | 0.335 | 0.334 | -0.1% | 5% | 5.6% | yes |
+       | 5 000 000 x getppid | follow | 0.335 | 0.534 | +59.7% | 3% | 3.2% | NO |
+       Idle daemon over 5 min: 1.73% of one core (limit 3%); peak RSS 75 MiB (limit 300 MiB).
+dmesg new err/warn: 0 after every run; host itests all ok except the Q4 act test
+```
+Result: BLOCKED(Q5) for the two follow-mode micro limits (E6: the hooks fire for every process, and the plan's follow-mode syscall latency needs them). Every other target is met. docs/BENCH.md is rewritten by the final `make bench` once Q5 is answered.

@@ -103,6 +103,8 @@ pub struct Collector<'obj> {
     cfg: abi::Cfg,
     /// The optional ptrace access-check program is loaded (R011).
     pub ptrace: bool,
+    /// The syscall programs are loaded (`syscalls = "count"`).
+    syscalls: bool,
 }
 
 /// True if the running kernel's BTF has a function of this name (an
@@ -148,6 +150,13 @@ impl<'obj> Collector<'obj> {
     ) -> Result<Collector<'obj>> {
         let builder = skel::SysscopeSkelBuilder::default();
         let mut open = builder.open(storage).context("opening BPF object")?;
+        // With syscall counting off the syscall programs are not loaded at
+        // all: merely attaching to the syscall tracepoints puts every
+        // syscall on the machine on the kernel's slower traced path (WP14).
+        if !o.syscalls {
+            open.progs.on_sys_enter.set_autoload(false);
+            open.progs.on_sys_exit.set_autoload(false);
+        }
         let ptrace = kernel_has_function("security_ptrace_access_check");
         if !ptrace {
             open.progs.on_ptrace_check.set_autoload(false);
@@ -183,7 +192,15 @@ impl<'obj> Collector<'obj> {
             .update(&0u32.to_le_bytes(), &cfg.to_bytes(), MapFlags::ANY)
             .context("writing cfg")?;
         skel.attach().context("attaching BPF programs")?;
-        Ok(Collector { skel, cfg, ptrace })
+        // sys_exit only measures latency of followed processes: attached
+        // while following, detached otherwise (WP14).
+        skel.links.on_sys_exit = None;
+        Ok(Collector {
+            skel,
+            cfg,
+            ptrace,
+            syscalls: o.syscalls,
+        })
     }
 
     /// The loaded skeleton.
@@ -197,6 +214,12 @@ impl<'obj> Collector<'obj> {
         match crate::follow::start(&self.skel, root, self.cfg) {
             Ok(n) => {
                 self.cfg.mode = abi::MODE_FOLLOW;
+                if self.syscalls && self.skel.links.on_sys_exit.is_none() {
+                    match self.skel.progs.on_sys_exit.attach() {
+                        Ok(l) => self.skel.links.on_sys_exit = Some(l),
+                        Err(e) => eprintln!("sysscoped: syscall latency unavailable: {e}"),
+                    }
+                }
                 Ok(n)
             }
             Err(e) => {
@@ -232,6 +255,7 @@ impl<'obj> Collector<'obj> {
             .update(&0u32.to_le_bytes(), &self.cfg.to_bytes(), MapFlags::ANY)
             .context("writing cfg")?;
         crate::follow::clear(&self.skel);
+        self.skel.links.on_sys_exit = None;
         Ok(())
     }
 
@@ -384,7 +408,11 @@ pub fn run_poller(
             if !per_proc.is_empty() {
                 let _ = tx.send(PollerMsg::Drops { ts_ns, per_proc });
             }
-            if let Ok(totals) = crate::syscalls::read_all(&col.skel) {
+            // Per-CPU syscall totals are the costliest read; every 5 s is
+            // enough for the Syscalls tab (WP14 idle CPU).
+            if tick_count % 5 == 1
+                && let Ok(totals) = crate::syscalls::read_all(&col.skel)
+            {
                 let _ = tx.send(PollerMsg::Sys { ts_ns, totals });
             }
         }

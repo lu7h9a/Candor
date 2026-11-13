@@ -54,3 +54,22 @@ Exactly what to do:
 How to check it worked: `getent group sysscope-act && id sysscope-box` prints a group line and a uid line.
 Options (if it is a choice): A) create them now  B) leave them until the package is installed (WP30); those host checks stay pending   My recommendation: A, because the users are inert (no login, no home) and the host checks then cover everything.
 If I hear nothing: the two host checks stay pending; VM results (all passing) stand for them.
+
+## Q5 - Follow-mode overhead target for micro-benchmarks cannot be met            (case E6, raised 2026-11-14)
+Blocks: WP14 only (the overhead gate). Everything else continues.
+What I need from you: choose A, B or C.
+Why I need it: the plan wants every benchmark at most 3% slower while SysScope follows an unrelated process. The real-work benchmarks meet it, but two tight-loop micro-benchmarks cannot. Measured on this laptop, `performance` governor, 10 rounds, after all the plan's levers:
+  - clean `cargo build`: on +0.6%, follow -0.4% (limit 5% / 3%), pass
+  - unpack + `make -j` C project: on +4.8%, follow +2.6%, pass
+  - 500 000 x open/close: on +23.9% (limit 40%) pass, follow +20.2% (limit 3%), FAIL
+  - 5 000 000 x getppid: on +38.2% (limit 60%) pass, counting off -0.1% (limit 5%) pass, follow +59.7% (limit 3%), FAIL
+  - idle daemon 1.73% of a core, RSS 75 MiB, pass
+  The cause: kernel hooks (the file-open hook, and the syscall entry and exit tracepoints) fire for every process before any BPF filter can skip it. The plan also asks for syscall latency of the followed tree in follow mode (WP08), which needs the syscall hooks attached exactly then. So an unrelated process doing nothing but syscalls pays the hook cost.
+Exactly what to do:
+  1. Reply with "Q5: A", "Q5: B" or "Q5: C".
+Options (if it is a choice):
+  A) Keep the design; set the follow-mode limits for these two micro-benchmarks to the "on" limits (open/close 40%, getppid 65%). Follow mode keeps syscall counts and latency.
+  B) In follow mode, detach the syscall hooks unless a syscall view is open for the followed tree (getppid follow drops to about 0%). Syscall latency then appears only while it is being looked at. open/close follow stays about 20%, so its limit becomes 40% as in A.
+  C) Like A, but report the follow-mode micro numbers as information only and keep 3% for the macro benchmarks, which are the ones users feel.
+  My recommendation: C. Real workloads (builds) stay within 3% in follow mode, and the micro loops are worst cases by design.
+If I hear nothing: WP14 is recorded as "macro, idle and on-mode targets met; follow-mode micro targets escalated", and I continue with WP29. Nothing is relaxed in bench/thresholds.toml without your answer.
