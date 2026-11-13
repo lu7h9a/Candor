@@ -8,3 +8,8 @@
 __pycache__/
 *.pyc
 __pycache__/
+
+# Agent working files: kept locally, not published (owner, 2026-11-14)
+/.claude/
+/CLAUDE.md
+/docs/KICKOFF_PROMPT.txt
