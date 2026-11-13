@@ -1,0 +1,12 @@
+{
+  "t": "Welcome",
+  "proto": 1,
+  "daemon_version": "0.0.1",
+  "kernel": "6.19.14+kali-amd64",
+  "boot_to_wall_ns": 1763000000000000000,
+  "features": [
+    "listen",
+    "syscalls"
+  ],
+  "act_enabled": false
+}

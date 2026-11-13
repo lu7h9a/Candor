@@ -1,0 +1,50 @@
+{
+  "t": "Alert",
+  "finding": {
+    "id": 7,
+    "rule": "R001",
+    "title": "Credential file read",
+    "attack": "T1552",
+    "proc": {
+      "tgid": 4312,
+      "start": 120034
+    },
+    "exe": "/tmp/x",
+    "ts_ns": 5000000000,
+    "weight": 0.6,
+    "confidence": 0.9,
+    "summary": "opened /home/u/.ssh/id_ed25519 for reading",
+    "why": [
+      "this file is a private SSH key"
+    ],
+    "benign": [
+      "you ran a backup or key-management tool yourself"
+    ],
+    "evidence": [
+      18812
+    ],
+    "evidence_events": [
+      {
+        "id": 18812,
+        "ts_ns": 5000000000,
+        "proc": {
+          "tgid": 4312,
+          "start": 120034
+        },
+        "tid": 4312,
+        "uid": 1000,
+        "kind": {
+          "k": "Open",
+          "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+          "dev": 66306,
+          "ino": 1234567,
+          "read": true,
+          "write": false,
+          "create": false,
+          "trunc": false,
+          "path_trunc": false
+        }
+      }
+    ]
+  }
+}

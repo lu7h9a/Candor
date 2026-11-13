@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP02 Protocol crate   Status: IN_PROGRESS
-Next action: implement sysscope-proto types, framing, BStr escaping and golden fixtures
+Milestone: M0   Current WP: WP03 VM harness   Status: IN_PROGRESS
+Next action: re-check free RAM against the E5 line, then write vm/up.sh, run.sh, down.sh
 Open questions for owner: Q1
 Tree state: clean after WP00 commit
 Last green gate: none yet
@@ -13,7 +13,7 @@ Last green gate: none yet
 |---|---|---|---|---|---|
 | WP00 | Preflight | BLOCKED(E1) | host (non-root parts) | see log | Verify PASS; apt package install pending Q1 (no passwordless sudo) |
 | WP01 | Scaffold | DONE | host + GitHub CI | WP01 commit | CI run 43337978651 green; libbpf dep deferred to WP04 (needs libelf-dev, Q1) |
-| WP02 | Protocol crate | IN_PROGRESS | | | |
+| WP02 | Protocol crate | DONE | host | | | |
 | WP03 | VM harness | TODO | | | |
 | WP04 | BPF skeleton + lifecycle | TODO | | | needs root (Q1) |
 | WP05 | Ground-truth workload + harness | TODO | | | needs root (Q1) |
@@ -53,6 +53,11 @@ Last green gate: none yet
 - 2026-11-13 WP00: installed rustup with the official installer (plan section 2 authorises it, SKILL.md section 2 exempts it from the curl-pipe ban). It writes to `~/.cargo` and `~/.rustup`, which are not in SKILL.md's write allowlist; plan wins, recorded here. Debian's `/usr/bin/cargo` 1.94.1 is shadowed by prepending `$HOME/.cargo/bin` in the Makefile - to reverse: `rustup self uninstall`.
 - 2026-11-13 WP00: system `libbpf-dev` is not installed (Q1), so BPF C is compiled against the libbpf headers vendored in the `libbpf-sys` crate. That is also what libbpf-cargo does, so nothing changes once libbpf-dev is installed.
 
+- 2026-11-13 WP02: plan 4.5 leaves the JSON shape of `Event.kind` open; chose an object tagged by `"k"` (`"kind":{"k":"Open","path":...}`) - readable with socat/jq - pinned by fixtures/proto/v1.
+- 2026-11-13 WP02: plan names `FileStat`, `ConnStat`, `SysStat`, `MapRow`, `GhReport` without fields; defined them from plan 6.3 and 4.3 (see crates/sysscope-proto/src/types.rs). Adding fields later is additive (no proto bump).
+- 2026-11-13 WP02: Rust field `ProcKey.start_ticks` is sent as `"start"` on the wire, matching 4.5 while keeping the I4 name in code.
+- 2026-11-13 WP02: the 4.5 escaping leaves valid-UTF-8 C1 controls (U+0080-U+009F) and bidi overrides (U+202A-U+202E, U+2066-U+2069) unescaped. Wire format kept exactly as specified; terminal/GUI display code must additionally neutralise these (to do in WP13/WP20, tracked in docs/UNVERIFIED.md once it exists).
+
 ## Deviations from the plan
 - none
 
@@ -90,4 +95,27 @@ integrity: ignored tests are not allowed: ./crates/sysscope-core/src/x.rs:2:#[ig
 --- CI ---
 ✓ main ci · 43337978651   ✓ lint-test in 28s
 ```
+Result: PASS
+
+### 2026-11-13 06:40 WP02 Protocol crate
+Did: `sysscope-proto` with all 4.5 types (serde, internally tagged by "t"), `BStr` reversible escaping, `read_frame`/`write_frame` with 1 MiB / 16 MiB limits checked before allocation, finite-f32 clamping, decode that separates `unknown_type` from `malformed`, golden JSON for all 21 message types in fixtures/proto/v1, proptests (2000 cases for round trips, 10 000 for hostile frame input).
+Verify command: `cargo test -p sysscope-proto`
+Verify output (trimmed, real):
+```
+test result: ok. 8 passed; 0 failed; 0 ignored (unit: bstr, frame)
+test every_message_type_has_exactly_one_golden_file ... ok
+test client_messages_match_golden_files ... ok
+test daemon_messages_match_golden_files ... ok
+test unknown_type_and_malformed_are_distinguished ... ok
+test non_finite_floats_are_clamped ... ok
+test oversized_frames_are_errors ... ok
+test framed_messages_roundtrip ... ok
+test client_messages_roundtrip ... ok
+test bstr_roundtrips_any_bytes ... ok
+test garbage_never_panics ... ok          (10 000 cases)
+test daemon_messages_roundtrip ... ok
+test truncated_frames_are_errors ... ok   (10 000 cases)
+test result: ok. 11 passed; 0 failed; 0 ignored; finished in 1.57s
+```
+`make lint` and `make test` green.
 Result: PASS

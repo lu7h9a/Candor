@@ -1,0 +1,143 @@
+{
+  "t": "Detail",
+  "proc": {
+    "tgid": 4312,
+    "start": 120034
+  },
+  "series": {
+    "t": [
+      1,
+      2
+    ],
+    "cpu": [
+      0.5,
+      1.25
+    ],
+    "rss": [
+      100,
+      200
+    ]
+  },
+  "recent": [
+    {
+      "id": 18812,
+      "ts_ns": 5000000000,
+      "proc": {
+        "tgid": 4312,
+        "start": 120034
+      },
+      "tid": 4312,
+      "uid": 1000,
+      "kind": {
+        "k": "Open",
+        "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+        "dev": 66306,
+        "ino": 1234567,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    }
+  ],
+  "files": [
+    {
+      "path": "/etc/passwd",
+      "dev": 66306,
+      "ino": 12,
+      "opens": 2,
+      "read": true,
+      "write": false,
+      "rbytes": 0,
+      "wbytes": 0,
+      "last_ts": 9
+    }
+  ],
+  "conns": [
+    {
+      "family": "inet6",
+      "addr": "::1",
+      "port": 8080,
+      "sock": "stream",
+      "count": 3,
+      "last_ts": 10
+    }
+  ],
+  "syscalls": [
+    {
+      "nr": 0,
+      "name": "read",
+      "count": 10,
+      "lat_count": 0,
+      "lat_total_ns": 0,
+      "lat_max_ns": 0
+    }
+  ],
+  "children": [
+    {
+      "tgid": 4313,
+      "start": 120040
+    }
+  ],
+  "maps": [
+    {
+      "start": 4194304,
+      "end": 4198400,
+      "perms": "r-xp",
+      "offset": 0,
+      "dev": "08:02",
+      "inode": 12,
+      "path": "/tmp/x"
+    }
+  ],
+  "findings": [
+    {
+      "id": 7,
+      "rule": "R001",
+      "title": "Credential file read",
+      "attack": "T1552",
+      "proc": {
+        "tgid": 4312,
+        "start": 120034
+      },
+      "exe": "/tmp/x",
+      "ts_ns": 5000000000,
+      "weight": 0.6,
+      "confidence": 0.9,
+      "summary": "opened /home/u/.ssh/id_ed25519 for reading",
+      "why": [
+        "this file is a private SSH key"
+      ],
+      "benign": [
+        "you ran a backup or key-management tool yourself"
+      ],
+      "evidence": [
+        18812
+      ],
+      "evidence_events": [
+        {
+          "id": 18812,
+          "ts_ns": 5000000000,
+          "proc": {
+            "tgid": 4312,
+            "start": 120034
+          },
+          "tid": 4312,
+          "uid": 1000,
+          "kind": {
+            "k": "Open",
+            "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+            "dev": 66306,
+            "ino": 1234567,
+            "read": true,
+            "write": false,
+            "create": false,
+            "trunc": false,
+            "path_trunc": false
+          }
+        }
+      ]
+    }
+  ]
+}

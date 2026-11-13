@@ -1,0 +1,11 @@
+{
+  "t": "Subscribe",
+  "snapshots": true,
+  "alerts": true,
+  "events": {
+    "proc": {
+      "tgid": 4312,
+      "start": 120034
+    }
+  }
+}

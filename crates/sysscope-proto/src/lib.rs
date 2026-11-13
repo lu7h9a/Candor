@@ -6,5 +6,19 @@
 //! it only reads from and writes to things that implement `Read`/`Write`.
 #![forbid(unsafe_code)]
 
+pub mod bstr;
+pub mod float;
+pub mod frame;
+pub mod msg;
+pub mod types;
+
+pub use bstr::BStr;
+pub use frame::{FrameError, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME, read_frame, write_frame};
+pub use msg::{
+    ActAction, ClientKind, ClientMsg, DaemonMsg, DecodeError, EventSub, EventSubMode, GhState,
+    decode_client, decode_daemon, encode,
+};
+pub use types::*;
+
 /// Protocol version spoken by this build. Bumped on any breaking change.
 pub const PROTO_VERSION: u32 = 1;

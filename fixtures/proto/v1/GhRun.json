@@ -1,0 +1,7 @@
+{
+  "t": "GhRun",
+  "args": [
+    "-v"
+  ],
+  "timeout_s": 60
+}
