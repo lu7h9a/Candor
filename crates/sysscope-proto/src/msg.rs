@@ -298,14 +298,23 @@ impl DecodeError {
     }
 }
 
+/// Only the type tag of a message; every other field is skipped without
+/// building a value tree.
+#[derive(Deserialize)]
+struct TagOnly {
+    t: Option<serde_json::Value>,
+}
+
 fn decode_tagged<T: serde::de::DeserializeOwned>(
     body: &[u8],
     known: &[&str],
 ) -> Result<T, DecodeError> {
-    let value: serde_json::Value =
+    // Pass 1: the tag only (cheap). Pass 2: the typed message. This avoids
+    // parsing large snapshots into a generic JSON tree first.
+    let tag: TagOnly =
         serde_json::from_slice(body).map_err(|e| DecodeError::Malformed(e.to_string()))?;
-    let tag = match value.get("t") {
-        Some(serde_json::Value::String(s)) => s.clone(),
+    let tag = match tag.t {
+        Some(serde_json::Value::String(s)) => s,
         _ => return Err(DecodeError::Malformed("missing string field \"t\"".into())),
     };
     if !known.contains(&tag.as_str()) {
@@ -315,7 +324,7 @@ fn decode_tagged<T: serde::de::DeserializeOwned>(
         let shown = crate::bstr::escape(raw.get(..64).unwrap_or(raw));
         return Err(DecodeError::UnknownType(shown));
     }
-    serde_json::from_value(value).map_err(|e| DecodeError::Malformed(e.to_string()))
+    serde_json::from_slice(body).map_err(|e| DecodeError::Malformed(e.to_string()))
 }
 
 /// Decodes a frame body sent by a client.

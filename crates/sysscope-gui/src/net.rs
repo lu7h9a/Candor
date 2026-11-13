@@ -27,6 +27,28 @@ pub struct Source {
     pub rx: Receiver<Incoming>,
     /// Requests for the daemon (ignored by replay).
     pub tx: Sender<ClientMsg>,
+    /// Set to the egui context once the window exists; the reader thread
+    /// then asks for a repaint whenever it delivers something, so the UI
+    /// redraws on data instead of polling (WP21 CPU budget).
+    pub waker: Waker,
+}
+
+/// Shared slot for the egui context used to wake the UI.
+pub type Waker = std::sync::Arc<std::sync::Mutex<Option<egui::Context>>>;
+
+fn wake(w: &Waker) {
+    if let Ok(g) = w.lock()
+        && let Some(ctx) = g.as_ref()
+    {
+        ctx.request_repaint();
+    }
+}
+
+/// Sends to the UI and wakes it; false if the UI is gone.
+fn deliver(out: &Sender<Incoming>, w: &Waker, inc: Incoming) -> bool {
+    let ok = out.send(inc).is_ok();
+    wake(w);
+    ok
 }
 
 fn send_msg(stream: &mut UnixStream, m: &ClientMsg) -> bool {
@@ -56,7 +78,12 @@ fn connect(sockets: &[PathBuf]) -> Result<UnixStream, ConnState> {
 }
 
 /// One connected session: Hello, Subscribe, then forward until EOF/error.
-fn session(mut stream: UnixStream, out: &Sender<Incoming>, req: &Receiver<ClientMsg>) -> bool {
+fn session(
+    mut stream: UnixStream,
+    out: &Sender<Incoming>,
+    req: &Receiver<ClientMsg>,
+    w: &Waker,
+) -> bool {
     let hello = ClientMsg::Hello {
         proto: PROTO_VERSION,
         client: ClientKind::Gui,
@@ -84,7 +111,7 @@ fn session(mut stream: UnixStream, out: &Sender<Incoming>, req: &Receiver<Client
     });
     while let Ok(Some(body)) = read_frame(&mut stream, MAX_DAEMON_FRAME) {
         let Ok(m) = decode_daemon(&body) else { break };
-        if out.send(Incoming::Msg(Box::new(m))).is_err() {
+        if !deliver(out, w, Incoming::Msg(Box::new(m))) {
             return false; // UI gone
         }
     }
@@ -97,26 +124,24 @@ fn session(mut stream: UnixStream, out: &Sender<Incoming>, req: &Receiver<Client
 pub fn live(sockets: Vec<PathBuf>) -> Source {
     let (out_tx, out_rx) = bounded(UI_QUEUE);
     let (req_tx, req_rx) = bounded::<ClientMsg>(64);
+    let waker: Waker = Default::default();
+    let w = std::sync::Arc::clone(&waker);
     std::thread::spawn(move || {
         let mut delay = Duration::from_millis(500);
         loop {
             match connect(&sockets) {
                 Ok(stream) => {
                     delay = Duration::from_millis(500);
-                    if !session(stream, &out_tx, &req_rx) {
+                    if !session(stream, &out_tx, &req_rx, &w) {
                         return;
                     }
-                    if out_tx
-                        .send(Incoming::Conn(ConnState::DaemonDown(
-                            "connection lost".into(),
-                        )))
-                        .is_err()
-                    {
+                    let lost = Incoming::Conn(ConnState::DaemonDown("connection lost".into()));
+                    if !deliver(&out_tx, &w, lost) {
                         return;
                     }
                 }
                 Err(state) => {
-                    if out_tx.send(Incoming::Conn(state)).is_err() {
+                    if !deliver(&out_tx, &w, Incoming::Conn(state)) {
                         return;
                     }
                 }
@@ -128,6 +153,7 @@ pub fn live(sockets: Vec<PathBuf>) -> Source {
     Source {
         rx: out_rx,
         tx: req_tx,
+        waker,
     }
 }
 
@@ -147,6 +173,8 @@ pub enum Pace {
 pub fn replay(path: PathBuf, pace: Pace) -> Source {
     let (out_tx, out_rx) = bounded(UI_QUEUE);
     let (req_tx, _req_rx) = bounded::<ClientMsg>(64);
+    let waker: Waker = Default::default();
+    let w = std::sync::Arc::clone(&waker);
     std::thread::spawn(move || {
         let _ = out_tx.send(Incoming::Conn(ConnState::Replay(
             path.display().to_string(),
@@ -179,7 +207,7 @@ pub fn replay(path: PathBuf, pace: Pace) -> Source {
                 }
                 last_ts = Some(*ts_ns);
             }
-            if out_tx.send(Incoming::Msg(Box::new(m))).is_err() {
+            if !deliver(&out_tx, &w, Incoming::Msg(Box::new(m))) {
                 return;
             }
         }
@@ -187,6 +215,7 @@ pub fn replay(path: PathBuf, pace: Pace) -> Source {
     Source {
         rx: out_rx,
         tx: req_tx,
+        waker,
     }
 }
 

@@ -6,7 +6,8 @@
 //! It refuses to run as root (invariant I1).
 //!
 //! Debug flags: --replay FILE [--pace recorded|max|MS], --screenshot PNG
-//! --after-frames N, --select PID, --tab NAME, --socket PATH, --paused.
+//! --after-frames N, --select PID, --tab NAME, --socket PATH, --paused,
+//! --shot-at SECONDS:FILE (repeatable; exits after the last one).
 #![forbid(unsafe_code)]
 
 use std::path::PathBuf;
@@ -42,6 +43,7 @@ fn main() {
     let mut shot: Option<PathBuf> = None;
     let mut after = 30u64;
     let mut initial = Vec::new();
+    let mut timed: Vec<(f64, PathBuf)> = Vec::new();
     let mut sockets = vec![
         PathBuf::from("/run/sysscope-dev/sysscope.sock"),
         PathBuf::from("/run/sysscope/sysscope.sock"),
@@ -75,6 +77,16 @@ fn main() {
             )),
             "--socket" => sockets = vec![val().into()],
             "--paused" => initial.push(Action::TogglePause),
+            "--shot-at" => {
+                let v = val();
+                let (t, p) = v
+                    .split_once(':')
+                    .unwrap_or_else(|| fail("--shot-at SECONDS:FILE"));
+                timed.push((
+                    t.parse().unwrap_or_else(|_| fail("bad --shot-at time")),
+                    p.into(),
+                ));
+            }
             "--version" => {
                 println!("sysscope-gui {}", env!("CARGO_PKG_VERSION"));
                 return;
@@ -86,7 +98,7 @@ fn main() {
         Some(p) => net::replay(p, pace),
         None => net::live(sockets),
     };
-    let app = App::new(source, shot.map(|p| (p, after)), initial);
+    let app = App::new(source, shot.map(|p| (p, after)), initial).with_timed_shots(timed);
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1400.0, 900.0])
@@ -94,7 +106,14 @@ fn main() {
         renderer: eframe::Renderer::Glow,
         ..Default::default()
     };
-    if let Err(e) = eframe::run_native("SysScope", options, Box::new(|_cc| Ok(Box::new(app)))) {
+    if let Err(e) = eframe::run_native(
+        "SysScope",
+        options,
+        Box::new(|cc| {
+            app.set_waker(&cc.egui_ctx);
+            Ok(Box::new(app))
+        }),
+    ) {
         fail(&format!("could not open a window: {e}"));
     }
 }

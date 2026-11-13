@@ -12,3 +12,4 @@
 | Pid reuse against the kernel maps (followed_tgid, budget, sys_count) | gate | keys now include start time; forcing pid reuse needs ns_last_pid in a VM (planned for WP27) | WP27 pid-reuse itest |
 | Idle clients holding all 8 slots | gate | accepted: only root and sysscope-group members can connect; documented in THREAT_MODEL (WP29) | - |
 | Fedora 45 itests | WP31 | all 30 passed once (kernel 7.2.11) before the gate fixes; re-run in WP31 | make vm-matrix |
+| GUI CPU and look on a real GPU and real desktop | WP21 | only Xvfb + llvmpipe here; GUI threads 6-7 %, whole process ~33 % with software rendering | owner runs sysscope-gui on the desktop (human check, WP34) |

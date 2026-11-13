@@ -28,3 +28,10 @@ indexing_slicing = "warn"
 
 [profile.release]
 debug = 1
+
+# Dependencies (egui's text layout above all) are optimised even in dev and
+# test builds, so debug GUI frames are representative; our own crates stay
+# unoptimised for debugging. Measured: 2000-process frames 25-50 ms -> see
+# PROGRESS.md WP21.
+[profile.dev.package."*"]
+opt-level = 2

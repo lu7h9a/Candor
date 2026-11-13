@@ -24,6 +24,11 @@ pub struct App {
     requested: bool,
     done: Arc<AtomicBool>,
     initial: Vec<Action>,
+    /// --shot-at: (seconds after start, file), taken in order; exit after the last.
+    timed: Vec<(f64, PathBuf)>,
+    started: std::time::Instant,
+    timed_done: Arc<std::sync::atomic::AtomicUsize>,
+    timed_requested: usize,
 }
 
 impl App {
@@ -37,7 +42,42 @@ impl App {
             requested: false,
             done: Arc::new(AtomicBool::new(false)),
             initial,
+            timed: Vec::new(),
+            started: std::time::Instant::now(),
+            timed_done: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
+            timed_requested: 0,
         }
+    }
+
+    /// Screenshots at fixed times after start (debug: daemon restart test).
+    pub fn with_timed_shots(mut self, shots: Vec<(f64, PathBuf)>) -> App {
+        self.timed = shots;
+        self
+    }
+
+    fn handle_timed(&mut self, ctx: &egui::Context) {
+        if self.timed.is_empty() {
+            return;
+        }
+        let done = self.timed_done.load(Ordering::SeqCst);
+        if done >= self.timed.len() {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            return;
+        }
+        if self.timed_requested == done
+            && let Some((at, path)) = self.timed.get(done).cloned()
+            && self.started.elapsed().as_secs_f64() >= at
+        {
+            self.timed_requested += 1;
+            let counter = Arc::clone(&self.timed_done);
+            ctx.request_screenshot(move |img| {
+                if let Err(e) = write_png(&path, &img) {
+                    eprintln!("sysscope-gui: screenshot failed: {e}");
+                }
+                counter.fetch_add(1, Ordering::SeqCst);
+            });
+        }
+        ctx.request_repaint_after(Duration::from_millis(200));
     }
 
     /// Takes pending messages from the reader into the model.
@@ -52,6 +92,13 @@ impl App {
             for a in std::mem::take(&mut self.initial) {
                 self.act(a);
             }
+        }
+    }
+
+    /// Lets the reader thread wake this window when data arrives.
+    pub fn set_waker(&self, ctx: &egui::Context) {
+        if let Ok(mut g) = self.source.waker.lock() {
+            *g = Some(ctx.clone());
         }
     }
 
@@ -139,6 +186,8 @@ impl eframe::App for App {
         self.frames += 1;
         let ctx = ui.ctx().clone();
         self.handle_screenshot(&ctx);
-        ctx.request_repaint_after(Duration::from_millis(100));
+        self.handle_timed(&ctx);
+        // Data wakes the window (net.rs); this is only a heartbeat.
+        ctx.request_repaint_after(Duration::from_secs(1));
     }
 }

@@ -48,6 +48,24 @@ fn size(b: u64) -> String {
 pub fn draw(ui: &mut Ui, m: &Model) -> Vec<Action> {
     let mut acts = Vec::new();
     egui::Panel::top("top").show(ui, |ui| top_bar(ui, m, &mut acts));
+    if !matches!(m.conn, ConnState::Connected { .. } | ConnState::Replay(_)) && !m.rows.is_empty() {
+        egui::Panel::top("stale").show(ui, |ui| {
+            let r = ui.label(
+                RichText::new(
+                    "Not connected to the daemon: showing the last data received. Reconnecting...",
+                )
+                .color(Color32::BLACK)
+                .background_color(Color32::from_rgb(0xe8, 0x9a, 0x20)),
+            );
+            tag(&r, Role::Label, "stale");
+        });
+    }
+    if m.loss_banner() {
+        egui::Panel::top("loss-banner").show(ui, |ui| loss_banner(ui, m, &mut acts));
+    }
+    if let Some(k) = m.confirm_follow {
+        confirm_follow(ui, m, k, &mut acts);
+    }
     if !matches!(m.conn, ConnState::Connected { .. } | ConnState::Replay(_)) && m.rows.is_empty() {
         egui::CentralPanel::default().show(ui, |ui| conn_state(ui, m));
         return acts;
@@ -135,7 +153,7 @@ fn top_bar(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         if r.clicked() {
             acts.push(Action::Export);
         }
-        let lost = m.loss.ringbuf + m.loss.budget + m.loss.scratch;
+        let lost = m.loss_total();
         if lost > 0 {
             let r = ui.label(
                 RichText::new(format!(
@@ -146,13 +164,61 @@ fn top_bar(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             );
             tag(&r, Role::Label, "loss");
         }
-        if m.multi_user() {
+        if m.multi_user_now() {
             ui.label("Monitoring all users on this machine");
         }
         if let Some(n) = &m.notice {
             ui.label(RichText::new(n).italics());
         }
     });
+}
+
+fn loss_banner(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
+    egui::Frame::new()
+        .fill(Color32::from_rgb(0x5a, 0x1e, 0x1e))
+        .inner_margin(6.0)
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                let r = ui.label(RichText::new(format!(
+                    "Some activity was not recorded: {} events lost (ring buffer {}, per-process budget {}, scratch {}, undecodable {}). What you see is incomplete.",
+                    m.loss_total(), m.loss.ringbuf, m.loss.budget, m.loss.scratch, m.loss.decode
+                )).color(Color32::WHITE));
+                tag(&r, Role::Label, "loss-banner");
+                if ui.button("Dismiss").clicked() {
+                    acts.push(Action::DismissLoss);
+                }
+            });
+        });
+}
+
+fn confirm_follow(ui: &mut Ui, m: &Model, k: sysscope_proto::ProcKey, acts: &mut Vec<Action>) {
+    let name = m
+        .rows
+        .iter()
+        .find(|r| r.key == k)
+        .map(|r| safe(&r.exe))
+        .unwrap_or_default();
+    egui::Window::new("Follow this process tree?")
+        .collapsible(false)
+        .resizable(false)
+        .anchor(egui::Align2::CENTER_CENTER, egui::vec2(0.0, 0.0))
+        .show(ui.ctx(), |ui| {
+            ui.label(format!(
+                "Follow {name} (pid {}) and everything it starts?",
+                k.tgid
+            ));
+            ui.label(RichText::new("Other processes will not be traced while following.").strong());
+            ui.horizontal(|ui| {
+                let r = ui.button("Follow");
+                tag(&r, Role::Button, "confirm-follow");
+                if r.clicked() {
+                    acts.push(Action::ConfirmFollow);
+                }
+                if ui.button("Cancel").clicked() {
+                    acts.push(Action::CancelFollow);
+                }
+            });
+        });
 }
 
 fn conn_state(ui: &mut Ui, m: &Model) {
@@ -219,7 +285,7 @@ fn procs(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         }
         ui.label(format!("{} processes", m.rows.len()));
     });
-    let rows = m.visible_rows();
+    let rows = m.visible();
     if rows.is_empty() {
         ui.label("No processes match.");
     }
@@ -238,10 +304,13 @@ fn procs(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     let resp = ui.push_id("procs", |ui| {
         egui_extras::TableBuilder::new(ui)
             .striped(true)
-            .resizable(true)
+            .resizable(false)
             .sense(egui::Sense::click())
-            .column(egui_extras::Column::remainder().at_least(220.0))
-            .columns(egui_extras::Column::auto().at_least(44.0), 9)
+            // The exe column takes the remaining width; the others are fixed.
+            // Auto-sized columns measure every row on the first layout, which
+            // with 2000 rows cost a 50 ms frame (WP21).
+            .column(egui_extras::Column::remainder().at_least(160.0).clip(true))
+            .columns(egui_extras::Column::exact(62.0), 9)
             .header(20.0, |mut h| {
                 for (name, col) in cols {
                     h.col(|ui| {
@@ -263,9 +332,20 @@ fn procs(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                     };
                     row.set_selected(m.selected == Some(v.row.key));
                     proc_cells(&mut row, v);
-                    if row.response().clicked() {
+                    let resp = row.response();
+                    if resp.clicked() {
                         acts.push(Action::Select(Some(v.row.key)));
                     }
+                    resp.context_menu(|ui| {
+                        if ui.button("Follow this process tree").clicked() {
+                            acts.push(Action::RequestFollow(v.row.key));
+                            ui.close();
+                        }
+                        if ui.button("Show details").clicked() {
+                            acts.push(Action::Select(Some(v.row.key)));
+                            ui.close();
+                        }
+                    });
                 });
             });
     });
@@ -344,12 +424,14 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             if ui.button("Stop following").clicked() {
                 acts.push(Action::Unfollow);
             }
-        } else if ui
-            .button("Follow this process tree")
-            .on_hover_text("Other processes will not be traced while following.")
-            .clicked()
-        {
-            acts.push(Action::Follow(sel));
+        } else {
+            let r = ui
+                .button("Follow this process tree")
+                .on_hover_text("Other processes will not be traced while following.");
+            tag(&r, Role::Button, "follow");
+            if r.clicked() {
+                acts.push(Action::RequestFollow(sel));
+            }
         }
     });
     ui.horizontal_wrapped(|ui| {

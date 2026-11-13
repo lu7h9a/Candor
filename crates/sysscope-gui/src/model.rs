@@ -148,12 +148,20 @@ pub enum Action {
     ShowTab(Tab),
     /// Click on an alert: select its process.
     ClickAlert(usize),
-    /// Ask the daemon to follow a process tree.
+    /// Ask to follow a process tree: opens the confirmation (WP21).
+    RequestFollow(ProcKey),
+    /// The user confirmed: send the follow request.
+    ConfirmFollow,
+    /// The user cancelled the confirmation.
+    CancelFollow,
+    /// Ask the daemon to follow a process tree (no confirmation).
     Follow(ProcKey),
     /// Back to system-wide.
     Unfollow,
     /// Export the table (handled by the app, which writes the file).
     Export,
+    /// Hide the loss banner until more events are lost.
+    DismissLoss,
 }
 
 /// One row as displayed (already escaped, with tree depth).
@@ -205,6 +213,14 @@ pub struct Model {
     pub alerts: VecDeque<Finding>,
     /// Last message from a follow/unfollow request.
     pub notice: Option<String>,
+    /// Process waiting for the follow confirmation.
+    pub confirm_follow: Option<ProcKey>,
+    /// Loss total already acknowledged by the user (banner hides until it grows).
+    pub loss_seen: u64,
+    /// Rows as displayed, recomputed only when data or view settings change
+    /// (not every frame: 2000 rows at 60 fps would cost too much, WP21).
+    visible: Vec<RowView>,
+    multi_user_cached: bool,
 }
 
 impl Default for Model {
@@ -251,7 +267,36 @@ impl Model {
             detail_order: VecDeque::new(),
             alerts: VecDeque::new(),
             notice: None,
+            confirm_follow: None,
+            loss_seen: 0,
+            visible: Vec::new(),
+            multi_user_cached: false,
         }
+    }
+
+    /// The cached display rows (see `visible_rows` for how they are built).
+    pub fn visible(&self) -> &[RowView] {
+        &self.visible
+    }
+
+    fn refresh(&mut self) {
+        self.visible = self.visible_rows();
+        self.multi_user_cached = self.multi_user();
+    }
+
+    /// `multi_user` as of the last data or view change (cheap per frame).
+    pub fn multi_user_now(&self) -> bool {
+        self.multi_user_cached
+    }
+
+    /// Events lost in the kernel so far (all reasons).
+    pub fn loss_total(&self) -> u64 {
+        self.loss.ringbuf + self.loss.budget + self.loss.scratch + self.loss.decode
+    }
+
+    /// True when new losses happened since the user last dismissed the banner.
+    pub fn loss_banner(&self) -> bool {
+        self.loss_total() > self.loss_seen
     }
 
     /// Detail of the selected process, if received.
@@ -346,10 +391,20 @@ impl Model {
             self.selected = None;
             self.details.remove(&k);
         }
+        self.refresh();
     }
 
     /// Applies a user action; returns requests to send to the daemon.
     pub fn on_action(&mut self, a: Action) -> Vec<ClientMsg> {
+        let view_change = matches!(a, Action::Sort(_) | Action::Filter(_) | Action::ToggleTree);
+        let out = self.on_action_inner(a);
+        if view_change {
+            self.refresh();
+        }
+        out
+    }
+
+    fn on_action_inner(&mut self, a: Action) -> Vec<ClientMsg> {
         match a {
             Action::Sort(c) => {
                 self.sort = if self.sort.0 == c {
@@ -396,6 +451,14 @@ impl Model {
                     return self.select(Some(k));
                 }
             }
+            Action::RequestFollow(k) => self.confirm_follow = Some(k),
+            Action::ConfirmFollow => {
+                if let Some(k) = self.confirm_follow.take() {
+                    return vec![ClientMsg::Follow { root: k }];
+                }
+            }
+            Action::CancelFollow => self.confirm_follow = None,
+            Action::DismissLoss => self.loss_seen = self.loss_total(),
             Action::Follow(k) => return vec![ClientMsg::Follow { root: k }],
             Action::Unfollow => return vec![ClientMsg::Unfollow {}],
             Action::Export => {}
@@ -677,6 +740,27 @@ mod tests {
         assert_eq!(m.selected, Some(key(12)));
         assert_eq!(m.tab, Tab::Findings);
         assert_eq!(req.len(), 1);
+    }
+
+    #[test]
+    fn follow_needs_confirmation_and_loss_banner_reappears_on_new_loss() {
+        let mut m = Model::new();
+        m.apply(snap(1, sample()));
+        assert!(m.on_action(Action::RequestFollow(key(10))).is_empty());
+        assert_eq!(m.confirm_follow, Some(key(10)));
+        assert!(m.on_action(Action::CancelFollow).is_empty());
+        m.on_action(Action::RequestFollow(key(10)));
+        assert_eq!(
+            m.on_action(Action::ConfirmFollow),
+            vec![ClientMsg::Follow { root: key(10) }]
+        );
+        assert_eq!(m.confirm_follow, None);
+        m.loss.budget = 5;
+        assert!(m.loss_banner());
+        m.on_action(Action::DismissLoss);
+        assert!(!m.loss_banner());
+        m.loss.budget = 6;
+        assert!(m.loss_banner());
     }
 
     #[test]

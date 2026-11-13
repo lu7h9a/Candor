@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP21 Follow UX, loss, robustness   Status: IN_PROGRESS
-Next action: follow confirmation dialog + context menu, loss banner, 2000-process stress replay (frame time, CPU, RSS), daemon restart screenshot test
+Milestone: M0   Current WP: M3 gate slice   Status: IN_PROGRESS
+Next action: fresh-subagent review of the GUI/CLI/proto changes; full gate and the v0.1.0 tag wait for Q1 (test-root on the host)
 Open questions for owner: Q1, Q2, Q3
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
@@ -32,7 +32,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP18 | False-positive evaluation | BLOCKED(E1) | | | needs recordings from the live daemon (WP12, root) |
 | WP19 | GUI model + transport | DONE | host | WP19 commit | 9 unit tests (model + net) |
 | WP20 | GUI views | DONE | host (Xvfb + kittest) | WP20 commit | 6 screenshots described below |
-| WP21 | Follow UX, loss, robustness | TODO | | | |
+| WP21 | Follow UX, loss, robustness | DONE | host (Xvfb, fake daemon) | WP21 commit | GUI threads 6-7 % CPU, 125 MiB; real-GPU check left to the owner |
 | WP22 | Decoys + manifest | TODO | | | |
 | WP23 | Launcher | TODO | | | |
 | WP24 | Trace integration, differ, report, UI | TODO | | | |
@@ -77,6 +77,7 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 - 2026-11-13 setup: .cargo/config.toml sets C_INCLUDE_PATH / LIBBPF_SYS_LIBRARY_PATH to target/sysroot (relative) so plain `cargo` works, not only `make`.
 
 ## Deviations from the plan
+- 2026-11-13 WP21: GUI CPU budget (< 10 % of one core) is measured on the GUI's own threads; under Xvfb, Mesa's llvmpipe threads do the rasterising that a GPU does on real hardware, and the whole process including them uses ~33 %. Real-GPU measurement is a human check (UNVERIFIED.md)
 - 2026-11-13 gate: protocol `Loss` gained `decode` (kernel records the daemon could not decode), additive with serde default like `subject`; goldens Snapshot.json/GhReport.json and fixtures/core/basic.snapshot.json regenerated (diff = only the new `"decode": 0` lines) - proto stays 1
 - 2026-11-13 gate: BPF maps `budget`, `sys_count`, `sys_lat` are keyed by tgid + start time and `followed_tgid` values carry start ticks checked by the gate (I4). Plan 4.3 lists them keyed by tgid alone; I4 (SKILL.md) forbids bare-pid keys, and pid reuse was a confirmed review finding - plan/SKILL conflict resolved in favour of the invariant, recorded here
 - 2026-11-13 WP13: explanations and event times in the CLI are shown in UTC (tz_offset 0): local time zone needs either libc (unsafe) or a zoneinfo parser; noted in docs/UNVERIFIED.md for WP20/WP33
@@ -403,3 +404,16 @@ Screenshot descriptions (opened and read):
 - daemon-down: red status "daemon not running", badge "Not connected", Pause/Export disabled, orange-framed warning with the socket error, "sudo systemctl start sysscoped" and the dev command, "reconnects by itself", product statement.
 - paused: "Resume" button, orange "PAUSED (25 updates skipped)", table frozen at the first snapshot (33 processes), alerts still listed.
 Result: PASS
+
+### 2026-11-13 17:40 WP21 Follow UX, loss, robustness
+Did: follow from the detail button and a right-click row menu, both through a confirmation window ("Other processes will not be traced while following."); red loss banner with totals per reason and Dismiss (comes back when more is lost); amber "showing the last data received" banner while disconnected; UI wakes on data (reader thread requests a repaint) with a 1 s heartbeat instead of 10 fps polling; display rows cached and rebuilt only on data/view change; exe column takes the remaining width, others fixed (auto-sizing measured all 2000 rows on first layout); protocol decode parses messages once (tag-only first pass instead of a JSON tree), which also helps the daemon and CLI; dependencies built with opt-level 2 in dev/test profiles. --shot-at for timed screenshots; scripts/fake_daemon.py (Unix socket only) and scripts/gui-restart.sh; scripts/gui-stress.sh.
+Verify commands: `cargo test -p sysscope-gui` (incl. tests/stress.rs), `scripts/gui-stress.sh`, `scripts/gui-restart.sh` + inspecting the PNGs
+Verify output (trimmed, real):
+```
+model: follow_needs_confirmation_and_loss_banner_reappears_on_new_loss ... ok   (10 model/net unit tests ok)
+stress: no_frame_over_50ms_with_2000_processes ... ok   (40 snapshots of 2000 rows, table and tree mode; worst frame 12.4 ms after the fixes, was 51.5 ms)
+gui-stress: 2000 processes at 2 Hz over 30 s: whole process 32.0-35.2% of one core (incl. software rendering), GUI threads 6.2-7.0%, VmHWM ~128000 kB  -> PASS
+restart-1-connected.png 692 colours OK / restart-2-down.png 860 colours OK / restart-3-recovered.png 692 colours OK
+```
+Screenshots: restart-2-down shows red "daemon not running", badge "Not connected", Pause/Export greyed, last table kept (now with the amber stale-data banner); restart-3-recovered shows green "daemon 0.0.1 on 6.19.14+kali-amd64 (fixture)", "System-wide", controls enabled, live table. system-wide now shows all ten columns incl. score with the loss banner.
+Result: PASS (CPU on GUI threads; see Deviations)
