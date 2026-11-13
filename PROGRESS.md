@@ -2,8 +2,8 @@
 
 ## Current state
 Updated: 2026-11-13 06:05 IST
-Milestone: M0   Current WP: WP01 Scaffold   Status: IN_PROGRESS
-Next action: create the Cargo workspace, Makefile, CI and private GitHub repo (WP01)
+Milestone: M0   Current WP: WP02 Protocol crate   Status: IN_PROGRESS
+Next action: implement sysscope-proto types, framing, BStr escaping and golden fixtures
 Open questions for owner: Q1
 Tree state: clean after WP00 commit
 Last green gate: none yet
@@ -12,8 +12,8 @@ Last green gate: none yet
 | WP | Name | Status | Verified on | Commit | Notes |
 |---|---|---|---|---|---|
 | WP00 | Preflight | BLOCKED(E1) | host (non-root parts) | see log | Verify PASS; apt package install pending Q1 (no passwordless sudo) |
-| WP01 | Scaffold | IN_PROGRESS | | | |
-| WP02 | Protocol crate | TODO | | | |
+| WP01 | Scaffold | DONE | host + GitHub CI | WP01 commit | CI run 43337978651 green; libbpf dep deferred to WP04 (needs libelf-dev, Q1) |
+| WP02 | Protocol crate | IN_PROGRESS | | | |
 | WP03 | VM harness | TODO | | | |
 | WP04 | BPF skeleton + lifecycle | TODO | | | needs root (Q1) |
 | WP05 | Ground-truth workload + harness | TODO | | | needs root (Q1) |
@@ -72,3 +72,22 @@ clang exit=0
 hello.bpf.o: ELF 64-bit LSB relocatable, eBPF, version 1 (SYSV), with debug_info, not stripped
 ```
 Result: PASS (verify). WP stays BLOCKED(E1) for the package install half until Q1 is answered.
+
+### 2026-11-13 06:10 WP01 Scaffold
+Did: Cargo workspace with the 7 crates from plan 4.1 as stubs (edition 2024, toolchain pinned to 1.100.0), Makefile with every SKILL.md section 6 target (targets for later WPs exit 1 with "not implemented yet (WPnn)"), clippy config (unwrap/expect/panic denied outside tests), LICENSE, .gitignore, deny.toml, `.github/workflows/ci.yml` (ubuntu-24.04, `make lint test`), `scripts/check-integrity.sh` (fails on `#[ignore]`, and on a modified threshold file without a new Deviations line). Created private repo lu7h9a/sysscope. The `sysscoped` crate does not depend on libbpf-rs yet: libbpf-sys needs libelf-dev headers (or autopoint+bison for its vendored libelf), all missing until Q1; WP04 adds the dependency.
+Verify command: `make build && make lint && make test` then `gh run watch 43337978651 --exit-status`; integrity negatives tested in a scratch clone.
+Verify output (trimmed, real):
+```
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.31s
+lint: no BPF C files yet
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+--- integrity script, scratch clone ---
+integrity: OK                      (create limits.rs) exit=0
+integrity: threshold file(s) changed since HEAD~1 without a new
+'## Deviations from the plan' entry in PROGRESS.md: crates/sysscope-core/src/limits.rs   exit=1
+integrity: OK                      (same change + Deviations line) exit=0
+integrity: ignored tests are not allowed: ./crates/sysscope-core/src/x.rs:2:#[ignore]   exit=1
+--- CI ---
+✓ main ci · 43337978651   ✓ lint-test in 28s
+```
+Result: PASS
