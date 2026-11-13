@@ -8,6 +8,7 @@
 
 use crate::abi::{self, skel};
 use crate::convert;
+use crate::mounts::Mounts;
 use anyhow::{Context, Result};
 use libbpf_rs::skel::{OpenSkel, Skel, SkelBuilder};
 use libbpf_rs::{MapCore, MapFlags, RingBufferBuilder};
@@ -40,7 +41,9 @@ fn read_drop(map: &dyn MapCore, reason: u32) -> Result<u64> {
 }
 
 /// Runs dump mode until `stop` is set.
-pub fn dump(ringbuf_bytes: Option<u32>, stop: &AtomicBool) -> Result<()> {
+/// Dump mode also prints, at exit, one `{"sysstat": ...}` line per
+/// (tgid, syscall) with the final counters (WP08).
+pub fn dump(ringbuf_bytes: Option<u32>, syscalls: bool, stop: &AtomicBool) -> Result<()> {
     let builder = skel::SysscopeSkelBuilder::default();
     let mut storage = MaybeUninit::uninit();
     let mut open = builder.open(&mut storage).context("opening BPF object")?;
@@ -62,7 +65,7 @@ pub fn dump(ringbuf_bytes: Option<u32>, stop: &AtomicBool) -> Result<()> {
         mode: 0,
         budget_rate: BUDGET_RATE,
         budget_burst: BUDGET_BURST,
-        flags: 0,
+        flags: if syscalls { abi::CFG_SYSCALLS_COUNT } else { 0 },
     };
     loaded
         .maps
@@ -73,6 +76,7 @@ pub fn dump(ringbuf_bytes: Option<u32>, stop: &AtomicBool) -> Result<()> {
 
     // SYSSCOPE_DEBUG_RAW=1 prints every decoded kernel record to stderr.
     let debug_raw = std::env::var_os("SYSSCOPE_DEBUG_RAW").is_some();
+    let mounts = Mounts::load();
     let next_id = Cell::new(1u64);
     let decode_errors = Cell::new(0u64);
     let out = RefCell::new(std::io::BufWriter::new(std::io::stdout().lock()));
@@ -83,7 +87,7 @@ pub fn dump(ringbuf_bytes: Option<u32>, stop: &AtomicBool) -> Result<()> {
                 if debug_raw {
                     eprintln!("raw: {raw:?}");
                 }
-                let ev = convert::to_event(next_id.get(), &raw);
+                let ev = convert::to_event(next_id.get(), &raw, &mounts);
                 next_id.set(next_id.get() + 1);
                 if let Ok(line) = serde_json::to_string(&ev) {
                     let _ = writeln!(out.borrow_mut(), "{line}");
@@ -106,6 +110,13 @@ pub fn dump(ringbuf_bytes: Option<u32>, stop: &AtomicBool) -> Result<()> {
         let _ = out.borrow_mut().flush();
     }
     let _ = rb.consume();
+    for ((tgid, nr), t) in crate::syscalls::read_all(&loaded)? {
+        let line = serde_json::json!({"sysstat": {
+            "tgid": tgid, "nr": nr, "name": crate::syscalls::name(nr), "count": t.count,
+            "lat_count": t.lat_count, "lat_total_ns": t.lat_total_ns, "lat_max_ns": t.lat_max_ns,
+        }});
+        let _ = writeln!(out.borrow_mut(), "{line}");
+    }
     let _ = out.borrow_mut().flush();
     let ringbuf = read_drop(&loaded.maps.drops, abi::DROP_RINGBUF)?;
     let budget = read_drop(&loaded.maps.drops, abi::DROP_BUDGET)?;

@@ -14,6 +14,11 @@
 #define PATH_CAP 512
 #define ARGV_CAP 256
 #define DENTRY_WALK_MAX 16
+/* Room for one path component (NAME_MAX 255 + NUL) after the last write
+ * offset, so the verifier can prove every component copy stays in bounds. */
+#define NAME_CHUNK 256
+/* A dentry-walk buffer: components leaf first, NUL separated. */
+#define WALK_BUF (PATH_CAP + NAME_CHUNK)
 
 /* Map sizes (plan 4.3). */
 #define RINGBUF_BYTES (8 * 1024 * 1024)
@@ -23,6 +28,12 @@
 #define BUDGET_MAX 16384
 #define DROPS_MAX 8
 #define EXEC_STASH_MAX 4096
+#define SYS_COUNT_MAX 65536
+#define SYS_LAT_MAX 16384
+#define SYS_START_MAX 16384
+
+/* cfg.flags bits. */
+#define CFG_SYSCALLS_COUNT (1 << 0) /* count syscalls (config syscalls = "count") */
 
 /* Event kinds. */
 #define EV_EXEC 1
@@ -108,6 +119,79 @@ struct exec_key {
 	__u32 _pad;
 };
 _Static_assert(sizeof(struct exec_key) == 24, "exec_key size");
+
+struct ev_open {
+	struct ev_hdr h;
+	__u64 dev;
+	__u64 ino;
+	__u32 f_flags;
+	__u32 f_mode;
+	__u16 path_len; /* bytes used in path, no NUL */
+	__u16 _pad[3];
+	char path[PATH_CAP];
+};
+_Static_assert(sizeof(struct ev_open) == 64 + PATH_CAP, "ev_open size");
+
+/* RENAME and UNLINK carry dentry walks: leaf first, NUL separated, relative
+ * to the filesystem root (no mount prefix; the daemon adds it). */
+struct ev_rename {
+	struct ev_hdr h;
+	__u64 dev;
+	__u64 ino;
+	__u16 old_len; /* bytes used in old_walk */
+	__u16 new_len;
+	__u32 _pad;
+	char old_walk[WALK_BUF];
+	char new_walk[WALK_BUF];
+};
+_Static_assert(sizeof(struct ev_rename) == 56 + 2 * WALK_BUF, "ev_rename size");
+
+struct ev_unlink {
+	struct ev_hdr h;
+	__u64 dev;
+	__u64 ino;
+	__u16 walk_len;
+	__u16 _pad[3];
+	char walk[WALK_BUF];
+};
+_Static_assert(sizeof(struct ev_unlink) == 56 + WALK_BUF, "ev_unlink size");
+
+#define SOCKADDR_CAP 128
+
+/* CONNECT: the raw sockaddr as passed to connect(), copied from kernel
+ * memory (already copied in by the kernel; no user-memory race). */
+struct ev_connect {
+	struct ev_hdr h;
+	__u16 sock_type; /* SOCK_STREAM, SOCK_DGRAM, ... */
+	__u16 addrlen;	 /* bytes used in addr, <= SOCKADDR_CAP */
+	__u32 _pad;
+	__u8 addr[SOCKADDR_CAP];
+};
+_Static_assert(sizeof(struct ev_connect) == 40 + SOCKADDR_CAP, "ev_connect size");
+
+/* LISTEN: the socket's bound address. */
+struct ev_listen {
+	struct ev_hdr h;
+	__u16 family;
+	__u16 port; /* host byte order */
+	__u32 _pad;
+	__u8 addr[16]; /* 4 bytes for AF_INET, 16 for AF_INET6 */
+};
+_Static_assert(sizeof(struct ev_listen) == 56, "ev_listen size");
+
+/* Syscall statistics keys and values (no events: aggregated in maps, D8). */
+struct sys_key {
+	__u32 tgid;
+	__u32 nr;
+};
+_Static_assert(sizeof(struct sys_key) == 8, "sys_key size");
+
+struct sys_lat_val {
+	__u64 count;
+	__u64 total_ns;
+	__u64 max_ns;
+};
+_Static_assert(sizeof(struct sys_lat_val) == 24, "sys_lat_val size");
 
 /* Exec path stashed by the open hook for the thread that is exec'ing. */
 struct exec_stash {

@@ -33,9 +33,24 @@ pub const EV_EXEC: u16 = 1;
 pub const EV_FORK: u16 = 2;
 /// EXIT kind.
 pub const EV_EXIT: u16 = 3;
+/// OPEN kind.
+pub const EV_OPEN: u16 = 4;
+/// RENAME kind.
+pub const EV_RENAME: u16 = 5;
+/// UNLINK kind.
+pub const EV_UNLINK: u16 = 6;
+
+/// CONNECT kind.
+pub const EV_CONNECT: u16 = 7;
+/// LISTEN kind.
+pub const EV_LISTEN: u16 = 8;
+/// Maximum sockaddr bytes in a CONNECT record.
+pub const SOCKADDR_CAP: usize = 128;
+
+/// Bytes of one dentry-walk buffer (WALK_BUF = PATH_CAP + NAME_CHUNK).
+pub const WALK_BUF: usize = PATH_CAP + 256;
 
 /// Header flag: path was cut or only the leaf is present.
-#[allow(dead_code)] // used by file events (WP06)
 pub const F_PATH_TRUNCATED: u16 = 1 << 0;
 /// Header flag: argv was cut at ARGV_CAP.
 pub const F_ARGV_TRUNCATED: u16 = 1 << 1;
@@ -47,6 +62,9 @@ pub const F_KTHREAD: u16 = 1 << 3;
 /// Header flag: exec path is the execve() argument, not kernel-resolved.
 #[allow(dead_code)] // used by the process table (WP11)
 pub const F_PATH_FROM_ARG: u16 = 1 << 4;
+
+/// cfg.flags bit: count syscalls (CFG_SYSCALLS_COUNT).
+pub const CFG_SYSCALLS_COUNT: u32 = 1 << 0;
 
 /// Index of each reason in the `drops` map (DROP_* in sysscope.h).
 pub const DROP_RINGBUF: u32 = 0;
@@ -118,6 +136,71 @@ struct EvExitLayout {
     pad: u32,
 }
 
+#[repr(C)]
+struct EvOpenLayout {
+    h: EvHdrLayout,
+    dev: u64,
+    ino: u64,
+    f_flags: u32,
+    f_mode: u32,
+    path_len: u16,
+    pad: [u16; 3],
+    path: [u8; PATH_CAP],
+}
+#[repr(C)]
+struct EvRenameLayout {
+    h: EvHdrLayout,
+    dev: u64,
+    ino: u64,
+    old_len: u16,
+    new_len: u16,
+    pad: u32,
+    old_walk: [u8; WALK_BUF],
+    new_walk: [u8; WALK_BUF],
+}
+#[repr(C)]
+struct EvUnlinkLayout {
+    h: EvHdrLayout,
+    dev: u64,
+    ino: u64,
+    walk_len: u16,
+    pad: [u16; 3],
+    walk: [u8; WALK_BUF],
+}
+
+#[repr(C)]
+struct EvConnectLayout {
+    h: EvHdrLayout,
+    sock_type: u16,
+    addrlen: u16,
+    pad: u32,
+    addr: [u8; SOCKADDR_CAP],
+}
+#[repr(C)]
+struct EvListenLayout {
+    h: EvHdrLayout,
+    family: u16,
+    port: u16,
+    pad: u32,
+    addr: [u8; 16],
+}
+/// Size of `struct ev_connect`.
+pub const CONNECT_SIZE: usize = 40 + SOCKADDR_CAP;
+/// Size of `struct ev_listen`.
+pub const LISTEN_SIZE: usize = 56;
+const _: () = assert!(std::mem::size_of::<EvConnectLayout>() == CONNECT_SIZE);
+const _: () = assert!(std::mem::size_of::<EvListenLayout>() == LISTEN_SIZE);
+
+/// Size of `struct ev_open`.
+pub const OPEN_SIZE: usize = 64 + PATH_CAP;
+/// Size of `struct ev_rename`.
+pub const RENAME_SIZE: usize = 56 + 2 * WALK_BUF;
+/// Size of `struct ev_unlink`.
+pub const UNLINK_SIZE: usize = 56 + WALK_BUF;
+const _: () = assert!(std::mem::size_of::<EvOpenLayout>() == OPEN_SIZE);
+const _: () = assert!(std::mem::size_of::<EvRenameLayout>() == RENAME_SIZE);
+const _: () = assert!(std::mem::size_of::<EvUnlinkLayout>() == UNLINK_SIZE);
+
 /// Size of `struct ev_hdr`.
 pub const HDR_SIZE: usize = 32;
 /// Size of `struct ev_exec`.
@@ -180,6 +263,65 @@ pub enum RawEvent {
         child_tgid: u32,
         /// Child start time (boot ns).
         child_start_boot_ns: u64,
+    },
+    /// File opened.
+    Open {
+        /// Header.
+        h: Hdr,
+        /// Kernel dev_t.
+        dev: u64,
+        /// Inode.
+        ino: u64,
+        /// file->f_flags (O_* flags).
+        f_flags: u32,
+        /// file->f_mode (FMODE_* flags).
+        f_mode: u32,
+        /// Resolved path, or only the leaf if F_PATH_TRUNCATED.
+        path: Vec<u8>,
+    },
+    /// File renamed; walks are leaf-first NUL-separated components.
+    Rename {
+        /// Header.
+        h: Hdr,
+        /// Kernel dev_t.
+        dev: u64,
+        /// Inode.
+        ino: u64,
+        /// Old name walk.
+        old_walk: Vec<u8>,
+        /// New name walk.
+        new_walk: Vec<u8>,
+    },
+    /// Name removed.
+    Unlink {
+        /// Header.
+        h: Hdr,
+        /// Kernel dev_t.
+        dev: u64,
+        /// Inode.
+        ino: u64,
+        /// Walk of the removed name.
+        walk: Vec<u8>,
+    },
+    /// Outbound connect.
+    Connect {
+        /// Header.
+        h: Hdr,
+        /// sock->type.
+        sock_type: u16,
+        /// Raw sockaddr bytes (at most SOCKADDR_CAP).
+        addr: Vec<u8>,
+    },
+    /// Socket started listening.
+    Listen {
+        /// Header.
+        h: Hdr,
+        /// Address family.
+        family: u16,
+        /// Port, host order.
+        port: u16,
+        /// 4 (inet) or 16 (inet6) address bytes, zero padded.
+        addr: [u8; 16],
     },
     /// Process gone.
     Exit {
@@ -293,6 +435,57 @@ pub fn decode(b: &[u8]) -> Result<RawEvent, AbiError> {
                 exit_code: u32_at(b, 32) as i32,
             })
         }
+        EV_OPEN => {
+            need(b, h.kind, OPEN_SIZE)?;
+            Ok(RawEvent::Open {
+                h,
+                dev: u64_at(b, 32),
+                ino: u64_at(b, 40),
+                f_flags: u32_at(b, 48),
+                f_mode: u32_at(b, 52),
+                path: bytes_at(b, 64, usize::from(u16_at(b, 56)), PATH_CAP),
+            })
+        }
+        EV_RENAME => {
+            need(b, h.kind, RENAME_SIZE)?;
+            Ok(RawEvent::Rename {
+                h,
+                dev: u64_at(b, 32),
+                ino: u64_at(b, 40),
+                old_walk: bytes_at(b, 56, usize::from(u16_at(b, 48)), WALK_BUF),
+                new_walk: bytes_at(b, 56 + WALK_BUF, usize::from(u16_at(b, 50)), WALK_BUF),
+            })
+        }
+        EV_UNLINK => {
+            need(b, h.kind, UNLINK_SIZE)?;
+            Ok(RawEvent::Unlink {
+                h,
+                dev: u64_at(b, 32),
+                ino: u64_at(b, 40),
+                walk: bytes_at(b, 56, usize::from(u16_at(b, 48)), WALK_BUF),
+            })
+        }
+        EV_CONNECT => {
+            need(b, h.kind, CONNECT_SIZE)?;
+            Ok(RawEvent::Connect {
+                h,
+                sock_type: u16_at(b, 32),
+                addr: bytes_at(b, 40, usize::from(u16_at(b, 34)), SOCKADDR_CAP),
+            })
+        }
+        EV_LISTEN => {
+            need(b, h.kind, LISTEN_SIZE)?;
+            let mut addr = [0u8; 16];
+            if let Some(src) = b.get(40..56) {
+                addr.copy_from_slice(src);
+            }
+            Ok(RawEvent::Listen {
+                h,
+                family: u16_at(b, 32),
+                port: u16_at(b, 34),
+                addr,
+            })
+        }
         k => Err(AbiError::UnknownKind(k)),
     }
 }
@@ -370,6 +563,47 @@ mod tests {
             }
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    fn decodes_open_rename_unlink_with_clamped_lengths() {
+        let mut b = hdr_bytes(EV_OPEN, F_PATH_TRUNCATED);
+        b.extend_from_slice(&7u64.to_le_bytes());
+        b.extend_from_slice(&8u64.to_le_bytes());
+        b.extend_from_slice(&0o1101u32.to_le_bytes());
+        b.extend_from_slice(&2u32.to_le_bytes());
+        b.extend_from_slice(&4u16.to_le_bytes());
+        b.resize(OPEN_SIZE, b'x');
+        match decode(&b).unwrap() {
+            RawEvent::Open {
+                f_flags,
+                f_mode,
+                path,
+                h,
+                ..
+            } => {
+                assert_eq!((f_flags, f_mode, path.len()), (0o1101, 2, 4));
+                assert_eq!(h.flags, F_PATH_TRUNCATED);
+            }
+            other => panic!("{other:?}"),
+        }
+        let mut b = hdr_bytes(EV_RENAME, 0);
+        b.extend_from_slice(&7u64.to_le_bytes());
+        b.extend_from_slice(&8u64.to_le_bytes());
+        b.extend_from_slice(&u16::MAX.to_le_bytes());
+        b.extend_from_slice(&2u16.to_le_bytes());
+        b.resize(RENAME_SIZE, b'y');
+        match decode(&b).unwrap() {
+            RawEvent::Rename {
+                old_walk, new_walk, ..
+            } => {
+                assert_eq!((old_walk.len(), new_walk.len()), (WALK_BUF, 2));
+            }
+            other => panic!("{other:?}"),
+        }
+        let mut b = hdr_bytes(EV_UNLINK, 0);
+        b.resize(UNLINK_SIZE - 1, 0);
+        assert!(decode(&b).is_err());
     }
 
     #[test]

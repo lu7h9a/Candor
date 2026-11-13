@@ -54,6 +54,31 @@ struct {
 	__type(value, struct exec_stash);
 } exec_stash SEC(".maps");
 
+/* Syscall counts per (tgid, nr), per CPU; the daemon sums CPUs and keeps
+ * deltas. LRU so a full map evicts old processes instead of failing. */
+struct {
+	__uint(type, BPF_MAP_TYPE_LRU_PERCPU_HASH);
+	__uint(max_entries, SYS_COUNT_MAX);
+	__type(key, struct sys_key);
+	__type(value, __u64);
+} sys_count SEC(".maps");
+
+/* Syscall latency per (tgid, nr), followed processes only. */
+struct {
+	__uint(type, BPF_MAP_TYPE_LRU_HASH);
+	__uint(max_entries, SYS_LAT_MAX);
+	__type(key, struct sys_key);
+	__type(value, struct sys_lat_val);
+} sys_lat SEC(".maps");
+
+/* Syscall entry time per thread (pid_tgid), followed processes only. */
+struct {
+	__uint(type, BPF_MAP_TYPE_LRU_HASH);
+	__uint(max_entries, SYS_START_MAX);
+	__type(key, __u64);
+	__type(value, __u64);
+} sys_start SEC(".maps");
+
 /* Per-CPU scratch for values too large for the 512-byte BPF stack. */
 struct {
 	__uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);

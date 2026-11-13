@@ -1,0 +1,7 @@
+# Lets plain `cargo` (not only `make`) find the libelf headers and link
+# symlink that scripts/sysroot.sh unpacks into target/sysroot when
+# libelf-dev is not installed system-wide. Harmless when the dir is absent.
+# The Makefile exports the same values; existing environment values win.
+[env]
+C_INCLUDE_PATH = { value = "target/sysroot/usr/include", relative = true }
+LIBBPF_SYS_LIBRARY_PATH = { value = "target/sysroot/usr/lib/x86_64-linux-gnu", relative = true }

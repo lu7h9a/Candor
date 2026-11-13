@@ -12,7 +12,8 @@
  * actions: exec N, fork N, open-read N, open-write N, rename N, unlink N,
  *          connect-tcp N, connect-tcp6 N, connect-fail N, connect-udp N,
  *          listen N, threads N, syscalls getppid N, flood N, longpath,
- *          badname, memfd-exec, leader-exits-first
+ *          badname, memfd-exec, leader-exits-first, open-relative,
+ *          open-symlink, uring-open
  *
  * Built statically (make wl) so the same binary runs in every test VM.
  */
@@ -33,6 +34,8 @@
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <linux/io_uring.h>
+#include <sys/mman.h>
 
 static const char *dir;
 static char manifest[1 << 20];
@@ -485,6 +488,104 @@ static void *leader_follower(void *arg)
 	return NULL;
 }
 
+/* Opens "rel-target" by a relative path after chdir into dir. */
+static void act_open_relative(void)
+{
+	char path[4096];
+	snprintf(path, sizeof(path), "%s/rel-target", dir);
+	make_file(path);
+	char cwd[4096];
+	if (!getcwd(cwd, sizeof(cwd)))
+		die("getcwd");
+	if (chdir(dir) != 0)
+		die("chdir");
+	begin_action("open-relative", 1);
+	mput(",\"file\":");
+	file_identity(path);
+	int fd = raw_open("rel-target", O_RDONLY, 0);
+	if (fd < 0)
+		die("open relative");
+	raw_close(fd);
+	end_action();
+	if (chdir(cwd) != 0)
+		die("chdir back");
+}
+
+/* Opens "sym-target" through the symlink "sym-link". */
+static void act_open_symlink(void)
+{
+	char target[4096], link[4096];
+	snprintf(target, sizeof(target), "%s/sym-target", dir);
+	snprintf(link, sizeof(link), "%s/sym-link", dir);
+	make_file(target);
+	unlink(link);
+	if (symlink(target, link) != 0)
+		die("symlink");
+	begin_action("open-symlink", 1);
+	mput(",\"file\":");
+	file_identity(target);
+	mput(",\"link\":");
+	mput_bytes(link, strlen(link));
+	int fd = raw_open(link, O_RDONLY, 0);
+	if (fd < 0)
+		die("open symlink");
+	raw_close(fd);
+	end_action();
+}
+
+/* Opens a file through io_uring (IORING_OP_OPENAT) with raw syscalls. */
+static void act_uring_open(void)
+{
+	char path[4096];
+	snprintf(path, sizeof(path), "%s/uring-target", dir);
+	make_file(path);
+	begin_action("uring-open", 1);
+	mput(",\"file\":");
+	file_identity(path);
+	struct io_uring_params p;
+	memset(&p, 0, sizeof(p));
+	int ring = (int)syscall(__NR_io_uring_setup, 4, &p);
+	if (ring < 0) {
+		mput(",\"res\":%d,\"error\":\"io_uring_setup: %s\"", -errno, strerror(errno));
+		end_action();
+		return;
+	}
+	size_t sq_sz = p.sq_off.array + p.sq_entries * sizeof(unsigned);
+	size_t cq_sz = p.cq_off.cqes + p.cq_entries * sizeof(struct io_uring_cqe);
+	char *sq = mmap(NULL, sq_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, ring,
+			IORING_OFF_SQ_RING);
+	char *cq = mmap(NULL, cq_sz, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, ring,
+			IORING_OFF_CQ_RING);
+	struct io_uring_sqe *sqes = mmap(NULL, p.sq_entries * sizeof(struct io_uring_sqe),
+					 PROT_READ | PROT_WRITE, MAP_SHARED | MAP_POPULATE, ring,
+					 IORING_OFF_SQES);
+	if (sq == MAP_FAILED || cq == MAP_FAILED || sqes == MAP_FAILED)
+		die("mmap io_uring");
+	unsigned *sq_tail = (unsigned *)(sq + p.sq_off.tail);
+	unsigned *sq_mask = (unsigned *)(sq + p.sq_off.ring_mask);
+	unsigned *sq_array = (unsigned *)(sq + p.sq_off.array);
+	unsigned tail = *sq_tail;
+	unsigned idx = tail & *sq_mask;
+	struct io_uring_sqe *sqe = &sqes[idx];
+	memset(sqe, 0, sizeof(*sqe));
+	sqe->opcode = IORING_OP_OPENAT;
+	sqe->fd = AT_FDCWD;
+	sqe->addr = (unsigned long)path;
+	sqe->open_flags = O_RDONLY;
+	sq_array[idx] = idx;
+	__atomic_store_n(sq_tail, tail + 1, __ATOMIC_RELEASE);
+	int r = (int)syscall(__NR_io_uring_enter, ring, 1, 1, IORING_ENTER_GETEVENTS, NULL, 0);
+	unsigned *cq_head = (unsigned *)(cq + p.cq_off.head);
+	unsigned *cq_mask = (unsigned *)(cq + p.cq_off.ring_mask);
+	struct io_uring_cqe *cqes = (struct io_uring_cqe *)(cq + p.cq_off.cqes);
+	int res = r < 0 ? -errno : cqes[*cq_head & *cq_mask].res;
+	if (res >= 0)
+		close(res);
+	mput(",\"res\":%d", res);
+	end_action();
+	close(ring);
+}
+
 static void act_leader_exits_first(void)
 {
 	begin_action("leader-exits-first", 1);
@@ -574,6 +675,12 @@ int main(int argc, char **argv)
 			act_badname();
 		else if (!strcmp(a, "memfd-exec"))
 			act_memfd_exec();
+		else if (!strcmp(a, "open-relative"))
+			act_open_relative();
+		else if (!strcmp(a, "open-symlink"))
+			act_open_symlink();
+		else if (!strcmp(a, "uring-open"))
+			act_uring_open();
 		else if (!strcmp(a, "leader-exits-first"))
 			act_leader_exits_first(); /* does not return */
 		else {

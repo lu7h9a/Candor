@@ -92,7 +92,12 @@ impl Dump {
     }
 
     /// Stops the daemon (SIGINT) and returns every event it printed.
-    pub fn stop(mut self) -> Result<Vec<Event>, String> {
+    pub fn stop(self) -> Result<Vec<Event>, String> {
+        self.stop_full().map(|(events, _)| events)
+    }
+
+    /// Stops the daemon and returns its events and its final `sysstat` lines.
+    pub fn stop_full(mut self) -> Result<(Vec<Event>, Vec<serde_json::Value>), String> {
         std::thread::sleep(Duration::from_millis(500));
         let pid = self.child.id().to_string();
         Command::new("kill")
@@ -104,11 +109,18 @@ impl Dump {
         let text = std::fs::read_to_string(&self.out).map_err(|e| e.to_string())?;
         let _ = std::fs::remove_file(&self.out);
         let mut events = Vec::new();
+        let mut stats = Vec::new();
         for line in text.lines() {
+            if line.starts_with("{\"sysstat\"") {
+                let v: serde_json::Value =
+                    serde_json::from_str(line).map_err(|e| format!("{e}: {line}"))?;
+                stats.push(v.get("sysstat").cloned().unwrap_or_default());
+                continue;
+            }
             let ev: Event = serde_json::from_str(line).map_err(|e| format!("{e}: {line}"))?;
             events.push(ev);
         }
-        Ok(events)
+        Ok((events, stats))
     }
 }
 
@@ -169,6 +181,20 @@ pub fn run_wl(actions: &[&str]) -> Result<(Manifest, Vec<Event>), String> {
     Ok((manifest, mine))
 }
 
+/// Like `run_wl`, but also returns the daemon's final syscall statistics
+/// for wl's own tgid.
+pub fn run_wl_sys(actions: &[&str]) -> Result<(Manifest, Vec<serde_json::Value>), String> {
+    let dump = Dump::start(&[])?;
+    let manifest = wl(actions)?;
+    let (_, stats) = dump.stop_full()?;
+    let tgid = wl_key(&manifest).tgid;
+    let mine = stats
+        .into_iter()
+        .filter(|s| s["tgid"].as_u64() == Some(u64::from(tgid)))
+        .collect();
+    Ok((manifest, mine))
+}
+
 /// Short name of an event kind, for counting.
 pub fn kind_name(e: &Event) -> &'static str {
     match e.kind {
@@ -186,4 +212,30 @@ pub fn kind_name(e: &Event) -> &'static str {
 /// Number of events of one kind.
 pub fn count(events: &[Event], kind: &str) -> usize {
     events.iter().filter(|e| kind_name(e) == kind).count()
+}
+
+/// Path bytes from a wl manifest string (wl writes each non-ASCII byte as
+/// \u00XX, so every char is one byte).
+pub fn manifest_bytes(v: &serde_json::Value) -> Vec<u8> {
+    v.as_str()
+        .unwrap_or("")
+        .chars()
+        .map(|c| u32::from(c).min(255) as u8)
+        .collect()
+}
+
+/// (dev, ino) of a wl manifest file object.
+pub fn manifest_id(v: &serde_json::Value) -> (u64, u64) {
+    (
+        v["dev"].as_u64().unwrap_or(0),
+        v["ino"].as_u64().unwrap_or(0),
+    )
+}
+
+/// The manifest object of the first action with this name.
+pub fn action<'a>(m: &'a Manifest, name: &str) -> &'a serde_json::Value {
+    m["actions"]
+        .as_array()
+        .and_then(|a| a.iter().find(|x| x["action"] == name))
+        .unwrap_or(&serde_json::Value::Null)
 }

@@ -5,6 +5,8 @@
 //! kernel `dev_t` becomes the `st_dev` encoding that `stat(2)` reports.
 
 use crate::abi::{self, RawEvent};
+use crate::mounts::Mounts;
+use crate::sockaddr;
 use sysscope_proto::{BStr, Event, EventKind, ProcKey};
 
 /// USER_HZ: clock ticks per second used by /proc/<pid>/stat. It is 100 on
@@ -23,8 +25,13 @@ fn key(tgid: u32, start_boot_ns: u64) -> ProcKey {
     }
 }
 
+const FMODE_READ: u32 = 0x1;
+const FMODE_WRITE: u32 = 0x2;
+const O_CREAT: u32 = 0o100;
+const O_TRUNC: u32 = 0o1000;
+
 /// Builds a protocol event with the given id from a kernel record.
-pub fn to_event(id: u64, raw: &RawEvent) -> Event {
+pub fn to_event(id: u64, raw: &RawEvent, mounts: &Mounts) -> Event {
     let (h, kind) = match raw {
         RawEvent::Exec {
             h,
@@ -55,6 +62,79 @@ pub fn to_event(id: u64, raw: &RawEvent) -> Event {
             },
         ),
         RawEvent::Exit { h, .. } => (h, EventKind::Exit {}),
+        RawEvent::Connect { h, sock_type, addr } => {
+            let (family, text, port) = sockaddr::parse(addr);
+            (
+                h,
+                EventKind::Connect {
+                    family,
+                    addr: text,
+                    port,
+                    sock: sockaddr::sock_type(*sock_type),
+                },
+            )
+        }
+        RawEvent::Listen {
+            h,
+            family,
+            port,
+            addr,
+        } => {
+            let (_, text) = sockaddr::listen_addr(*family, addr);
+            (
+                h,
+                EventKind::Listen {
+                    addr: text,
+                    port: *port,
+                },
+            )
+        }
+        RawEvent::Open {
+            h,
+            dev,
+            ino,
+            f_flags,
+            f_mode,
+            path,
+        } => (
+            h,
+            EventKind::Open {
+                path: BStr(path.clone()),
+                dev: abi::kernel_dev_to_user(*dev),
+                ino: *ino,
+                read: f_mode & FMODE_READ != 0,
+                write: f_mode & FMODE_WRITE != 0,
+                create: f_flags & O_CREAT != 0,
+                trunc: f_flags & O_TRUNC != 0,
+                path_trunc: h.flags & abi::F_PATH_TRUNCATED != 0,
+            },
+        ),
+        RawEvent::Rename {
+            h,
+            dev,
+            ino,
+            old_walk,
+            new_walk,
+        } => (
+            h,
+            EventKind::Rename {
+                old: BStr(mounts.walk_to_path(*dev, old_walk)),
+                new: BStr(mounts.walk_to_path(*dev, new_walk)),
+                dev: abi::kernel_dev_to_user(*dev),
+                ino: *ino,
+                // Rebuilt from dentries + mount table: always approximate.
+                approx: true,
+            },
+        ),
+        RawEvent::Unlink { h, dev, ino, walk } => (
+            h,
+            EventKind::Unlink {
+                path: BStr(mounts.walk_to_path(*dev, walk)),
+                dev: abi::kernel_dev_to_user(*dev),
+                ino: *ino,
+                approx: true,
+            },
+        ),
     };
     Event {
         id,

@@ -12,7 +12,10 @@
 mod abi;
 mod collector;
 mod convert;
+mod mounts;
+mod sockaddr;
 mod startup;
+mod syscalls;
 
 use anyhow::{Context, Result, bail};
 use std::sync::Arc;
@@ -23,6 +26,7 @@ struct Opts {
     dev: bool,
     dump: bool,
     ringbuf_bytes: Option<u32>,
+    syscalls: bool,
 }
 
 fn parse_args() -> Result<Opts> {
@@ -30,6 +34,7 @@ fn parse_args() -> Result<Opts> {
         dev: false,
         dump: false,
         ringbuf_bytes: None,
+        syscalls: true,
     };
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
@@ -40,6 +45,11 @@ fn parse_args() -> Result<Opts> {
                 let v = args.next().context("--ringbuf-bytes needs a value")?;
                 opts.ringbuf_bytes = Some(v.parse().context("--ringbuf-bytes must be a number")?);
             }
+            "--syscalls" => match args.next().as_deref() {
+                Some("count") => opts.syscalls = true,
+                Some("off") => opts.syscalls = false,
+                _ => bail!("--syscalls must be \"count\" or \"off\""),
+            },
             "--version" => {
                 println!("sysscoped {}", env!("CARGO_PKG_VERSION"));
                 std::process::exit(0);
@@ -76,7 +86,7 @@ fn run(opts: &Opts) -> Result<()> {
     let stop = Arc::new(AtomicBool::new(false));
     signal_hook::flag::register(signal_hook::consts::SIGINT, Arc::clone(&stop))?;
     signal_hook::flag::register(signal_hook::consts::SIGTERM, Arc::clone(&stop))?;
-    collector::dump(opts.ringbuf_bytes, &stop)?;
+    collector::dump(opts.ringbuf_bytes, opts.syscalls, &stop)?;
     let _ = stop.load(Ordering::Relaxed);
     Ok(())
 }
