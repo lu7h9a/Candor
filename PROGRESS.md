@@ -4,7 +4,7 @@
 Updated: 2026-11-13 06:05 IST
 Milestone: M4   Current WP: WP29   Status: IN_PROGRESS
 Next action: WP29 hardening (Q5 decides the WP14 follow-mode limits)
-Open questions for owner: Q4, Q5 (2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
+Open questions for owner: Q5 (Q4 resolved; 2026-11-14: Q1 A passwordless sudo, Q2 A 4 GiB VM line, Q3 A test-only R006 override)
 Tree state: clean after WP00 commit
 Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice M1/M2 (lint + test + VM itests + adversarial review, all findings fixed) green 2026-11-13 on debian12/ubuntu2204
 
@@ -34,8 +34,8 @@ Last green gate: none (gate needs `make test-root` on the host = Q1). Gate slice
 | WP20 | GUI views | DONE | host (Xvfb + kittest) | WP20 commit | 6 screenshots described below |
 | WP21 | Follow UX, loss, robustness | DONE | host (Xvfb, fake daemon) | WP21 commit | GUI threads 6-7 % CPU, 125 MiB; real-GPU check left to the owner |
 | WP22 | Decoys + manifest | DONE | host | WP22 commit | 42 decoys per plan 6.2 |
-| WP23 | Launcher | BLOCKED(Q4) | debian12 (available), ubuntu2404 (correctly unavailable) | WP23 commit | host run needs the sysscope-box user (Q4) |
-| WP24 | Trace integration, differ, report, UI | BLOCKED(Q4) | debian12 + ubuntu2204 exact demo report; ubuntu2404 correctly unavailable | WP24 commit | host run needs the sysscope-box user (Q4) |
+| WP23 | Launcher | DONE | debian12, ubuntu2404 (correctly unavailable), host | WP23 + 2026-11-14 commits | host: 16/16 isolation checks |
+| WP24 | Trace integration, differ, report, UI | DONE | debian12, ubuntu2204, host (ubuntu2404 correctly unavailable) | WP24 + 2026-11-14 commits | host: exact demo report, 118/118 data opens attributed |
 | WP25 | Adversarial suite | DONE | 20/20 CONTAINED debian12 + ubuntu2204 (after M4 fixes); ubuntu2404 refusal | WP25 + M4 commits | |
 | WP26 | Real-sample protocol | DONE | detonate.sh with fake_malware.py zip: full report over serial; network overrides refused | WP26 commit | |
 | WP27 | Act mode (experimental) | DONE | 5 act itests + all itests on debian12 and ubuntu2204 | WP27 commit | host run pending Q1 |
@@ -766,3 +766,19 @@ after: | 500 000 x open/close | on | 0.332 | 0.411 | +23.9% | 40% | 4.3% | yes |
 dmesg new err/warn: 0 after every run; host itests all ok except the Q4 act test
 ```
 Result: BLOCKED(Q5) for the two follow-mode micro limits (E6: the hooks fire for every process, and the plan's follow-mode syscall latency needs them). Every other target is met. docs/BENCH.md is rewritten by the final `make bench` once Q5 is answered.
+
+### 2026-11-14 15:00 Q4 answered; host runs of WP23, WP24 and the act tests
+Did: the owner created the groups and the sandbox user (`systemd-sysusers packaging/sysusers/sysscope.conf`: sysscope 968, sysscope-act 967, sysscope-box 966). Host runs:
+- `sysscope-itest-act` 5/5. The recycled-pid test skips on the host by design (forcing ns_last_pid is VM-only).
+- WP23 and WP24 through host copies of the VM scripts (target/gh-host/, generated: no sysusers step, files under target/ not /tmp), with the binaries copied to root-owned /var/lib/sysscope-test/bin. The sandbox user cannot enter /home/lu7h9a (mode 700), so stage2 failed with exit 203 when started from target/release. An installed package (WP30) puts the binaries in a system directory.
+- Bug found on the host: systemd 260 prints "Main processes terminated with: code=exited, status=0/SUCCESS" (comma); systemd 252 prints "code=exited/status=0". The report said "exit: None" with a garbled note. Fixed: the parser accepts both, there are unit tests for both, and the note falls back to "unknown" for any other wording.
+Verify command: `sudo -E cargo test -p sysscope-itest --release --test act`; `sudo bash target/gh-host/wp23_glasshouse.sh`; `sudo bash target/gh-host/wp24_glasshouse.sh`; `sudo dmesg --level=err,warn`
+Verify output (real, host kernel 6.19.14+kali, systemd 260):
+```
+act: a_recycled_pid_is_refused ok (skipped on host), act_is_refused_unless_enabled ok, non_root_needs_the_group_and_ownership ok, pause_resume_and_kill_a_workload_child ok, protected_processes_are_refused ok
+WP23: OK uid 1000 / only the specified tree / synthetic passwd / loopback only / no other interfaces / NoNewPrivs 1 / Seccomp 2 / CapEff,CapPrm,CapBnd,CapInh,CapAmb zero / decoys in home / no /sys / only box processes (3) / fds 0-2 only; run-local rc=0; WP23 GLASSHOUSE PASS
+WP24: read: ['/home/victim/.aws/credentials', '/home/victim/.ssh/id_ed25519']; modified+renamed 20, entropy rose 20 (4.17 -> 7.96); deleted 10; created README_RESTORE.txt; connections 203.0.113.10:443 x1; findings R001 R004 R005 R012; loss 0; exit: 0; REPORT PASS (system-wide and while following)
+calibration: strace 202 successful opens, 84 O_PATH, 118 data opens = 118 traced
+WP24 GLASSHOUSE PASS; leftover entries 0; dmesg new err/warn: 0
+```
+Result: PASS.

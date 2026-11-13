@@ -44,7 +44,7 @@ Options (if it is a choice): A) keep both as written; the end-to-end test loads 
 If I hear nothing: replay fixtures keep covering R006; its end-to-end check stays unverified and is listed in docs/UNVERIFIED.md.
 RESOLVED 2026-11-14: owner chose A. The R006 end-to-end test loads a test-only rules override that lets R006 count loopback; the shipped rules stay unchanged.
 
-## Q4 - Create SysScope's system groups and sandbox user on this machine            (case E1-related, raised 2026-11-14)
+## Q4 - Create SysScope's system groups and sandbox user on this machine            RESOLVED (case E1-related, raised 2026-11-14)
 Blocks: the host run of the act-mode group test (WP27) and the host Glasshouse runs (WP23-WP25). Everything else of `make test-root` now runs on the host.
 What I need from you: run one command once.
 Why I need it: SysScope uses the groups `sysscope` (socket access) and `sysscope-act` (act mode) and the system user `sysscope-box` (the Glasshouse sandbox user, no home, no shell). They are defined in packaging/sysusers/sysscope.conf and are normally created by installing the package. Creating them writes /etc/group and /etc/passwd, which is outside the paths I may write, so I will not do it myself.
@@ -54,6 +54,7 @@ Exactly what to do:
 How to check it worked: `getent group sysscope-act && id sysscope-box` prints a group line and a uid line.
 Options (if it is a choice): A) create them now  B) leave them until the package is installed (WP30); those host checks stay pending   My recommendation: A, because the users are inert (no login, no home) and the host checks then cover everything.
 If I hear nothing: the two host checks stay pending; VM results (all passing) stand for them.
+RESOLVED 2026-11-14: the owner ran systemd-sysusers: groups sysscope (968), sysscope-act (967), user sysscope-box (966).
 
 ## Q5 - Follow-mode overhead target for micro-benchmarks cannot be met            (case E6, raised 2026-11-14)
 Blocks: WP14 only (the overhead gate). Everything else continues.

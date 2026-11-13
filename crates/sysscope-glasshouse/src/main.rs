@@ -864,15 +864,23 @@ fn unit_end(text: &str) -> UnitEnd {
             e.result = r.trim().to_string();
         }
         if let Some(r) = l.strip_prefix("Main processes terminated with:") {
-            // "code=exited/status=0", "code=killed/status=KILL",
-            // "code=exited/status=3/NOTIMPLEMENTED"
+            // systemd 252: "code=exited/status=0", "code=killed/status=KILL",
+            // "code=exited/status=3/NOTIMPLEMENTED"; systemd 260:
+            // "code=exited, status=3/NOTIMPLEMENTED".
             let r = r.trim();
-            if let Some((code, status)) = r
-                .strip_prefix("code=")
-                .and_then(|x| x.split_once("/status="))
-            {
-                e.code = code.to_string();
-                e.status = status.split('/').next().unwrap_or(status).to_string();
+            if let Some(rest) = r.strip_prefix("code=") {
+                let split = rest
+                    .split_once("/status=")
+                    .or_else(|| rest.split_once(", status="));
+                if let Some((code, status)) = split {
+                    e.code = code.trim().to_string();
+                    e.status = status
+                        .split('/')
+                        .next()
+                        .unwrap_or(status)
+                        .trim()
+                        .to_string();
+                }
             }
         }
     }
@@ -893,6 +901,9 @@ impl UnitEnd {
             "oom-kill" => "the sample was stopped by the 1 GiB memory limit (oom-kill)".into(),
             "timeout" => "the sample was stopped by the unit's runtime limit".into(),
             "" => "how the sample ended is unknown (systemd-run did not say)".into(),
+            r if self.code.is_empty() => {
+                format!("how the sample ended is unknown (unit result: {r})")
+            }
             r if self.code == "exited" => {
                 format!("the sample exited with code {} ({r})", self.status)
             }
@@ -1107,6 +1118,19 @@ mod tests {
             Some("the sample exited with code 3 (exit-code)")
         );
         assert_eq!(oom.note(true), None);
+        // systemd 260 wording.
+        let new = unit_end(
+            "          Finished with result: exit-code\nMain processes terminated with: code=exited, status=3/NOTIMPLEMENTED\n",
+        );
+        assert_eq!(new.exit_code, Some(3));
+        let ok260 = unit_end(
+            "Finished with result: success\nMain processes terminated with: code=exited, status=0/SUCCESS\n",
+        );
+        assert_eq!((ok260.exit_code, ok260.note(false)), (Some(0), None));
+        let oom260 = unit_end(
+            "Finished with result: oom-kill\nMain processes terminated with: code=killed, status=9/KILL\n",
+        );
+        assert_eq!(oom260.exit_code, None);
         assert!(valid_name("fake_malware.py") && !valid_name(".x") && !valid_name("a/b"));
     }
 }
