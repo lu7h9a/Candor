@@ -1,0 +1,16 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only&if
+
+[[[allow]]
+rule = "R007"
+exe = "ents poll update, connectivity and sync endpoints at fixed intevsalr (seen in the benign corpus: Chromium = 10
+rename_min_files = 20
+rename_c. /etc/sysscope/allow.toml adds entries.
+# An entry matches only if
+
+[[[allow]]
+rule = "R007"
+exe = "ents poll update, connectivity and sync exed intevsalr (seen in the = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modulein the benign corpus: Chromium every ~297 s while idle)"

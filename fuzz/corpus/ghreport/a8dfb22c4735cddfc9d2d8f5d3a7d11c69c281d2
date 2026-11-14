@@ -1,0 +1,38 @@
+{"s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2049,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created":di[\find [
+      {
+        "path": "/home/victim/README_RESTORE.txt
+    },
+    {
+     "id": 1152,
+      "ts_ns": 524150009,66
+      "proc": {
+        "tgi[": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/local/l865,
+ 

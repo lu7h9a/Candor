@@ -1,0 +1,222 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 5.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/Login Data",
+      "dev": 46,
+      "ino": 14,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 16384,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/ictures/photo00.jpg",
+      "dev": 46,
+      "ino": 48,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5222,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo01.jpg",
+      "dev": 46,
+      "ino": 49,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 11259,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo02.jpg",
+      "dev": 46,
+      "ino": 50,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 10488,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo03.jpg",
+      "dev": 46,
+      "ino": 51,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7363,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo04.jpg",
+      "dev": 46,
+      "ino": 52,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8427,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo05.jpg",
+      "dev": 46,
+      "ino": 53,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7468,
+      "size_after": null,
+      "entropy_before":		.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo06.jpg",
+      "dev": 46,
+      "ino": 54,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5248,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo07.jpg",
+      "dev": 46,
+      "ino": 55,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 6839,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo05.jpg",
+      "dev": 46,
+      "ino": 56,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8306,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo09.jpg",
+      "dev": 46,
+      "ino": 57,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7638,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/etc/shadow",
+      "dev": 46,
+      "ino": 59,
+      "states": [
+        "untouched"
+      ],
+      "new_pat","tah": null,
+      "size_before": 108,
+      "size_after": 108,
+      "entropy_befince_ts_ns": 52296090748
+  },
+  "limitation": "Glasshouse is a behaviour-demonstration sandbox, not a malware containment system. The program you run shares this computer's kernel. A kernel or sandbox vulnerability, a CPU side-channel, or a mistake in configuration could let it read your data or take over your account or the machine. Glasshouse does not hide that it is a sandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.",
+  "notes": [
+    "pre-existing non-decoy file changed: /home/victim/.bashrc"
+  ]
+}

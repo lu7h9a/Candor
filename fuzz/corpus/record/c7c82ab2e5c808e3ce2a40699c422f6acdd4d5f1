@@ -1,0 +1,3 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1000, "d": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "fekind": {"k": "Exec", "exe": "/usr/bin/vim", "argv": "/usr/bin/vim", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "pr2oc": 

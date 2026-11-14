@@ -1,0 +1,100 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001d_units"
+reason = "systemctl enables and edits units on request"
+
+[[a|low]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never t user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "udev_rules"
+reason = "the package manager installs system files (packages ship th\se; never the preload list, auths executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001d_units"
+reason = "systemctl enables and edits units on request"
+
+[[a|low]]
+rule = "R0# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/syssco group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001d_units"
+reason = "systemctl enables and edits units on request"
+
+[[a|low]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager insck = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cation written"
+attack = "T2106/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself04"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never t user's autostart)"
+
+z[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "thhigh_aage manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "udev_rules"
+reason = "the package manager installs system files (packages ship, or a package manager or editor sav these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subjecexed it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = e = "/usr/bin/pacman"
+"T1486"
+weightsub

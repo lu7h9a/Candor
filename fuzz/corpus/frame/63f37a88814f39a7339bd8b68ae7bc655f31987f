@@ -1,0 +1,32 @@
+[{
+    "run_id": "20261113-0001",
+    "samp|e": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "size": "cx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "ne_after": 2048,
+        "entroter": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 64,
+        "en       "dev": 66306,  "loss": {
+      "ringbuf": 0,
+      "budgetReport "li
+"{m

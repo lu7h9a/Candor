@@ -1,0 +1,14 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component o]nly) AND the daemon verixecutable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R000"
+exe = "/usr/sbin/ssid"
+subject = "ssh_keys"
+reas#n = "the SSH serveke																																																													reads its own saved pas for remotes"
+
+[[allow]]
+rule = "em filesR00 (packag1"
+ese

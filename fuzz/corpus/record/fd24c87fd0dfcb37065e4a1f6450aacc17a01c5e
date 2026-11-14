@@ -1,0 +1,9 @@
+{"sysscope_record": 1, "proto": 0, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 0, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/mv", "argv": "/usr/bin/mv", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": true, "system_dir": true, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f0.txt", "new": "/home/u/docs/f0.bak", "dev": 1, "ino": 10, "approx": false}}}
+{"t": "RawEvent",$"event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "{"sysscope_ruid": 2000, "kind": {" "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f22.txt", "new": "/home/u/docs/f22.bak", "dev": 1, "ino": 32, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 25, "ts_ns": 1025000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid: "RawEvent", "event": {"id": 27, "ts_ns": 1027000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", ecord": 1, "proto": 1, "daemobled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/bash", "argv": "/usr/bin/bash", "argv_trunc": false, "fileless": false, "dev": 1, "ino"old": "/home/u/docs/f25.txt", "new": "/hox": false}}}
+{"t": "RawEvent", "event": {"id": 28, "ts_ns": 1028000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home": 13}}}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "p/u/docs/f26.txt", "new": "/home/uro

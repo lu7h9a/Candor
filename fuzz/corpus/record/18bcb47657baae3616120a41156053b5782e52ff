@@ -1,0 +1,11 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/docs/f0.txt.enc", "dev": 1, "ino": 1000, "read": false, "write": true, "create": true, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Unlink", "path": "/home/u/docs/f0.txt", "dev": 1, "ino": 10, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 1004000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/docs/f1.txt.enc", "dev": 1, "ino": 1001, "read": false, "write": true, "create": true, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 1005000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Unlink", "path": "/home/u/docs/f1.txt", "dev": 1, "ino": 11, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 6, "ts_ns": 1006000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/docs/f2.txt.enc", "dev": 1, "ino": 1002, "read": false, "write": true, "create": true, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 7, "ts_ns": 1007000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Unlink", "path": "/home/u/docs/f2.txt", "ino": 1, "ino": 12, "approx": false}}}
+{"t": "RawEvent", "event"500, "start": 1}, "tid": 500, "uid":0, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 35, "ts_ns": 500, "uid": 1000, "kind": {"k": "Open", "path"":

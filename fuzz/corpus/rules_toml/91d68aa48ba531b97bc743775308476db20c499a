@@ -1,0 +1,37 @@
+# SysScope defauackages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[illow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subject = "shell_rc"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subject = "rc_local"
+reason = "the package maate, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/firefoerffx/iox"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/thunderbird/thunderbird"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"

@@ -1,0 +1,40 @@
+#iations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_endow_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc =idence_trunc = 0.4
+roots = ["/home/"]
+excluded_compolaced within {window_s} seconds"]
+benign = U"a backup, e needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_endow_s  {window_s} seconds"]
+benign = ["a backup, e needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 2
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_endow_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc is group- or
+# nagers canworld-wri 

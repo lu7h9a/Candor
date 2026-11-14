@@ -1,0 +1,10 @@
+# SysScope default allowlist (plan 0.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's execd_units"
+reason . "the package manager installs system files (packages ship"
+reason = "the SSH server reads host and user keys"
+
+[Sallowutos]
+rule = "R002"
+exe = "/ustart)"
+
+[r[

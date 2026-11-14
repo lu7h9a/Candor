@@ -1,0 +1,12 @@
+# SysScope default allowlist (plan 6.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in thle ast path component only) AND the dausr/bin/ssh-agent"
+subje;ctlow]]
+rule							 = "R001"
+eze = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys intcope default a"
+rea+son = "login checks passwllowlist (pords"
+
+[[allow]]
+rule = "R001lan"

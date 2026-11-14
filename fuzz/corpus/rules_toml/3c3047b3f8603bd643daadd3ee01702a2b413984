@@ -1,0 +1,24 @@
+# SysScope default alLowlist (plan 5.3). /etc/syssc= 1
+
+[score]
+half_life_s = 600.0
+suspicious0.4
+confidence
+  .0=1dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+om a writable temp location"
+att^ck = "T1204"
+weight = 0.4
+confidence
+  .0=1dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the pro 5.3). /etc/syssc= 1
+
+[score]
+halgram was started from {dir}, the process's executable path equals `exe` (a "*"
+# is allowed in the last path component onl["an instalSSH client reads your keys to log in"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/[in/ssh-agent"
+subjectstr"ssh_keys"
+reason =1" "
+exet 

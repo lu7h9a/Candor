@@ -1,0 +1,45 @@
+# SysScope default allo=list (plan 5.3). /etc or editor saved it"]
+
+[rules.R005UU30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign =, "ciru"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""",
+             "systemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the program asked for debugger-level access (attach, memory read or write) to {target}, which it did not start; that is how code is injected into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R100]
+title = "Unlike itslf e(experimental)"
+weight = 0.3
+confidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.Rer_creds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.cohy = ["{pafirefox/firefox"
+subject = "browser_cr"/usr/bin/ser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+su# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.tom# SysScope default allowlist (plan l a5.3d

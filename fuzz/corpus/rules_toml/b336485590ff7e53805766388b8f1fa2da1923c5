@@ -1,0 +1,58 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/strbin/ssh"
+subject = "ssh_keys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in/ the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-i002"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# cope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/strbin/ssh"
+subject = [allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R002"
+exe = "/usr "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in/ the daemon;
+# /etc/sysscope/rules.to yourself"]
+ = [".cache", ".git", ""
+reason = "polkit checks passwonode_modules",rds for admi "target", n prompts"
+
+[["_

@@ -1,0 +1,38 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R003"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds y; never the preloadlist, authorized_keys "/usr/bin/passwd"
+subject = "shadow"
+reason = "passwd changes passwords"
+
+[[allow]]
+rule =,"R001"
+exe = "/usr/lib/polkit-1/polkit-agent-helper-2"
+subject = "shadow"
+reason = "polkit checks passwords for admin prompts"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+rebin/rp"them"
+s package mubject =a na

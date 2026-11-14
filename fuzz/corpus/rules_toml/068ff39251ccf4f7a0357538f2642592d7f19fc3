@@ -1,0 +1,36 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last pathagent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keysinto the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = ' installs system files (packages ship these; never the preload list, authorized_keys or a u/etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last pathagent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system fil%es (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s pacR009kage mubject =a na

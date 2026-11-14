@@ -1,0 +1,143 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changidunce_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a dire` m?atches every subject of the rule.
+
+[[allxw]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+re"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = 'loc''''"git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"allow.toml adds entries.
+# An entry matches only if the pr
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[[al01"
+exe = "/﻿/sbin/sshd"
+subject = "shadow"
+reason = "the SSH server checks passwordsM helper that checks passwords for screen locke default detection rules (plan section 5). Embedded iecution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a dire` m?atches everyconfidence subject of the rule.
+
+[[allxw]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+re"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = 'loc''''"git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"allow.toml adds entries.
+# An entry matches only if the pr
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[[al01"
+exe = "/﻿/sbin/sshd"
+subject = "shadow"
+reason = "the SSH server checks passwordsM helper that checks passwords for screen locke defaultet dection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rul}, a dire` m?atches every subject of the rule.
+
+[[allxw]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+re"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = 'loc''''"git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"allow.toml adds entries.
+# An entry matches only if the pr
+exe = "/usr/bin/su"
+subject = "shadow"
+[al01"
+exe = "/﻿/sbin/sshd"
+subject = "shadow"
+1reason = "the SSH server checks passwordsM helper that checks passwords for screen lockers"
+
+[# SysScope default allowlisct = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "shadow"
+r[allow]]
+rule = "R001"
+exe = "/opt/google/chrome/chrome"
+subject = "browser_credbject = "shadow"
+reason = "su checks passwords"
+
+[[al01"
+exe = "/﻿/sbin/sshd"
+subject = "shadow"
+reason = "the SSH server checks passwordsM helper that checks passwords for screen lockers"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/google/chrome/chrome"
+subject = "browser_creds"
+reason = "the browser reason = "the SSH server checks passwords"
+
+[e[aa

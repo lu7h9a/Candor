@@ -1,0 +1,216 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = exe
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp locaory is group- or
+# world-writable. `subject =  = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot zilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sqlite"]
+
+[[credentials]]
+subject = "keyrings"
+desc = "the dbe inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+maxfidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makt only) AND t-e daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the ruleefox"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allo.
+
+[[allow]]
+rule = "R002"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule =]"R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+rean/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/systemd"
+subject = "systemd_units"
+reason = "systemd manages its unit files"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/systemctl"
+subject = "systemd_units"
+reason = "systemctl enables and edits units on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs system files (packrule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a na"]
+
+# Path classes. "~/" is expanded to the home directory of the process's user.
+# A "*" matches any run of bytes except "/". A pattern without "/" is matched
+# against the file name only (e.g. "*.kdbx" anywhere).
+[[credentials]]
+subject = "ssh_keys"
+desc = "a private SSH key"
+paths = ["~/.ssh/id_*"]
+exclude_suffix = [".pub"]
+
+[[credentials]]
+subject = "shadow"
+desc = "the system password hashes"
+paths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+paths = ["~/.aws/credentials", "~/.config/gcloud/*", "~/.kube/config", "~/.docker/config.json"]
+
+[[credentials]]
+subject = "netrc"
+desc = "saved login passwords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-keys-v1.d/*"]
+
+[[credentials]]
+subject = "browser_creds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Data",
+         "~/.mozdesc = "the desktop keyring"
+paths = ["~/.local/share/keyrings/*"]
+
+[[credentials]]
+subject = "password_db"
+desc = "a password database"
+paths = ["*.kdbx"]
+
+[[credentials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.dat", "~/.electrum/wallets/*"]
+
+[[persistence]]
+subject = "cron"
+desc = "a cron schedule"
+paths = ["/etc/cron*", "/etc/cron*/*", "/var/spool/cron/*", "/var/spool/cron/*/*"]
+
+[[persistence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+         "~/.config/systemd/user/*", "~/.config/systemd/user/*/*"]
+
+[[persistence]]
+subject = "shell_rc"
+desc = "a shell startup file"
+paths = ["~/.bashrc", "~/.bash_profile", "~/.profile", "~/.zshrc", "/etc/profile.d/*"]
+
+[[persistence]]
+subject = "autostart"
+desc = "a desktop autostart entry"
+paths = ["~/.config/autostart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a boot script"
+paths = ["/etc/rc.local", "/etc/init.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+desc = "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

@@ -1,0 +1,6 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component onhe
+# exeonent only) AND the daemon verified that the
+# executable is own# SysScopet nor its directory is entries.
+# An entry mastches only if th groe

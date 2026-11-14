@@ -1,0 +1,9 @@
+{
+  "t" : "Pong",
+"title": "Credential file read",
+    "sub": "T1551",
+    "proc": {
+      "tgid":34
+  },
+    "exe": "/tmp/x",   
+ "ts_ns": 5}

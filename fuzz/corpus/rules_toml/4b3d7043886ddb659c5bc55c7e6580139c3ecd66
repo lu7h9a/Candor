@@ -1,0 +1,69 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified"*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-adR001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads it																																																									"R004"
+exe = "/usr/s system files (packages ship these; never the prs own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = 																																																																																																														"R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/binr/ocntab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/systemd"
+subject = "systemd_units"
+reason = "systemd manages its unit files"
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/systemctl"
+subject = "sysssh_keys"
+reason = "the SSH client reads your keys exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firles were rewritten and renamed or replaced within {window_s} secondscious_at = 30
+high_at = 60
+max_evidence_endow_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc =idence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".gihile idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/opt/google/chrome/chrome"
+subject = "*"
+rea idle)"

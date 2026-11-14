@@ -1,0 +1,331 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 5.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/Login Data",
+      "dev": 46,
+      "ino": 14,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 16384,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/logins.json",
+      "dev": 46,
+      "ino": 18,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before": 7.95,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/key4.db",
+      "dev": 46,
+      "ino": 19,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 8192,
+      "size_after": 8192,
+      "entropy_before": 7.98,
+      "entropy_after": 7.98
+    },
+    {
+      "path": "/home/victim/.bash_history",
+      "dev": 46,
+        "ino": 44,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file17.xlsx.locked",
+      "size_before": 3405,
+      "size_after": 3405,
+      "entropy_before": 4.14,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file18.pdf",
+      "dev": 46,
+      "ino": 45,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file18.pdf.locked",
+      "size_before": 3817,
+      "size_after": 3817,
+      "entropy_before": 4.19,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file19.txt",
+      "dev": 46,
+      "ino": 46,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file19.txt.locked",
+      "size_before": 3663,
+      "size_after": 3663,
+      "entropy_before": 4.18,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Pictures/photo00.jpg",
+      "dev": 46,
+      "ino": 48,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5222,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo01.jpg",
+      "dev": 46,
+      "ino": 49,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 11259,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo02.jpg",
+      "dev": 46,
+      "ino": 50,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 10488,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo03.jpg",
+      "dev": 46,
+      "ino": 51,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7363,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo04.jpg",
+      "dev": 46,
+      "ino": 52,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8427,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": nulexpat.so.1.8.10",
+        "dev": 65025,
+        "ino": 8351,
+        ",
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file12.docse/1794547283-1/seccomp-0.bpf",
+        "dev": 46,
+        "ino": 478,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 4285,
+      "ts_ns": 52396595912,
+      "proc": {
+        "tgid": 862,
+        "start": 5lib/sid": 4312,
+            "uid:: 1000,
+            "kind": {
+              "k": "Open",
+              "path": "/home/u/.ssh/id_ed25519\\x1B[2lware containment system.",
+    "notes": [
+      "differ stopped at 20000 entries"
+    ]
+  }
+},
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1143,
+      "ts_ns": 52410603619,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/share/zoneinfo/Etc/UTC",
+        "dev": 65025,
+        "ino": 3672,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1144,
+      "ts_ns": 52410926214,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11",
+        "dev": 65025,
+        "ino": 9586,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1145,
+      "ts_ns": 52411302062       "old": "/home/victim/Documents/file17.xlsx",
+        "new": "/home/victim/Documents/file17.xlsx.locked",
+        "dev": 46,
+        "ino": 44,
+        "approx": true
+      }
+    },
+    {
+      "id": 1220,
+      "ts_ns": 52426287226,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file18.pdf",
+        "dev": 46,
+        "ino": 45,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1221,
+      "ts_ns": 52426420239,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kin    "k": "Rename",
+            "old": "/home/vi“‹–’/Documens this computer's kernel. A kernel or sandbox vulnerability, a CPU side-channel, or a mistake in configuration could let it read your data or take over your account or the machine. Glasshouse does not hide that it is a sandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.",
+  "notes": [
+    "pre-existing non-decoy file changed: /home/victim/.bashrc"
+  ]
+}

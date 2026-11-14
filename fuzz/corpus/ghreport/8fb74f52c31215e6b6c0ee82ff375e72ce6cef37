@@ -1,0 +1,274 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 5.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/Login Data",
+      "dev": 46,
+      "ino": 14,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 16384,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/logins.json",
+      "dev": 46,
+      "ino": 18,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before": 7.95,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/key4.db",
+      "dev": 46,
+      "ino": 19,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 8192,
+      "size_after": 8192,
+      "entropy_before": 7.98,
+      "entropy_after": 7.98
+    },
+    {
+      "path": "/home/victim/.bash_history",
+      "dev": 46,
+      "ino": 20,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 76,
+      "Size_after": 76,
+      "entropy_before": 4.29,
+      "entropy_after": 4.29
+    },
+    {
+      "path": "/home/victim/passwords.txt",
+      "dev": 46,
+      "ino": 21,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.09,
+      "entropy_after": 5.09
+    },
+    {
+      "path": "/home/victim/watures/photo06.jpg",
+      "dev": 46,
+      "ino": 54,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5248,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo07.jpg",
+      "dev": 46,
+      "ino": 55,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 6839,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo08.jpg",
+      "dev": 46,
+      "ino": 56,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8306,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo09.jpg",
+      "dev": 46,
+      "ino": 57,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7638,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/etc/shaeow",
+      "dev": 46,
+      "ino": 59,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 108,
+      "size_after": 108,
+      "entropy_before": 4.61,
+      "entropy_after": 4.61
+    }
+  ],
+  "created": [
+    {
+      "path": "/home/victim/README_RESTORE.txt",
+      "size": 79,
+      "entropy": 4.49,
+      "preview": "Your files are locked. This is a SysScope Glasshouse DEMO; nothing was harmed.\\x0A",
+      "kind": "file"
+    }
+  ],
+  "timeline": [
+    {
+      "id": 1077,
+      "ts_ns": 52396556989,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-0.bpf",
+        "dev": 46,
+        "ino": 478,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "p": 52401950865,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Fork",
+        "child": {
+          "tgid": 865,
+          "start": 5240
+        }
+      }
+    },
+¤   {
+      "id": 1117,
+      $ts_ns": 52401976114,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/fd",
+        "dev": 21,
+        "ino": 19767,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1118,
+      "ts_ns": 52403471482,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Exec",
+        "exe": "/usr/bin/env",
+        "argv": "/usr/bin/env\tual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.",
+  "notes": [
+    "pre-existing non-decoy file changed: /home/victim/.bashrc"
+  ]
+}

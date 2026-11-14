@@ -1,0 +1,69 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verifrding lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+h"Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untr"{coxnt} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-0
+high_at = 60
+max_evidence_events = 10
+
+[rules.R000]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untr"{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_ithin {window_s} seconds"]
+benign = ["a network scasner or discov = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_ithin {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget"for {consecutive_s} seconds, so some of its activity was not recorded"]
+benign = ["very busy build tools, indexers and package ma neither it nor its directory is group- or
+# nagers canworld-wri 

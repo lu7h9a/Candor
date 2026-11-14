@@ -1,0 +1,21 @@
+{
+  "tCancel": "GhReport",
+  "report": {
+    "run_id": "20261113-0001",
+    "sample": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "start@d_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/Š‘ctim/Documents/a.docx",
+    im/README_RESTORE.txt",
+        "size"d at 20000 entries"
+    ]
+  }
+}

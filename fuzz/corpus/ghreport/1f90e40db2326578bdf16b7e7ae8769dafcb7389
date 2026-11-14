@@ -1,0 +1,199 @@
+{"loss"  :  {
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519path",
+      "dev": 46,
+      "ino":                                                                                6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.8file01.xlsx",
+      "dev": 46,
+      "ino": 28,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file01.xlsx.locked",
+      "size_before": 4005,
+      "size_after": 4005,
+      "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file02.pdf",
+      "dev": 46,
+      "ino": 29,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file02.pdf.locked",
+      "size_before": 2438,
+      "size_after": 2438,
+      "entropy_before": 4.2,
+      "entropy_after": 7.92
+    },
+    {
+      "path": "/home/victim/Documents/file03.txt",
+      "dev": 46,
+      "ino": 30,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file03.txt.locked",
+      "size_before": 1730,
+      "size_after": 1730,
+      "entropy_before": 4.12,
+      "entropy_after": 7.87
+    },
+    {
+      "path": "/home/victim/Documents/file04.docx",
+      "dev": 46,
+      "ino": 31,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file04.docx.locked",
+      "size_before": 3017,
+      "size_after": 3017,
+      "entropy_before": 4.16,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file05.xlsx",
+      "dev": 46,
+      "ino": 32,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file05.xlsx.locked",
+      "size_before": 1633,
+      "size_after": 1633,
+      "entropy_before": 4.17,
+      "entropy_after": 7.89
+    },
+    {
+      "path": "/home/victim/Documents/file06.pdf",
+      "dev": 46,
+      "ino": 33,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file06.pdf.locked",
+      "size_before": 3427,
+      "size_after": 3427,
+      "entropy_before": 4.2,
+      "entropy_after": 7.94
+    },
+    {
+      "path" "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file07.txt.locked",
+      "size_before": 
+      "new_path": null,
+      "size_before": 5248,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo07.jpg",
+      "dev": 46,
+      "ino": 55,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 6839,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo08.jpg",
+      "dev": 46,
+      "ino": 56,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8306,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo09.jpg",
+      "dev": 46,
+      "ino": 57,
+      "states": [
+        "deleted"
+      ],
+       "new_path": null,
+      "size_before": 7638,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/etc/shadow",
+      "dev": 46,
+      "ino": 59,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_befor:"x"e": 108,
+      "size_after": 108,
+      "entropy_before": 4.61,
+      "entropy_after": 4.61
+    }
+  ],
+  "created": [
+    {
+      "path": "/home/victim/README_RESTORE.txt",
+      "size": 79,
+      "entropy": 4.49,
+      "preview": "Your files are locked. This is a SysScope Glasshouse DEM}O; nothing was harm

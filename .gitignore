@@ -13,3 +13,4 @@ __pycache__/
 /.claude/
 /CLAUDE.md
 /docs/KICKOFF_PROMPT.txt
+/fuzz/coverage/

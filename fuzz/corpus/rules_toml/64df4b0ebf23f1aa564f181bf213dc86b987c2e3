@@ -1,0 +1,35 @@
+# SysScoPe default detectk = "T1552"
+weigh4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["thfidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches onlyif the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `do checks passwordr installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[ah equals `exe` (a "*"
+# is allowed in Vthe last path component only) AND the ds SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = ult allowlist (planmatches every subject of the rule.
+
+[[allow]\
+rule = "R000"
+exe = "/usr/sbin/sshd"
+subjec ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allusr/bin/ssowlist for {subject}",
+/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwordxe = "/usr/bin/crontab"
+subject = "cros"
+
+[[allow]]
+rulen"
+reason = "crontab edits schedules on  = "R0request"
+
+08"[[a

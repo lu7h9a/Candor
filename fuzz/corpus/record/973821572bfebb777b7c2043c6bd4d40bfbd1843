@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": -, "daemon"RawEvent", "event": {"id": 7, "ts_ns": 98202000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k":N "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 8, "ts_ns": 121002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "k: false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 2}, "trd": 5se}}}
+: "stream"}}}

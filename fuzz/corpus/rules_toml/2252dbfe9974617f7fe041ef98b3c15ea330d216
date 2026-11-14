@@ -1,0 +1,19 @@
+# SysScope def*ault detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording livereeh eslr or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fil%less execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or # SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml msion = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+maxes_evidence_ cevent{ = 10
+
+[rules.R001]
+titlode run ae = g

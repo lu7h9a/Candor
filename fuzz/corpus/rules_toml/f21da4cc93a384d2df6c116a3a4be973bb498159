@@ -1,0 +1,26 @@
+# SysScope default allowli# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowe# SysScope default allo=list (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is "PAM helper that checks pass1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file you# SysScope default allowlist (plan# Sygent"
+subject = "ssh_keys"
+re888888888888888888888888888888888888888888888888888888888888888888888888888888888888888888rself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0d in.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+c the lo

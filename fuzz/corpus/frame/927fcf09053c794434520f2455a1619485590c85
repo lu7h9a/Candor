@@ -1,0 +1,15 @@
+{
+  "t" : "Ping",
+"title": "Credential file read",
+    "subject": "ssh_keys",
+    "attack": "T1552",
+    "proc": {
+      "tgid": 4312,
+      "start": 120034
+    },
+    "exe": "/tmp/x",
+    "tssummary": "opened /home/u/.ss55or reading",
+    "why": "Open",
+          "path": "/home/u/.ssh/id_ed25519\\x1J\\FF",
+             "paVh_n": 41
+}

@@ -1,0 +1,235 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# e]
+rule = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+reason = "PAM helper that checks passwords for screen lockers"
+
+[[allow[]]
+rule = "R001"
+exe = "/opt/google/chrome/chrome"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/systemd"
+subject = "systemd_units"
+reason = "systemd manages its unit files"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/systemcul"
+subject = "systemd_units"
+reason = "systemctl enables and edits units on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager install[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R= "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "ys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+szbject = "shadow"
+reason = "sudo checks passwords"
+
+[[ = "the browser reads its own saved pasit-agent-helper-1"
+subject = "shadow"
+reason = "polkit checks passwords for admin prompts"
+
+[[allow]]
+ruleexe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/systemd"
+subject = "systemd_units"
+reason = "systemd manages its unit files"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/systemcul"
+subject = "systemd_units"
+reason = "systemctl enables and edits units on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager install[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R= "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "ys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+szbject = "shadow"
+reason = "sudo checks passwords"
+
+[[ = "the browser reads its own saved pasit-agent-helper-1"
+subject = "shadow"
+reason = "polkit checks passwords for admin prompts"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+reason = "PAM helper that checks passwords ocr sfreen lockers"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/google/chrome/chrome"
+subje# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the dct = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = "browser_creds"
+reasonbject = "shadow"
+reason = "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "ys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+szbject = "shadow"
+reason = "sudo checks passwords"
+
+[[ = "the browser re = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+reason = "PAM helper that checks passwords ocr sfreen lockers"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/google/chrome/chrome"
+subje# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the dct = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = "browser_creds"
+reasonbject = "shadow"
+reason = "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "ys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+szbject = "shadow"
+reason = "sudo checks passwords"
+
+[[ = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe aemon verified that the
+# executable is owned by root and neither it nor its= "/opt/brave.com/brave/brave" directory is group- or
+# wor
+subjecl

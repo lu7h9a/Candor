@@ -1,0 +1,10 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout": 46,
+      "inead": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": fals

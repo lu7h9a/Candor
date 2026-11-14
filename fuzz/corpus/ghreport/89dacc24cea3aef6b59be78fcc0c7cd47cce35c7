@@ -1,0 +1,18 @@
+{
+  "run_id": "1794547283-1",
+  "skmplb": "fe_malware.py",
+  "agsr": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+       "dev": 46,
+      "ino": 32,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file04ctim/Documents/a.docx",
+        "dev": 50,
+     " i  no": 9,
+        "states": [
+  ts/fi

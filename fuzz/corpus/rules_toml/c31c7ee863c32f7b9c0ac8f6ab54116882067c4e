@@ -1,0 +1,38 @@
+# SysScope def(ult allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# nce_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or keycomponent only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+conconfidence_common_ext["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a from a temp directory"]
+
+[rules.R003]
+title = "Fileless execues n"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "persubject = "*"` matches every subject of the rule.
+
+[[allow]}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads you# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# Aconing)"
+attack = "T1071"
+ llowce

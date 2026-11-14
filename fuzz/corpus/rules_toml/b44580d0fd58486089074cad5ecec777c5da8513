@@ -1,0 +1,195 @@
+# SysScoe default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` "
+reason = "the package manager installs system files (packages ship these; never tthe package manager installs ram for something nEw, or it was updated"]
+
+[rules.R013]
+title = "Decoy touched"
+weight = 0.9
+confidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", "/git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R005]
+title = "Regxlar-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mgan_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a tiuded_components = [".cache", ".git", "no"]
+
+[rules.R005]
+title = "Regxlar-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mgan_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a tiuded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R050]
+title = "Regxlar-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mgan_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+ents poll update, connectivity and sync endpoints at fixed intervals (seen in the bellow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject =!"rc_local"
+reason = "the package manager inlatsls system files (packages ship these; never the pretivity and sync endpoints at fixed intervals (seen in the de_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R050]
+title = "Regxlar-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mgan_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R006]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight =0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+ents poll update, connectivity and sync endpoints at fixed intervals (seen in the bellow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject =!"rc_local"
+reason = "the package manager inlatsls system files (packages ship these; never the pretivity and sync endpoints at fixed intervals (seen in the benign corpus:he preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject = "shell_rc"
+reason = "the package manager installs ram for something nEw, or it was updated"]
+
+[rules.R013]
+title = "Decoy touched"
+weight = 0.9
+confidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", "/git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R005]
+title = "Regxlar-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mgan_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a tiuded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R050]
+title = "Regxlar-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mgan_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+ents poll update, connectivity and sync endpoints at fixed intervals (seen in the bellow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject =!"rc_local"
+reason = "the package manager inlatsls system files (packages ship these; never the pretivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[al
+reason = "br=wsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"

@@ -1,0 +1,32 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys":   
+[  {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 410,
+      "size_after": 411,
+      "eeeeeeeeeeeeeeeeeeeeeeem/D;;;;;;;;;;;;;;;;;;;;;;;;r": 411,
+      "entropy_before": 5.62,
+      "entropy_after"  "neawtp_h": null,ocuments/fim 7.84
+    },
+    {
+      "path": "/home/victim/Do "dev": 46,
+        "ino": 35,
+        "read": true,
+ ©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©©       "write": true,
+        "creat[[[[[ 	[[[[[		[[[[[[ 	[e": false,
+        "trunc":;;;;;;;;;;;;;;;;;;;;ocuments/file04.docx",
+      "dev"p

@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t\\\\\\\\\\\\\\\to_wall_ns": 0, "feature"s:[ ], \\\\\\\\\": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000 "ino tttttttt: {"id": 3, "ts_ns": 1003000000, "proc": {"t, "ino": 36845}}}

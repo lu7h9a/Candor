@@ -1,0 +1,159 @@
+{"t":{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+    "path": "/home/victim/.mozilla/firefox/x.default/logins.json",
+      "dev": 46,
+      "ino": 18,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before": 7.95,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/key4.db",
+      "dev": 46,
+      "ino": 19,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 8192,
+      "size_after": 8192,
+      "entropy_before": 7.98,
+      "entropy_after": 7.98
+    },
+    {
+      "path": "/home/victim/.bash_history",
+      "dev": 46,
+      "ino": 20,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 76,
+      "size_after": 76,
+      "entropy_before": 4.29,
+      "entropy_after": 4.29
+    },
+    {
+      "path": "/home/victim/passwords.txt",
+      "dev": 46,
+      "ino": 21,
+      "stgid"
+     re.py"ллллллллл ates": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.09,
+      "entropy_after": 5.09
+    },
+    {
+      "path": "/home/victim/wallet.dat",
+      "dev": 46,
+      "ino": 22,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_beforepath_after      "size_after": 32768,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.gnupg/private-keys-v1.d/x.key",
+      "dev": 46,
+      "ino": 25,
+      "states": [
+        "untouched"
+      ],
+      "new_xath": null,
+      "size_before": 1200,
+      "size_after": 1200,
+   4
+    },
+    {
+      "path": "/home/victim/Documents/file13.xlsx",
+      "dev": 46,
+ "states": [
+        "modified",
+   "stctes": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5222,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "efile"
+    }
+  ],
+  "timeline": [
+    {
+      "id": 1077,
+      "ts_ns": 52396556989,
+     rt": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/uid_map",
+        "dev": 21,
+        "ino": 19764,
+        "read": true,
+        "writere.py"ллллллллл    "path": "/hode/victim/D": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1093,
+inde&}    "uid": 993,
+      "kind": {
+        " k": "Open",
+        "path": "/newroot/dev/random",
+        "dev": 50,
+        "ino": 5,
+        "read": false,
+   

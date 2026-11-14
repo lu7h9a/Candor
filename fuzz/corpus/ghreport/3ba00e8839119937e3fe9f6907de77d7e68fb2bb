@@ -1,0 +1,16 @@
+{
+  "t": "GhReport",
+  "report": {
+    "h": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docx.loÿ
+cked",
+        "size_before": 2048,
+        ]
+  }
+}

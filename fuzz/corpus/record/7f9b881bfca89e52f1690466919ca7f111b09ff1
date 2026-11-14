@@ -1,0 +1,6 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "ld": "/home/u/docs/f2.txt", "new": "/home/u/docs/f1.txt.locked", "dev": 1, "ino": 12, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 7, "ts_ns": 100700)0000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/docs/f2.txt.locked", "dev": 1, "ino": 12, "read": false, "write": true, "create": false, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 8, "ts_ns": 1008000000, "proc": {"tgid": 500, "start": 1}, "t {"k": "Rename", "old": "/hd", "dev": 1, "ino": 13, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 9, "ts_ns": 1009000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k":_tr}nc": false}}}
+{"t": "RawEvent", "event": {"id": 30, "ts_ns": 1030000v": 1, "ino": 28, "read": false, "write": true,{"sysscope_recversion":, "start": 1}, "tid": R004 "uid "create": false, "urunc":": 1000 false, "path_tr, "ki

@@ -1,0 +1,95 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 1    },
+    {
+      "path": "/home/victim/Documents/file04.docx",
+      "dev": 46,
+      "i_ns": 52426687430,
+      "weight": 0.8,
+      "confidence": 0.9,
+      "summary": "20 files were rewritten and renamed or replaced",
+      "why": [
+        "20 existing files were rewritten and renamed or replaced within 10 seconds",
+        "20 of them got the same new extension \".locked\""
+      ],
+      "benign": [
+        "a ba  "k": "Rename",
+            "old": "/home/victim/Documents/file05.xlsx",
+            "new": "/home/victimd",
+            "dev": 46,
+            "ino": 32,
+            "approx": true
+          }
+        },
+        {
+         ¬"id": 1197,
+      roc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file10.pdf",
+        "new":     "tid": 865,
+      "uiÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿd": 993, "/home/victim/Documents/file10.pdf.locked",
+        "dev
+      "kind": ": 4{
+        "k": "Rename",6
+   

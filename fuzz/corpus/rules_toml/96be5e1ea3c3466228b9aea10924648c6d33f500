@@ -1,0 +1,188 @@
+# SysScope default detection rules (plan section 5). Embexe = "/usr/bin/rpm"
+subject = "udev_rules"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/bin/pacman"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[tten and renamed or replaced within {window_s} 
+paths = ["/etc/udev/rules.dseconds"]
+benign = ["a backup, sync, photo-management or bulk-rename /*"]tool you started"]
+
+[rules.R006
+]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0thin {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack =y) AND the daemon verified that the
+# executable is owned by root and# SysScope default detection rules (plan 0.4
+roots = [code. Threshol"/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewds are guarded by scripts/check-integrity.sh:
+# chreaing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 6rEEEEEEsystem files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/systemd/systemd"
+subject = "shadow"
+reason = "the service manager starts login sessions through PAM, which checks the account in /etc/shadow (seen for every SSH login)"
+
+[[allow]]
+rule = "R001oning)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack =y) AND the daemon verified that the
+# executable is owned by root and# SysScope default detection rules (plan 0.4
+roots = [code. Threshol"/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewds are guarded by scripts/check-integrity.sh:
+# chreaing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 6rEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEules"
+desc@ = "a device event rule"ritten and renamed or replaced within {window_s} 
+paths = ["/etc/udev/rules.dseconds"]
+benign = ["a backup, sync, photo-management or bulk-rename /*"]tool you started"]
+
+[rules.R006
+]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0thin {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv =00.15
+max_keys = 10000
+why = ["{count} conn"update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack =y) AND the daemon verified that the
+# executable is owned by root and# SysScope default detection rules (plan 0.4
+roots = [code. Threshol"/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewds are guarded by scripts/check-integrity.sh:
+# chreaing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 6rEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEules"
+desc@ = "a device event rule"ritten and renamed or replaced within {window_s} 
+paths = ["/etc/udev/rules.dseconds"]
+benign = ["a backup, sync, photo-management or bulk-rename /*"]tool you started"]
+
+[rules.R006
+]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0thin {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack =y) AND the daemon verified that the
+# executable is owned by root and# SysScope default detection rules (plan 0.4
+roots = [code. Threshol"/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewds are guarded by scripts/check-integrity.sh:
+# chreaing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 6rEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEules"
+desc@ = "a device event rule"ritten and renamed or replaced within {window_s} 
+paths = ["/etc/udev/rules.dseconds"]
+benign = ["a backup, sync, photo-management or bulk-rename /*"]tool you started"]
+
+[rules.R006
+]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.

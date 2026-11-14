@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "fhome": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid":{"t":																								 "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": true, "system_dir": true, "home": "/home/5", "world_write, "create": true, "trunc": false, "path_trunc": false}}}

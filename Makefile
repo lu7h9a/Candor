@@ -103,8 +103,18 @@ gui-shot: sysroot
 	$(CARGO) build -p sysscope-gui -p sysscope-cli
 	scripts/gui-shots.sh
 
+# Plan WP29 (b): every target for FUZZ_SECONDS (default 600), zero crashes.
+# Needs the nightly toolchain and cargo-fuzz (pre-authorised, plan section 2).
+FUZZ_TARGETS = frame bstr_unescape abi_decode rules_toml record ghreport
+FUZZ_SECONDS ?= 600
 fuzz:
-	@echo "make fuzz: not implemented yet (WP29)"; exit 1
+	@set -e; cd fuzz; for t in $(FUZZ_TARGETS); do \
+		echo "== fuzz $$t ($(FUZZ_SECONDS) s)"; \
+		rc=0; $(CARGO) +nightly fuzz run $$t -- -max_total_time=$(FUZZ_SECONDS) \
+			-print_final_stats=1 > ../target/fuzz-$$t.log 2>&1 || rc=$$?; \
+		grep -E "Done [0-9]+ runs|SUMMARY|panicked" ../target/fuzz-$$t.log || true; \
+		[ $$rc -eq 0 ] || { echo "fuzz $$t FAILED (rc $$rc), see target/fuzz-$$t.log"; exit 1; }; \
+	done
 
 vm-hostile: release
 	vm/hostile.sh debian12 && vm/down.sh debian12

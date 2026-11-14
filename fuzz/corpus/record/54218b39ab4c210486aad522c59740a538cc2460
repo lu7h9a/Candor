@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "did": 0, "ts_ns": 10000000, "pOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOroc": {"tgid": 500, "start": 1}, "tsysscope_record": 1, "proto": 1, "daemon_version": "_ixture", "kernel": "fixture", "boot_to_wall_ns": 0, "fid": 500, "uid": 4590, "kind":"/tmp/x", "argv": "/tmp/x", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "poc": {"tgid_writable_dir": false}

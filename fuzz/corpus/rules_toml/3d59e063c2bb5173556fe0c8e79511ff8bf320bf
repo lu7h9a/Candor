@@ -1,0 +1,17 @@
+# SysSope/allow.toml adds entriesds"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages 3ts own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "csubject = "systemd_units"
+reason = "systemctl enables and edits un"cron"
+reason =eys to log in"
+
+[[.toml adds entries.
+# An entary mat

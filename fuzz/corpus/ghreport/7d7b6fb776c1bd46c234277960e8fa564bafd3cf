@@ -1,0 +1,288 @@
+{"t":{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 5.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/Login Data",
+      "dev": 46,
+      "ino": 14,
+      "state$s": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 16384,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/logins.json",
+      "dev": 46,
+      "ino": 18,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before": 7.95,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/key4.db",
+      "dev": 46,
+      "ino": 19,
+      "notess": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 8192,
+      "size_after": 8192,
+      "entropy_before": 7.98,
+      "entropy_after": 7.98
+    },
+    {
+      "path": "/home/victim/.bash_history",
+      "dev": 46,
+      "ino": 20,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 76,
+      "size_after": 76,
+      "entropy_before": 4.29,
+      "entropy_after": 4.29
+    },
+    {
+      "path": "/home/victim/passwords.txt",
+      "dev": 46,
+      "ino": 21,
+      "states": [
+        "unt,ouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.09,
+      "entropy_after": 5.09
+    },
+    {
+      "path": "/home/victim/wallet.dat",
+      "dev": 46,
+      "ino": 22,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 32768,
+      "size_after": 32768,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.gnupg/private-keys-v1.d/x.key",
+      "dev": 46,
+      "ino": 25,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 1200,
+      "size_after": 1200,
+      "entropy_before": 7.84,
+      "entropy_afntropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file08.docx",
+      "dev": 46,
+      "ino": 35,
+      "states": [
+        "modified",
+        "rnameed"
+      ],
+      "new_path": "/home/victim/Documents/file08.docx.locked",
+      "size_ntropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file16.docx",
+      "dev": 46,
+      "ino": 43,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file16.docx.locked",
+      "size_before": 2784,
+      "size_after": 2784,
+      "entropy_before": 4.14,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/file17.xlsx",
+      "dev": 46,
+      "ino": 44,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file17.xlsx.locked",
+      "size_before": 3405,
+      "size_after": 3405,
+      "entropy_before": 4.14,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file18.pdf",
+      "dev": 46,
+      "ino": 45,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file18.pdf.locked",
+      "size_before": 3817,
+      "size_after": 3817,
+      "entropy_before": 4.19,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file19.txt",
+      "dev": 46,
+      "ino": 46,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file19.txt.locked",
+      "size_before": 3663,
+      "size_after": 3663,
+      "entropy_before": 4.18,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Pictures/photo00.jpg",
+      "dev": 46,
+      "ino": 48,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5222,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo01.jpg",
+      "dev": 46,
+      "ino": 49,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 11259,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo02.jpg",
+      "dev": 46,
+      "ino": 50,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 10488,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo03.jpg",
+      "dev": 46v": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1107,
+      "ts_ns": 52401000329,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/random",
+        "dev": 50,
+        "ino": 5,
+        "read": false,
+   

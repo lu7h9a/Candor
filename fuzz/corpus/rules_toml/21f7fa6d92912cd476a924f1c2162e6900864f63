@@ -1,0 +1,128 @@
+# SysScope default allowli# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_ke# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's exys"
+reason = "the SSHvvvvvvvvvvvvvvvvvv client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[e preload list, authorized_keys or a useecutable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verR006ified that thest (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path compo:nent only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R002"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reries.
+# An entry matches only if the pr
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[[allow]]
+rule =
+subject = "shadow"
+reason = "passwd changes passwords"
+
+[[allow]]
+md_units"
+reason = "the package manager installs system files (packages ship these; n# SysScope default allowlist (plan 2.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND thebject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+rea
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]r's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+sson = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[alubject = "systemd_units"
+reason . "the package manager installs system files (packages ship thelow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keysser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_ke# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's exys"
+reason = "the SSHvvvvvvvvvvvvvvvvvv clieneason = "ssh-adjd loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[e preload list, authorized_keys or a useecutable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]r's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "systemd_units"
+reason . "the package m%anager installs system files (packages ship these; never the preload list, authorized_keys or a user's autos]
+rule = "R001"
+exe = "/ustat/brave.com/brave/brrt)"
+ave"
+[
+subject = r["bros

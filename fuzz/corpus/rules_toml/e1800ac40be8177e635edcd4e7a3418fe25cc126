@@ -1,0 +1,39 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml addsubject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = '''''"git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"allow.
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s pacR009kage mubject =a na

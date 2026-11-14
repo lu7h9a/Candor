@@ -1,0 +1,21 @@
+{"s": 60,
+    "started_ts": 1008,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "dPPPecoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+           "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "sizropy": 4.5,
+        "prev:iw"e "your files are locked (demo)\\xA"0,
+        "ki,el"}

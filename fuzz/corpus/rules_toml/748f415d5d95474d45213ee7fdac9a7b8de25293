@@ -1,0 +1,203 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory isunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# chreaing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 0
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = " over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]
+cted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so so oemf its activity was not recorded"]
+benign = ["very busy build tools, indexers and package managers can do this"]
+
+[rules.R009]
+title = "Shell spawned by an unusual parent"
+attack = "T1059"
+weight = 0.5
+confidence = 0.6
+programs = ["sh", "bash", "dash", "zsh", "fish", "ksh", "mksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+     nds, so so oemf its activity was not recorded"]
+benign = ["very busy build tools, indexers and package managers can do this"]
+
+[rules.R009]
+title = "Shell spawned by an unusual parent"
+attack = "T1059"
+weight = 0.5
+confidence = 0.6
+programs = ["sh", "bash", "dash", "zsh", "fish", "ksh", "mksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolution", "geary", "claws-mail/bin/ssh"
+?ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo choot and neither it nor its directory isunc = 0.4
+roots =her it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule
+.
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = ["/home/"]
+excluded_components = [".cache", ".git# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# chreaing one needs a "Deviations from the plan" entry in PROGRESS.md.      "thunderbird", "thunderbird-bin", "evolution", "geary", "claws-mail/bin/ssh"
+?ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo choot and neither it nor its directory isunc = 0.4
+roots =her it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule
+.
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = ["/home/"]
+excluded_components = [".cache", ".git# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# chreaing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 0
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allow#ist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = " over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]
+cted within {wind "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolution", "geary", "claws-mail/bin/ssh"
+?ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo choot and neither it nor its directory isunc = 0.4
+roots =her it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule
+.
+[[allow]]
+rule = "R001"
+exe = "/usr/sbow_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so so oemf its activity was not recorded"]
+benign = ["very busy build tools, indexers and package managers can do this"]
+
+[rules.R009]
+title = "Shell spawned by an unusual parent"
+attack = "T1059"
+weight = 0.5
+confidence = 0.6
+programs = ["sh", "bash", "dash", "zsh", "fish", "ksh", "mksh", "csh", "tcsh", "busybox",
+            "python", cks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+rconfidence_common_ext "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "shd"
+rt)"
+
+[[allow]]
+rule = "R004"
+exe = "/ruusr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list,a na authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "udev_rusubject = "ssh_keys"
+reason = "th( SSH server

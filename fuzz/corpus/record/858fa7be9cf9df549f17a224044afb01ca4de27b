@@ -1,0 +1,5 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1002000000, "proc": {"tgid": 5in/t00, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.12", "port": 80, "sock": "stream"}}}
+: 500, "start": "fileless": false, "det", "addr": "10.0.0.12", "port": 80, "sock": "stream"}}}
+: 500, "start": 1}, 50]]}

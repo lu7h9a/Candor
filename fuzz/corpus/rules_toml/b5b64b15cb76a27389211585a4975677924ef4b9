@@ -1,0 +1,152 @@
+# SysScope defaulT det# SysScope default allo=list (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is "PAM helper that checks pass1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager  = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced ign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = } makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager  = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why ={ ["count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced ign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so some of its activi#y was not recorded"]
+benign = ["very busy build tools, indea terminal from inside it"]
+
+[rules.R011]
+title = "Process injection attempt"
+attack = "T1055"
+weight = 0.6
+confidence = 0.7
+debuggers = ["gdb", "gdbserver", "lldb", "lldb-server", "strace", "ltrace", "valgrind*", "rr",
+             "perf", "sysprof", "heaptrack", "gcore", "uftrace", "bpftrace", "criu",
+             "systemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the program asked for debugger-level access (attach, memory read or write) to {target}, which it did not start; that is how code is injected into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R100]
+title = "Unlike itslf e(experimental)"
+weight = 0.3
+confidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight = 0.9
+confidence_write = 1.0
+confidection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# chreaanging one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidenceYuntrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser rds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event fleads its own saved passwords"
+
+[[allow]elper-1"ood"
+

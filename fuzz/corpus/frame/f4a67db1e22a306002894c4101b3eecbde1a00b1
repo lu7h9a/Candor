@@ -1,0 +1,18 @@
+{
+  "t" : "Pong",
+"title": "Credential file read",
+    "subject": "ssh_keys",
+    "attack": "T1552",
+    "proc": {
+      "tgid": 4312,
+      "start": 120034
+    },
+    "exe": "/tmp/x",
+    "ts_ns": 5000000000,
+    "weight": 0.6,
+    "confidence": 0.9,
+    "summary": "opened /home/u/.ssh/id_ed25519 for reading",
+    "why": "Open",
+          "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+             "paVh_n": 41
+}

@@ -1,0 +1,46 @@
+# SysScope default allowlist (plan or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reaservice manager starts login sessions through PAM, which checks the account in /etc/shadow (seen for every SSH login)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reason = "debconf's pre-install step,= "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R/bin/ow]]
+rule =tab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exed_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a na

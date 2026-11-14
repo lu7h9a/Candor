@@ -1,0 +1,23 @@
+﻿# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matcher/bin/ssh-adR001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_cre
+"sdreason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/um/chromium"
+subject = "*
+"reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/opt/google/chroorpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/thunderbird/thunderbird"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in theds"
+
+[[allow]s: Chromium every ~297 s while idle)"

@@ -1,0 +1,217 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 5.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/Login Data",
+      "dev": 46,
+      "ino": 14,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 1,
+      "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file12.docx",
+      "dev": 46,
+      "ino": 39,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file12.docx.locked",
+      "size_before": 3629,
+      "size_after": 3629,
+      "entropy_before": 4.15,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file13.xlsx",
+      "dev": 46,
+      "ino": 40,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file13.xlsx.locked",
+      "size_before": 1688,
+      "size_after": 1688,
+      "entropy_before": 4.19,
+      "entropy_after": 7.87
+    },
+    {
+      "path": "/home/victim/Documents/file14.pdf",
+      "dev": 46,
+      "ino": 41,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file14.pdf.locked",
+      "size_before": 3779,
+      "size_after": 3779,
+      "entropy_before": 4.2,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file15.txt",
+      "dev": 46,
+      "ino": 42,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file15.txt.locked",
+      "size_before": 3783,
+      "size_after": 3783,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file16.docx",
+      "dev": 46,
+      "ino": 43,
+      "states": [
+        "modified",
+     	   "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file16.docx.locked",
+      "size_before": 2784,
+      "size_after": 2784,
+      "entropy_before": 4.14,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/fi§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§le17.xlsx",
+      "dev": 46,
+      "ino": 44,
+      "states": [
+        "modified",
+     !  "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file17.xlsx.locked",
+      "size_before": 3405,
+      "size_after": 3405,
+      "entropy_before": 4.14,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "     "size_after": 1,
+      "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file12.docx",
+      "dev": 46,
+      "ino": 39,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file12.docx.locked",
+      "size_before": 3629,
+      "size_after": 3629,
+      "entropy_before": 4.15,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file13.xlsx",
+      "dev": 46,
+      "ino": 40,
+      "states": [
+        "modified",
+        "renamed"
+   "size_before": 1688,
+      "size_after": 1688,
+      "entropy_before": 4.19,
+      "entropy_after": 7.87
+    },
+    {
+      "path": "/home/victim/Documents/file14.pdf",
+      "dev": 46,
+      "ino": 41,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file14.pdf.locked",
+    },
+      g"tid": 862,
+      "uid": 993,
+      "kind":: "fake_malware.py",
+    {
+        "k": "Open",
+        "path": "/proc/(62/fd",
+        "dev": 21,
+        "ino": entropy_after  "read": true,
+        "write": false,
+        "create": fa    },
+    {
+      "id": 1095,
+      "ts_ns": 52399867im/.bas7hrc"
+  ]
+}6
+5,
+    

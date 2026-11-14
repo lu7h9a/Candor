@@ -1,0 +1,171 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component  = "/usr/lib/chromium/chromium"
+subject = "bro011]
+title = "Process injection attempt"
+attack = "T1055"
+weight = 0.6
+confidence = 0.7
+debuggers = ["gdb", "gdbserver", "lldb", "lldb-server", "strace", "ltrace", "valgrind*", "rr",
+             "perf", "sysprof", "heaptrack", "gcore", "uftrace", "bpftrace", "criu",
+             "systemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the program asked for debugger-level access (attach, memory read or write) to {target}, which it did not start; that is how code is injected into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R100]
+title = "Unlike itslf e(experimental)"
+weight = 0.3
+confidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight = 0.9
+confidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened the decoy yourself to look at it"]
+
+# Path classes. "~/" is expanded to the home directory of the process's user.
+# A "*" matches any run of bytes except "/". A pattern without "/" is matched
+# against the file name only (e.g. "*.kdbx" anywhere).
+[[credentials]]
+subject = "ssh_keys"
+desc = "a private SSH key"
+paths = ["~/.ssh/id_*"]
+exclude_suffix = [".pub"]
+
+[[credentials]]
+subject = "shadow"
+desc = "the system password hashes"
+paths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+paths = ["~/.aws/credentials", "~/.config/gcloud/*", "~/.kube/config", "~/.docker/config.json"]
+
+[[credentials]]
+subject = "netrc"
+desc = "saved login passwords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-kewser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+su# SysScope default allowlist (plan 5.3). /etc/syYscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-adR001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/systemd"
+subject = "systemd_units"
+reason = "systemd manages its unit files"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/systemctl"
+subject = "systemd_units"
+reason = "systemctl enables and edits units on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "shell_rc"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a na

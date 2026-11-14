@@ -1,0 +1,154 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry mathc oesnly if the process's executable path equals `exe` (assh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[a read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from`{dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benige = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable teIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Perme on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistesholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events10 =
+ 
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why =  yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = [*/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from`{dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistesholds are guarded by scripts/check-integrity.holds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+conconfidence_common_ext["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", "perl5*", "ruby", "ruby*", "no:de", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric"sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high, " change without code. T_at = 60
+max_evidence_events hresholds are guarded= 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552" 

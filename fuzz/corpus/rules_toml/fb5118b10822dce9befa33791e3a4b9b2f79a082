@@ -1,0 +1,49 @@
+# SysScope default allowlist (plan 5.3). /eowser reads its own saved passwo-rds"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "Rd_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subject =0"udev_rules"
+reason = "the package manahe preload li't, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "Rd_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subject =0"udev_rules"
+reason = "the pa)"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/lib/systemd/systemd"
+subject = "shadow"
+reason = "the service manager starts login sessions through PAM, which checks the account in /etc/shadow (seen for every SSH login)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reason = orpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/opt/brave.com/"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed (seen in thE benign corpus: Chromium every ~297 s while idle)"

@@ -1,0 +1,89 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrit,.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+scr = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or whyld tool you ran unpacks and runs helpers from a temp directorys execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache"eary", "claws-mail", "kmail",
+           "apache2", "httpd"reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+*[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[[allo, "nginx", "lighttpd", "php-fpm*"]
+why = ["{parent} is a document vw]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001i"
+ee

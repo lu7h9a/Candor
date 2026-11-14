@@ -1,0 +1,34 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives he key-management tool yourself"]
+
+[rperimental)"
+weight = 0.3
+confidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of s99}, learned over {runs[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R001]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preloa} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R009]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster thations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs[rules.R003]
+title = "Fileless execution"
+attack = "a# SysScope default detecl 

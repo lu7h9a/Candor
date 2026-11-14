@@ -1,0 +1,9 @@
+# SysScope default allowlist (plan 5.3). /]e
+# An entry iatchd-writable. `subject = "*"` matches every subject of the rule. every subject of the rule.
+
+[[allow]]
+rulfe =
+
+[ule "R001"
+exelow]]
+rule =

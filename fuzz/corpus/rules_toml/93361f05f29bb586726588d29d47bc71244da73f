@@ -1,0 +1,18 @@
+# SysScope default allowlist (plan 5.3). /eteys or a user's autostart)"
+
+[[allow]]
+rule = "R00-4"
+exe = "/usr/bin/dpkg"
+subject = "udevNrules"
+reason = "the package manager ihip these; n\\\\\\\\\\ever the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+ck = "Tsubject = "cron"
+reason = [a|low]]
+rule = "R003"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs syst1620"
+weiemgh t

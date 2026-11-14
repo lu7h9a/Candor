@@ -1,0 +1,67 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_zfter": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25file17.xlsx",
+      "dev": 46,
+      "ino": 44,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file17.xlsx.locked",
+      "size_before": 3405,
+      "size_after": 3405,
+      "entropy_before": 4.14,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file18.pdf",
+      "dev": 46,
+      "ino": 45,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file18.pdf.locked",
+      "size_before": 3817,
+      "size_after": 3817,
+      "entropy_before": 4.19,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file19.txt",
+      "dev": 46,
+      "ino": 46,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file19.txt.locked",
+      "size_befoer": null,
+      "entropy_before": 7.98,
+      
+      "states": [
+        "un																																																																							touched"
+      ]65,
+        "start ": "/etc/

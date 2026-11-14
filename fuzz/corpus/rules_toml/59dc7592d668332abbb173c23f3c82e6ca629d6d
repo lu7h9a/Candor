@@ -1,0 +1,29 @@
+# Syslow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"
+reason = "sudo chec"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = d passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox/firefox"
+subjstall step,= "the browser reads its ints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+m 

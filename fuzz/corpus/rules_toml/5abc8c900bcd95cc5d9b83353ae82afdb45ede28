@@ -1,0 +1,18 @@
+# SysScope default allo=list (plan 5.3). /etecks pass1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_s"node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.binyou started a termined into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R100]
+title = "Unlike itslf e(experimental)"
+weight = 0.3
+confidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+beni/sysscope/allow.tom# SysScope default allowlist (plan l a5.3d

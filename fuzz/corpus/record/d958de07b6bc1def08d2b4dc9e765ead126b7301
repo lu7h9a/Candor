@@ -1,0 +1,1 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixtureture", "boot_to_wall_ns": 0, "feion": "fixture", "kernel": "fixture", "boot_to": 1000, "kiis": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec"

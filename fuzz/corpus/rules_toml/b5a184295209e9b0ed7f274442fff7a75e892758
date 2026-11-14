@@ -1,0 +1,18 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here/so it can
+# change without !ode. Thresholds are guarded by scripeck-integrity.tection rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has S.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title &= "Credential file read"
+titlek = "T1552"
+we# eleted file), so it cannot be inspected a+terwards"]
+benign = ["some sandboxes,"some sandboxes, JIT runtimes andlds {subject_desc}",
+  "the p"{srou

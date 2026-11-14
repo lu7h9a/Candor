@@ -1,0 +1,75 @@
+[{
+    "run_id": "20261113-0001",
+    "samp|e": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "size": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+              "uid": 1000,
+        "kind": {
+          "k": "Open",
+          "path": "/home/u/.ssh/id_ed12759\\x1B[2J\\xFF",
+          "dev": 66306,
+          "ino": 1234567,
+          "read": true,
+          "write": false,
+          "create": false,
+          "trunc": false,
+          "path_trunc": false
+        }
+      }
+    ],
+    "connections": [
+      {
+        "family": "inet",
+        "addr": "617.0.113.10",
+        "port": 443,
+        "sock": "stream",
+        "count": 1,
+        "last_ts": 1500
+      }
+    ],
+    "children": [
+      {
+        "tgid": 2,
+        "start": 3
+      }
+    ],
+    "findings": [
+      {
+        "id": 7,
+        "rule": "R001",
+        "title": "Credential file read",
+        "subject": "ssh_keys",
+        "attack": "T1552",
+        "proc": {
+          "tgid": 4312,
+          "start": 120034
+        },
+        "exe": "/tmp/x",
+        "ts_ns": 5000000000,
+        "weight": 0.6,
+        "confidence": 0.9,
+        "summary": "opened /home/u/.ssh/id_ed25519 for reading",
+        "why": [
+          "this file is a private SSH[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[ key"
+        ],
+        "benign": [
+          "you ran a backup or key-management tool yourself"
+        ],
+        "evidence": 
+ [         18812
+        ],
+        "ev567,
+              "read": true,
+[[[[[[[[{
+     "    

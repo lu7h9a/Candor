@@ -1,0 +1,77 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable ed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshld"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh"
+subjereads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lect = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/fire\ox-esr/firefox-esr"
+su# SysScope dect = "ssh_keys"
+reason = "the SSH clientݍeads your keys to lo/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sshs entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is "PAM helper that checks passwords for screen lockers"
+
+[[allow]]
+rul
+
+[[allowd this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_shwser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/fire\ox-esr/firefox-esr"
+su# SysScope default allowlist (plan "
+subject = "s?sh_keys"
+reason = "the SSH clientݍeads yourHkeys to log in"
+
+[[allownstalls system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "systemd_units"
+reason = "the package manw]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a na

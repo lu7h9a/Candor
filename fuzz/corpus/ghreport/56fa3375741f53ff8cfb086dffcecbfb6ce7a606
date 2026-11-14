@@ -1,0 +1,134 @@
+{"t":{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file07.txt",
+      "dev": 46,
+      "ino": 34,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file07.txt.locked",
+      "size_before": 3775,
+      "size_after": 3675,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file08.docx",
+      "dev": 46,
+      "ino": 35,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file08.docx.locked",
+      "size_before": 2370,
+      "size_after": 2370,
+      "entropy_before": 4.17,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/file09.xlsx",
+      "dev": 46,
+      "ino": 36,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file09.xlsx.locked",
+      "size_before": 3579,
+      "size_after": 3579,
+      "entropy_before": 4.17,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/vicked",
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+: 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path"me/victim\\x00--setenv\\x00USER\\x00victim\\x00--setenv\\x00LANG\\x00C.UTF-8\\x00--uid\\x001000\\x0-0-gid\\x001000\\x00--ro-bindX\x00/u",
+        "argv_trunc": true[
+        "fileless": false,
+        "dev": 65025,
+        "ino": 112
+      }
+    },
+    {
+      "id": 1081,
+      "ts_ns": 52397286023,
+      "proc": {
+        "tg   "ino": 19769,
+        "read": true,
+        "wrie":t false,
+        "create": false,
+        om",
+        "dev": 50,
+        "ino": 5,
+        "read": false,
+   

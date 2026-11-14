@@ -1,0 +1,38 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# cha"/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"ck", "gcore", "uftrace", "bpftrace", "criu",
+          P   "qystemd-coredump", "apport", "abrt-ho]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-keys-v1.d/*"]
+
+[[credentials]]
+subject = "browser_creds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Dahing new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate sta",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+s "the list of keys allowed to log in over SSH"
+pssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

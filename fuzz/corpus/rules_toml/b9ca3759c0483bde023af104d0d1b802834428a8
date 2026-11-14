@@ -1,0 +1,14 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `t of the rule.
+
+[[allowde. Thresholds are guarded by scripts/check-inteerity.sh:
+# changing one needs a "Deviatisf nroom thep lan" e
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+hig]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+h_atre = 30
+max_evidence_events = 1aso0n

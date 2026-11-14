@@ -1,0 +1,9 @@
+{"sysscope_record": 1, "proto": 1, "daemon_verome": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 501, "start": 1}, "tid": 501, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 501, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "BudgetDrops", "ts_ns": 2000000000, "drops": [[{"tgid": 500, "start": 1}, 5], [{"tgid": 501, "start": 1}, 7]]}
+{"t": "BudgetDrops", "ts_ns": 3000000000, "drops": [[{"tgid": 500, "start": 1}, 5], [{"tgid": 501, "start": 1},, "world_writable_dir": false}
+{"t": "BudgetDrops", "ts_ns": 2000000000, "drops": [[{"tgid": 500, "start": 1}, 5], [{"tgid": 501, "start": 1}, 7]]}
+{"t": "BudgetDrops", "ts_ns": 3000000000, "drops": [[{"tgid": 500, "start": 1}, 5], [{"tgid": 501, "start": 1}, 7]]}
+{"t": "BudgetDrops", "ts_ns": 4000000000, "drops": [[{"tgid": 501, 7]]}
+{"t": "BudgetDrops", "ts_ns": 4000000000, "drops": [[{"tgid": 501, "start": 1}, 5], [{"tgid": 501, "start": 1}, 7]]}

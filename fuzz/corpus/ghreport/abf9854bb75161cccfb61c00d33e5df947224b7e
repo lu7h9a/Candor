@@ -1,0 +1,14 @@
+{
+  "t": "GhReport",
+  "report": {
+       "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+          "sur files are locked (demo)\\/home/u/.ssh/id_ed51038\\x1B[2lware containment system.",
+    "notes": [
+      "differ stopped at 20000 entries"
+    ]
+  }
+}

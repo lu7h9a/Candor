@@ -1,0 +1,47 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path eq"udev_rules"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/`bin/rpm"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a us[[allow]]
+rule.= "R001"
+exe = "/usr/bin/ssh-add"
+subject = "sshoto-management or bulk-rename tool you stVUUUUUUarted"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitorids"]
+benign = ["a backup, sync, disablphoto-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-intervem files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/u-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-adackages ship these; neve= "systemd manages its unit files"
+
+[[allow]]
+rule = "R004"
+exr the preload le is= t, au"

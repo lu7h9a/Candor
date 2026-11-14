@@ -1,0 +1,183 @@
+# SysScope default dete"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/privaty touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate sta",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.pin /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened the decoy yourself to look at it"]
+
+# Path classes. "~/" is expanded to the home directory of the process's user.
+# A "*" matches any run of bytes except "/". A pattern without "/" is matched
+# against the file name only (e.g. "*.kdbx" anywhere).
+[[credentials]]
+subject = "ssh_keys"
+desc = "a private SSH key"
+paths = ["~/.ssh/id_*"]
+exclude_suffix = [".pub"]
+
+[[credentials]]
+subject = "shadow"
+desc = "the system password hashes"
+paths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+paths = ["~/.aws/credentials", "~/.config/gcloud/*", "~/.kube/config", "~/.docker/config.json"]
+
+[[credentials]]
+subject = "netrc"
+.desc = "saved login passwords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = and child processes differed frction rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# cha"/tm
+[[credentials]]
+subject = "shadow"
+desc = "the system password hashes"
+paths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+paths = ["~/.aws/credentials", "~/.config/gcloud/*", "~/.kube/config", "~/.docker/config.json"]
+
+[[credentials]]
+subject = "netrc"
+desc = "saved login passwords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/privaty touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate sta",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.pin /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight =. c9
+0onfidence_w&rite = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened the decoy yourself to look at it"]
+
+# Path classes. "~/" is expanded to the home directory of rom the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened the decoy yourself to look at it"]
+
+# Path classes. "~/" is expanded to the home directory of the process's user.
+# A "*" matches any run of bytes except "/". A pattern without "/" is matched
+# agadecoy that nothing legitimate sta",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.pin /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened t= ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Dahing new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate sta",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+s "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc"private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-keys-v1.d/*"]
+
+[[credentials]]
+subject = "browser_creds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Dahing new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight =. c9
+0onfidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate sta",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+s "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

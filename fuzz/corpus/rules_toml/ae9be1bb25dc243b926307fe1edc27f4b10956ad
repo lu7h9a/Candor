@@ -1,0 +1,171 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry mathc oesnly if the process's executable path equals `exe` (assh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[a read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from`{dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistesholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why =  yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "//nusruer/"]
+why = ["the program was started from`{dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistesholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 1.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool2yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssecoy yourself to look at it"]
+
+# Path classes. "~/" is expanded tsScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/che[
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssecoy yourself to look at it"]
+
+# Path classes. "~/" is expanded tsScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_lif# SysScope default detection rule_s = 600.0
+suspies (placious_n sa

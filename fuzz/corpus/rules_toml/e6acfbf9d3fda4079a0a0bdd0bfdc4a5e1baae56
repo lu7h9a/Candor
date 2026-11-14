@@ -1,0 +1,143 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_eventeight = 0.5
+confidence = 0.6
+programs = ["sh", "bash", "dash", "zsh", "fish", "ksh", "mksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolution", "geary", "claws-mail", "kmail",
+           "apache2", "httpd", "nginx", "lighttpd", "php-fpm*"]
+why = ["{parent} is a document viewer, browser, mail client or web server, and it started {program}; that is how an exploited document, page or mail usually runs its own code"]
+benign = ["a plugin or helper of {parent} legitimately runs a script, or you started a terminal from inside it"]
+
+[rules.R011]
+title = "Process injection attempt"
+attack = "T1055"
+weight = 0.6
+confidence = 0.7
+debuggers = ["gdb", "gdbserver", "lldb", "lldb-server", "strace", "ltrace", "valgrind*", "rr",
+             "perf", "sysprof", "heaptrack", "gcore", "uftrace", "bpftrace", "criu",
+             "systemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the program asked for debugger-level access (attach, memory read or write) to {target}, which it did not start; that is how code is injected into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R100]
+title = "Unlike itself (experimental)"
+weight = 0.3
+confidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight = 0.9
+confidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened the decoy yourself to look at it"]
+
+# Path classes. "~/" is expanded to the home directory of the process's user.
+# A "*" matches any run of bytes except "/". A pattern without "/" is matched
+# against the file name only (e.g. "*.kdbx" anywhere).
+[[credentials]]
+subject = "ssh_keys"
+desc = "a private SSH key"
+paths = ["~/.ssh/id_*"]
+exclude_suffix = [".pub"]
+
+[[credentials]]
+subject = "shadow"
+desc = "the system password hashes"
+paths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+paths = ["~/.aws/credentials", "~/.config/gcloud/*", "~/.kube/config", "~/.docker/config.json"]
+
+[[credentials]]
+subject = "netrc"
+desc = "saved login passwords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-keys-v1.d/*"]
+
+[[credentials]]
+subject = "browser_creds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Data",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sqlite"]
+
+[[credentials]]
+subject = "keyrings"
+desc = "the desktop keyring"
+paths = ["~/.local/share/keyrings/*"]
+
+[[credentials]]
+subject = "password_db"
+desc = "a password database"
+paths = ["*.kdbx"]
+
+[[credentials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.dat", "~/.electrum/wallets/*"]
+
+[[persistence]]
+subject = "cron"
+desc = "a cron schedule"
+paths = ["/etc/cron*", "/etc/cron*/*", "/var/spool/cron/*", "/var/spool/cron/*/*"]
+
+[[persistence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+         "~/.config/systemd/user/*", "~/.config/systemd/user/*/*"]
+
+[[persistence]]
+subject = "shell_rc"
+desc = "a shell startup file"
+paths = ["~/.bashrc", "~/.bash_profile", "~/.profile", "~/.zshrc", "/etc/profile.d/*"]
+
+[[persistence]]
+subject = "autostart"
+desc = "a desktop autostart entry"
+paths = ["~/.config/autostart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a boot script"
+paths = ["/etc/rc.local", "/etc/init.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+desc = "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

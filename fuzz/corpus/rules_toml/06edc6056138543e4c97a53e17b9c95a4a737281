@@ -1,0 +1,7 @@
+# Snd user kTUUUUUUallow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads yourn/ssh-adRssh-agent"
+subjec001"t 
+=

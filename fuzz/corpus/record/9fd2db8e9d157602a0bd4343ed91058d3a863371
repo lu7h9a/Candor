@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "Decoys", "inodes": [[1, 100]]}
+{"t": "Decoys", "inodes": []}
+{"t": "RawEvent", "event": {"id": 1, "ts_n:s "1001000000, "prstart": 0}, "tid": 500, "uid": 1000, "kind": {"k": "Ex": "ExeMeta", "proc": {"se}}}

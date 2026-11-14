@@ -1,0 +1,41 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entriesr
+# An entry matches only if the process's executable path eq1uals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is gect = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"ser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/fire checks the account in /etc/shadow (seen for every SSH login)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reason = """"debconf's pre-install step, run by apt before every instalkages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allowl, reads the account database"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/chromium/chromium"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[a]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the pllow]]
+rule = "aR00c

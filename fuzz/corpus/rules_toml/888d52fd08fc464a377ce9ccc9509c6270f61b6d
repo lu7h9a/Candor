@@ -1,0 +1,307 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equals `exe` (a "*"
+# is allowed in"/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[hd"
+subject = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject n = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject n = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+susr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exd = "/sr/bil/sudo"
+subject =[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject n = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+r"/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject n = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+susr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_ = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/bil/ich it did not start; that is how code is injected into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R200]
+title = ind sync endpoints at fixed intervals (sedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it c.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differed from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs} runs)"]
+benign = ["you used thn/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+r"/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject n = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+susr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keyeason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/01"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "10"0R
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/bil/sudo"
+subject =[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject n = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+susr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "thes for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/bil/sudo"
+subject =[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject n = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+susr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SCH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+sudd"
+susr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SCH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/bil/sudo"
+subject = "shusr/sbi

@@ -1,0 +1,10 @@
+{
+  "t" : "Pong",
+"title": "Credential file read",
+    "subjecweight": 0.6,
+    "confidence": 0.9,
+    "summary": "opened¿ /home/u/.ssh/id_ed25519 for reading",
+ 
+     "path": "/home/u/.ssh/id_ed255F",
+             "paVh_n": 41
+}

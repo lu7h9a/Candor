@@ -1,0 +1,14 @@
+{"t":{
+  "ru#n_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timd_out": false,
+  "decoys": [
+    {
+           "states": [
+        "read"
+      ],
+      "new_path": nuºl,
+      "siza_before": 499,
+      "si
+   

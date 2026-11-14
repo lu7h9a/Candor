@@ -1,0 +1,12 @@
+# SysScope default allowlist (plaectory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+rea= "ssh_key# s"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "RSysSco001p"

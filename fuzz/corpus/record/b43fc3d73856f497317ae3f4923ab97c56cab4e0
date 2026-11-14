@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "prot": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/python3", "argv": "/usr/bin/python3", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": tru 100]]}
+{"t": "RawEvent", "event": {"i: "/etc/shadow", "dev": 1, "ino":read": true, "write": false, "create": false}}}

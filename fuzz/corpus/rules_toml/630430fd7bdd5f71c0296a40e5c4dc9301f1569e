@@ -1,0 +1,21 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches vnly if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component o]nly) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R000"
+exe = "/usr/sbin/ssid"
+subject = "ssh_keys"
+reas#n = "the SSH serveke								 "perr {subject}",
+]
+benign = ["y "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolutio																																																					reads its own saved pas for remotes"
+
+[[allow]]
+rule = "em filesR00 (packag1"
+ese

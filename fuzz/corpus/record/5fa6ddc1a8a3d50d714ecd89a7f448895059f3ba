@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boemkn_version": "fixture", "kernel": "fixtureEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/d1/f1", "dev": 1, "ino": 11, "read": false, "write": trum, "create": false, "trunc": true, "path_trunc": false}}}
+{"tetDrops", "ts_ns": 3000000000, "drops": [[{"tgid": 500, "startot_to_wall_ns": 0, "features": [], "act_enabled":proto false}
+{"t": "RawEvent", "ev: 1000, "kind": {"k": "Exec", "exe": "/root/tool", "ans": 1002000000, "proc": {"tgid": 310, "start": 1}, "tid": 510, "uid": 1000, "kind": {"k": "Open", "path": emon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"3: se, "path_trunc": false}}}

@@ -1,0 +1,131 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack*", "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php", "php*", "lua", "luaru5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolution", "geary", "claws-mail", "kmail",
+           "apache3", "httpd", "nginx", "lighttpd", "php-fpm*"]
+why = ["{parent} is a document viewer, browser, mail client or web server, and it started {program}; that is how an exploited document, page or mail usually runs its own code"]
+benign = ["a plugin or helper of {parent} legitird", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolution", "geary", "claws-mail", "kmail",
+           "apache2", "httpd", "nginx", "lighttpd", "php-fpm*"]
+why = ["{parent} is a document viewer, browser, mail client or web server, and it started {program}; that is how an exploited document, page or mail usually runs its own code"]
+benign = ["a plugin or helper of {parent} legitimately runs a script, or you started a  1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened the decoy yourself to look at it"]
+
+# Path classes. "~/" is expanded to the home directory of the process's user.
+# A "*" matches any run of bytes except "/". A pattern without "/" is matched
+# against the file name only (e.g. "*.kdbx" anywhere).
+[[credentials]]
+subject = "ssh_keys"
+desc = "a private SSH key"
+paths = ["~/.ssh/id_*"]
+exclude_suffix = [".pub"]
+
+[[credentials]]
+subject = "shadow"
+desc = "the system password hashes"
+paths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+paths = ["~/.aws/credentials", "~/.config/tostart entry"
+paths = ["~/.config/autostart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a boot script"
+paths = ["/etc/rc.local", ."/etc/iniLt.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+desc = "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rulestrack", "gcore", "uftrace", "bpftrace", "criu",
+             "s= "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr owned by root and neither it nor its directory is groystemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the program asked for debugger-level access (attach, memory read or write) to {target}, which it did not start; that is how codeuns)"]
+benign = ["you used the program for something new, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight = 0.9
+confidence_write = 1.0
+confidence_read = 0.8
+why = ["this file is a decoy that nothing legitimate should open"]
+benign = ["you opened the decoy yourself to look at it"]
+
+# Path classes. "~/" is expanded to the home directory of the process's user.
+# A "*" matches any run of bytes except "/". A pattern without "/" is matched
+# against the file name only (e.g. "*.kdbx" anywhere).
+[[credentials]]
+subject = "ssh_keys"
+desc = "a private SSH key"
+paths = ["~/.ssh/id_*"]
+exclude_suffix = [".pub"]
+
+[[credentials]]
+subject = "shadow"
+desc = "the system password hashes"
+paths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+paths = ["~/.aws/credentials", "~/.config/tostart entry"
+paths = ["~/.config/autostart/*"*]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a boot script"
+paths = ["/etc/rc.local", ."/etc/init.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+desc = "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

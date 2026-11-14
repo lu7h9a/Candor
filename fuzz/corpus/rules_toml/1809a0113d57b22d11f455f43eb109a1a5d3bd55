@@ -1,0 +1,67 @@
+# SzsScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = """"/usr/bin/ssh-agent"
+subject subject = "shell_rc"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_key or a user's autostart)"
+
+[[allow]]
+rule d"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = """"/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the cks passwords"
+
+[hd"
+subject = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "su"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = """"/usr/bin/ssh-agent"
+subject = "ssh_ent"
+subject = "sskeys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]h_keys"
+reason =
+ru "thl

@@ -1,0 +1,16 @@
+# SysScope default allck = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", ""
+reason = "polkit checks passwonode_modules",rd= "/usr/bin/ssh-agent"
+suompts"
+
+[["_

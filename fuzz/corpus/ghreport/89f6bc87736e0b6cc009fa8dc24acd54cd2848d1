@@ -1,0 +1,29 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+          "untouched"
+      ],
+      "new_path": null,
+      "size_before" :,99
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5}nd": {
+            "k": "Rename",
+            "old": "/home/victim/Dome/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+       "dev": 23,
+       

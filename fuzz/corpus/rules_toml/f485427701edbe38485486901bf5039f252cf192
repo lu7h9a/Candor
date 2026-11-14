@@ -1,0 +1,160 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# ch# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/ange without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "tsshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/strhis file holds# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matchrule.
+
+[[allow]]
+rule = "R000"
+ keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"
+reason = "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule.= "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+h component only) AND the daemon verified that the
+# executable is owned by root aeys"
+reason = "ssh-add loadsgroup- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matchrule.
+
+[[allow]]
+rule = "R000"
+ keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"
+reason = "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+ {subjebin/ssh"
+subject = "ssct_desc}",
+  "the program is not on the allowlist forh_keys"
+r {sueasoexe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[n b=[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/b# SysScope default allo=list (plan 5.3). /etc or editor saved it"]
+
+[rules.R005UU30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files werewned by root and neither it nor its directory isunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git#in/ssh-agent"
+subject = "ssh_key SysScope default dets"
+reason = "the Sec

@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "fr": true, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/etc/shadow", "dev": 1, "\nid": 1000, "kin": true, "write": false, "create": false, "trunc": false, "path_trunc": false}}}

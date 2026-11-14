@@ -1,0 +1,107 @@
+{"t":{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+  "timeline": [
+    {
+      "id": 1077,
+      "ts_ns": 52396556989,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-0.bpf",
+        "dev": 46,
+        "ino": 478,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 2156,
+      "ts_ns": 52396595912,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-1.bpf",
+        "dev": 46,
+        "ino": 479,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1079,
+      "ts_ns": 52396614703,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-2.bpf",
+        "dev": 46,
+        "ino": 480,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 0540,
+      "ts_ns": 52397026515,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 867,
+      "ts_ns": 52401000329,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/random",
+        "dev": 50,
+        "ino": 5,
+        "read": false,
+   

@@ -1,0 +1,15 @@
+# SysScope "
+subject = "shadow"
+reason = every install, reads the account database"
+
+[[allow]]
+rlu= e "R006"
+exe = "/usr/lib/chromium/chromium"
+subject =' "*"
+reason = "brt fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/opt/google/chrome/chrome"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in ervals (seen in the benign corpus: Chromium every ~297 s while idle)"

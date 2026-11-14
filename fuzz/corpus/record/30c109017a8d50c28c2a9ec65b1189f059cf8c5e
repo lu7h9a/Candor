@@ -1,0 +1,3 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/lib/firefox/firefox", "argv": "/usr/libefox", "argv_trunc": false,"argv_trunc": false, "fileless": false, "dev": 1, "ino": 70109}}}
+

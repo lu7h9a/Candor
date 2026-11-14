@@ -1,0 +1,68 @@
+[{
+    "run_id": "20261113-0001",
+    "samp|e": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "size": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+              "uid": 1000,
+        "kind": {
+          "k": "Open",
+          "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+          "dev": 66306,
+          "ino": 1234567,
+          "read": true,
+          "write": false,
+          "create": false,
+          "trunc": false,
+          "path_trunc": false
+        }
+      }
+    ],
+    "connections": [
+      {
+        "family": "inet",
+        "addr": "617.0.113.10",
+        "port": 443,
+        "sock": "stream",
+        "count": 1,
+        "last_ts": 1500
+      }
+    ],
+ 
+        "rule": "R001",
+        "title": "Credential file read",
+        "subject": "ssh_keys",
+        "attack": "T1552",
+        "proc": {
+          "tgid": 4312,
+          "start": 120034
+        },
+        "exe": "/tmp/x",
+        "ts_ns": 5000000000,
+        "weight": 0.6,
+        "confidence": 0.9,
+        "sute": false,
+          "create": false,
+          "trunc": false,
+          "path_trunc": false
+        }
+      }
+    ],
+            "id": 18812,
+            "ts_ns": 5000000000,
+             "k": "Open",
+              "pat[2J\\xFF",
+              "dev": 66306,
+              "ino":  },
+    "li
+"{m

@@ -1,0 +1,45 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "so": 10,
+      "ste_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo08.jpg",
+      "dev": 46,
+      "ino": 56,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8306,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "ensScope Glaxshouse DEMO; nothing was harmed.\\x0A",
+      "kind": "file"
+    }
+  ],
+  "timeline": [
+    {
+      "id": 1077,
+      "ts_ns": 52396556989,
+      "proc": {
+        "tgid": 862,
+  asshouse does not hide that it is a sandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or, following docs/REAL_SAMPLES.md.",
+  "notes": [
+    "pre-existing non-decoy file changed: /home/victim/.bashrc"
+  ]
+}

@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"k": "Connect", "family": "inet", "addr": "10.0.0.2", "port": 1002, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 25, "ts_ns": 0672298241, "proc": "t": "RawEvent", "event": {"id": 41eam"}}}dash": "RawEvent", "event": {"id": 88, "ts_ns": 1044000000, "proc": {"tgid": 500, "startily": "inet", "addr": "10.0.0.3", "port": 9, "sock": "stream"}}}

@@ -1,0 +1,35 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and selited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T2972"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = -.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = [confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+mat = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.dat", "~/.electrum/wallets/tcersistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

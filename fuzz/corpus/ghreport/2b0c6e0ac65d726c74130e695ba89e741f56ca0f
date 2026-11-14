@@ -1,0 +1,4383 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 5.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/Login Data",
+      "dev": 46,
+      "ino": 14,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 16384,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/logins.json",
+      "dev": 46,
+      "ino": 18,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before": 7.95,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/key4.db",
+      "dev": 46,
+      "ino": 19,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 8192,
+      "size_after": 8192,
+      "entropy_before": 7.98,
+      "entropy_after": 7.98
+    },
+    {
+      "path": "/home/victim/.bash_history",
+      "dev": 46,
+      "ino": 20,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 76,
+      "size_after": 76,
+      "entropy_before": 4.29,
+      "entropy_after": 4.29
+    },
+    {
+      "path": "/home/victim/passwords.txt",
+      "dev": 46,
+      "ino": 21,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.09,
+      "entropy_after": 5.09
+    },
+    {
+      "path": "/home/victim/wallet.dat",
+      "dev": 46,
+      "ino": 22,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 32768,
+      "size_after": 32768,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.gnupg/private-keys-v1.d/x.key",
+      "dev": 46,
+      "ino": 25,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 1200,
+      "size_after": 1200,
+      "entropy_before": 7.84,
+      "entropy_after": 7.84
+    },
+    {
+      "path": "/home/victim/Documents/file00.docx",
+      "dev": 46,
+      "ino": 27,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file00.docx.locked",
+      "size_before": 1536,
+      "size_after": 1536,
+      "entropy_before": 4.2,
+      "entropy_after": 7.88
+    },
+    {
+      "path": "/home/victim/Documents/file01.xlsx",
+      "dev": 46,
+      "ino": 28,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file01.xlsx.locked",
+      "size_before": 4005,
+      "size_after": 4005,
+      "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file02.pdf",
+      "dev": 46,
+      "ino": 29,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file02.pdf.locked",
+      "size_before": 2438,
+      "size_after": 2438,
+      "entropy_before": 4.2,
+      "entropy_after": 7.92
+    },
+    {
+      "path": "/home/victim/Documents/file03.txt",
+      "dev": 46,
+      "ino": 30,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file03.txt.locked",
+      "size_before": 1730,
+      "size_after": 1730,
+      "entropy_before": 4.12,
+      "entropy_after": 7.87
+    },
+    {
+      "path": "/home/victim/Documents/file04.docx",
+      "dev": 46,
+      "ino": 31,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file04.docx.locked",
+      "size_before": 3017,
+      "size_after": 3017,
+      "entropy_before": 4.16,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file05.xlsx",
+      "dev": 46,
+      "ino": 32,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file05.xlsx.locked",
+      "size_before": 1633,
+      "size_after": 1633,
+      "entropy_before": 4.17,
+      "entropy_after": 7.89
+    },
+    {
+      "path": "/home/victim/Documents/file06.pdf",
+      "dev": 46,
+      "ino": 33,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file06.pdf.locked",
+      "size_before": 3427,
+      "size_after": 3427,
+      "entropy_before": 4.2,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file07.txt",
+      "dev": 46,
+      "ino": 34,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file07.txt.locked",
+      "size_before": 3775,
+      "size_after": 3775,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file08.docx",
+      "dev": 46,
+      "ino": 35,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file08.docx.locked",
+      "size_before": 2370,
+      "size_after": 2370,
+      "entropy_before": 4.17,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/file09.xlsx",
+      "dev": 46,
+      "ino": 36,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file09.xlsx.locked",
+      "size_before": 3579,
+      "size_after": 3579,
+      "entropy_before": 4.17,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file10.pdf",
+      "dev": 46,
+      "ino": 37,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file10.pdf.locked",
+      "size_before": 1649,
+      "size_after": 1649,
+      "entropy_before": 4.2,
+      "entropy_after": 7.86
+    },
+    {
+      "path": "/home/victim/Documents/file11.txt",
+      "dev": 46,
+      "ino": 38,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file11.txt.locked",
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file12.docx",
+      "dev": 46,
+      "ino": 39,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file12.docx.locked",
+      "size_before": 3629,
+      "size_after": 3629,
+      "entropy_before": 4.15,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file13.xlsx",
+      "dev": 46,
+      "ino": 40,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file13.xlsx.locked",
+      "size_before": 1688,
+      "size_after": 1688,
+      "entropy_before": 4.19,
+      "entropy_after": 7.87
+    },
+    {
+      "path": "/home/victim/Documents/file14.pdf",
+      "dev": 46,
+      "ino": 41,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file14.pdf.locked",
+      "size_before": 3779,
+      "size_after": 3779,
+      "entropy_before": 4.2,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file15.txt",
+      "dev": 46,
+      "ino": 42,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file15.txt.locked",
+      "size_before": 3783,
+      "size_after": 3783,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file16.docx",
+      "dev": 46,
+      "ino": 43,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file16.docx.locked",
+      "size_before": 2784,
+      "size_after": 2784,
+      "entropy_before": 4.14,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/file17.xlsx",
+      "dev": 46,
+      "ino": 44,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file17.xlsx.locked",
+      "size_before": 3405,
+      "size_after": 3405,
+      "entropy_before": 4.14,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file18.pdf",
+      "dev": 46,
+      "ino": 45,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file18.pdf.locked",
+      "size_before": 3817,
+      "size_after": 3817,
+      "entropy_before": 4.19,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file19.txt",
+      "dev": 46,
+      "ino": 46,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file19.txt.locked",
+      "size_before": 3663,
+      "size_after": 3663,
+      "entropy_before": 4.18,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Pictures/photo00.jpg",
+      "dev": 46,
+      "ino": 48,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5222,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo01.jpg",
+      "dev": 46,
+      "ino": 49,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 11259,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo02.jpg",
+      "dev": 46,
+      "ino": 50,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 10488,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo03.jpg",
+      "dev": 46,
+      "ino": 51,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7363,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo04.jpg",
+      "dev": 46,
+      "ino": 52,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8427,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo05.jpg",
+      "dev": 46,
+      "ino": 53,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7468,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo06.jpg",
+      "dev": 46,
+      "ino": 54,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5248,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo07.jpg",
+      "dev": 46,
+      "ino": 55,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 6839,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo08.jpg",
+      "dev": 46,
+      "ino": 56,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8306,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo09.jpg",
+      "dev": 46,
+      "ino": 57,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7638,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/etc/shadow",
+      "dev": 46,
+      "ino": 59,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 108,
+      "size_after": 108,
+      "entropy_before": 4.61,
+      "entropy_after": 4.61
+    }
+  ],
+  "created": [
+    {
+      "path": "/home/victim/README_RESTORE.txt",
+      "size": 79,
+      "entropy": 4.49,
+      "preview": "Your files are locked. This is a SysScope Glasshouse DEMO; nothing was harmed.\\x0A",
+      "kind": "file"
+    }
+  ],
+  "timeline": [
+    {
+      "id": 1077,
+      "ts_ns": 52396556989,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-0.bpf",
+        "dev": 46,
+        "ino": 478,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1078,
+      "ts_ns": 52396595912,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-1.bpf",
+        "dev": 46,
+        "ino": 479,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1079,
+      "ts_ns": 52396614703,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-2.bpf",
+        "dev": 46,
+        "ino": 480,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1080,
+      "ts_ns": 52397026515,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Exec",
+        "exe": "/usr/bin/bwrap",
+        "argv": "/usr/bin/bwrap\\x00--unshare-all\\x00--die-with-parent\\x00--new-session\\x00--cap-drop\\x00ALL\\x00--hostname\\x00glasshouse\\x00--clearenv\\x00--setenv\\x00PATH\\x00/usr/local/bin:/usr/bin:/bin\\x00--setenv\\x00HOME\\x00/home/victim\\x00--setenv\\x00USER\\x00victim\\x00--setenv\\x00LANG\\x00C.UTF-8\\x00--uid\\x001000\\x00--gid\\x001000\\x00--ro-bind\\x00/u",
+        "argv_trunc": true,
+        "fileless": false,
+        "dev": 65025,
+        "ino": 112
+      }
+    },
+    {
+      "id": 1081,
+      "ts_ns": 52397286023,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/etc/ld.so.cache",
+        "dev": 65025,
+        "ino": 566,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1082,
+      "ts_ns": 52397318770,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libselinux.so.1",
+        "dev": 65025,
+        "ino": 2820,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1083,
+      "ts_ns": 52397402723,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libcap.so.2.66",
+        "dev": 65025,
+        "ino": 1519,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1084,
+      "ts_ns": 52397466589,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "dev": 65025,
+        "ino": 2077,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1085,
+      "ts_ns": 52397560136,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2",
+        "dev": 65025,
+        "ino": 171,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1086,
+      "ts_ns": 52398016491,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/filesystems",
+        "dev": 21,
+        "ino": 4026532069,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1087,
+      "ts_ns": 52398098144,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/sys/kernel/overflowuid",
+        "dev": 21,
+        "ino": 17214,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1088,
+      "ts_ns": 52398158041,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/sys/kernel/overflowgid",
+        "dev": 21,
+        "ino": 17215,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1089,
+      "ts_ns": 52398279114,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/sys/user/max_user_namespaces",
+        "dev": 21,
+        "ino": 18240,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1090,
+      "ts_ns": 52399112255,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Fork",
+        "child": {
+          "tgid": 864,
+          "start": 5239
+        }
+      }
+    },
+    {
+      "id": 1091,
+      "ts_ns": 52399246213,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/862/fd",
+        "dev": 21,
+        "ino": 19729,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1092,
+      "ts_ns": 52399571877,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/uid_map",
+        "dev": 21,
+        "ino": 19764,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1093,
+      "ts_ns": 52399593698,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/setgroups",
+        "dev": 21,
+        "ino": 19765,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1094,
+      "ts_ns": 52399602542,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/gid_map",
+        "dev": 21,
+        "ino": 19766,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1095,
+      "ts_ns": 52399867765,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1096,
+      "ts_ns": 52400148773,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1098,
+      "ts_ns": 52400281355,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1099,
+      "ts_ns": 52400385272,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/sample/fake_malware.py",
+        "dev": 48,
+        "ino": 13,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1100,
+      "ts_ns": 52400413834,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1101,
+      "ts_ns": 52400594113,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/null",
+        "dev": 50,
+        "ino": 2,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1102,
+      "ts_ns": 52400627569,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1103,
+      "ts_ns": 52400726170,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/zero",
+        "dev": 50,
+        "ino": 3,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1104,
+      "ts_ns": 52400755034,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1105,
+      "ts_ns": 52400859998,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/full",
+        "dev": 50,
+        "ino": 4,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1106,
+      "ts_ns": 52400891839,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1107,
+      "ts_ns": 52401000329,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/random",
+        "dev": 50,
+        "ino": 5,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1108,
+      "ts_ns": 52401028847,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1109,
+      "ts_ns": 52401131451,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/urandom",
+        "dev": 50,
+        "ino": 6,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1110,
+      "ts_ns": 52401157067,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1111,
+      "ts_ns": 52401262953,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/dev/tty",
+        "dev": 50,
+        "ino": 7,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1112,
+      "ts_ns": 52401287687,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1113,
+      "ts_ns": 52401567125,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/",
+        "dev": 48,
+        "ino": 1,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1114,
+      "ts_ns": 52401747163,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/uid_map",
+        "dev": 21,
+        "ino": 19764,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1115,
+      "ts_ns": 52401764370,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/gid_map",
+        "dev": 21,
+        "ino": 19766,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1116,
+      "ts_ns": 52401950865,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Fork",
+        "child": {
+          "tgid": 865,
+          "start": 5240
+        }
+      }
+    },
+    {
+      "id": 1117,
+      "ts_ns": 52401976114,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/fd",
+        "dev": 21,
+        "ino": 19767,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1118,
+      "ts_ns": 52403471483,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Exec",
+        "exe": "/usr/bin/env",
+        "argv": "/usr/bin/env\\x00python3\\x00/sample/fake_malware.py\\x00",
+        "argv_trunc": false,
+        "fileless": false,
+        "dev": 65025,
+        "ino": 717
+      }
+    },
+    {
+      "id": 1119,
+      "ts_ns": 52403728223,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/etc/ld.so.cache",
+        "dev": 46,
+        "ino": 63,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1120,
+      "ts_ns": 52403770984,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "dev": 65025,
+        "ino": 2077,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1121,
+      "ts_ns": 52404198148,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_IDENTIFICATION",
+        "dev": 65025,
+        "ino": 4290,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1122,
+      "ts_ns": 52404227042,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache",
+        "dev": 65025,
+        "ino": 6388,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1123,
+      "ts_ns": 52404253109,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_MEASUREMENT",
+        "dev": 65025,
+        "ino": 4291,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1124,
+      "ts_ns": 52404281068,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_TELEPHONE",
+        "dev": 65025,
+        "ino": 4297,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1125,
+      "ts_ns": 52404307885,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_ADDRESS",
+        "dev": 65025,
+        "ino": 4285,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1126,
+      "ts_ns": 52404338321,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_NAME",
+        "dev": 65025,
+        "ino": 4294,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1127,
+      "ts_ns": 52404365068,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_PAPER",
+        "dev": 65025,
+        "ino": 4296,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1128,
+      "ts_ns": 52404392855,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_MESSAGES",
+        "dev": 65025,
+        "ino": 2073,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1129,
+      "ts_ns": 52404410934,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_MESSAGES/SYS_LC_MESSAGES",
+        "dev": 65025,
+        "ino": 4292,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1130,
+      "ts_ns": 52404436979,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_MONETARY",
+        "dev": 65025,
+        "ino": 4293,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1131,
+      "ts_ns": 52404462388,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_COLLATE",
+        "dev": 65025,
+        "ino": 4287,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1132,
+      "ts_ns": 52404488187,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_TIME",
+        "dev": 65025,
+        "ino": 4298,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1133,
+      "ts_ns": 52404518701,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_NUMERIC",
+        "dev": 65025,
+        "ino": 4295,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1134,
+      "ts_ns": 52404545608,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_CTYPE",
+        "dev": 65025,
+        "ino": 4289,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1135,
+      "ts_ns": 52404817009,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Exec",
+        "exe": "/usr/bin/python3.11",
+        "argv": "python3\\x00/sample/fake_malware.py\\x00",
+        "argv_trunc": false,
+        "fileless": false,
+        "dev": 65025,
+        "ino": 9891
+      }
+    },
+    {
+      "id": 1136,
+      "ts_ns": 52405040776,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/etc/ld.so.cache",
+        "dev": 46,
+        "ino": 63,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1137,
+      "ts_ns": 52405063560,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+        "dev": 65025,
+        "ino": 2080,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1138,
+      "ts_ns": 52405134088,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libz.so.1.2.13",
+        "dev": 65025,
+        "ino": 4930,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1139,
+      "ts_ns": 52405195829,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libexpat.so.1.8.10",
+        "dev": 65025,
+        "ino": 8351,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1140,
+      "ts_ns": 52405254264,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "dev": 65025,
+        "ino": 2077,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1141,
+      "ts_ns": 52405667573,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_CTYPE",
+        "dev": 65025,
+        "ino": 4289,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1142,
+      "ts_ns": 52405696876,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/x86_64-linux-gnu/gconv/gconv-modules.cache",
+        "dev": 65025,
+        "ino": 6388,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1143,
+      "ts_ns": 52410603619,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/share/zoneinfo/Etc/UTC",
+        "dev": 65025,
+        "ino": 3672,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1144,
+      "ts_ns": 52410926214,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11",
+        "dev": 65025,
+        "ino": 9586,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1145,
+      "ts_ns": 52411302062,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/encodings/__pycache__/__init__.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 9888,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1146,
+      "ts_ns": 52412391511,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/encodings",
+        "dev": 65025,
+        "ino": 9646,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1147,
+      "ts_ns": 52412598162,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/encodings/__pycache__/aliases.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 8337,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1148,
+      "ts_ns": 52412909374,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/encodings/__pycache__/utf_8.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10017,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1149,
+      "ts_ns": 52414772589,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/local/lib/python3.11/dist-packages",
+        "dev": 65025,
+        "ino": 8309,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1150,
+      "ts_ns": 52414806752,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3/dist-packages",
+        "dev": 65025,
+        "ino": 10559,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1151,
+      "ts_ns": 52414948363,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/lib-dynload",
+        "dev": 65025,
+        "ino": 9810,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1152,
+      "ts_ns": 52415009660,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/local/lib/python3.11/dist-packages",
+        "dev": 65025,
+        "ino": 8309,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1153,
+      "ts_ns": 52415038912,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3/dist-packages",
+        "dev": 65025,
+        "ino": 10559,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1154,
+      "ts_ns": 52415174547,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/sample/fake_malware.py",
+        "dev": 46,
+        "ino": 481,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1155,
+      "ts_ns": 52415248055,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/sample/fake_malware.py",
+        "dev": 46,
+        "ino": 481,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1156,
+      "ts_ns": 52415719305,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/sample",
+        "dev": 48,
+        "ino": 12,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1157,
+      "ts_ns": 52415800195,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/random.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10070,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1158,
+      "ts_ns": 52416099296,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/warnings.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10098,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1159,
+      "ts_ns": 52416353873,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/operator.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10061,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1160,
+      "ts_ns": 52416642811,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/bisect.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 9063,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1161,
+      "ts_ns": 52416921948,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/socket.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10075,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1162,
+      "ts_ns": 52417283835,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/selectors.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10072,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1163,
+      "ts_ns": 52417475733,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/collections/__pycache__/__init__.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 9087,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1164,
+      "ts_ns": 52417859338,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/keyword.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10055,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1165,
+      "ts_ns": 52417957971,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/reprlib.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 8785,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1166,
+      "ts_ns": 52418339289,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/collections",
+        "dev": 65025,
+        "ino": 9603,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1167,
+      "ts_ns": 52418401283,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/collections/__pycache__/abc.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 8601,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1168,
+      "ts_ns": 52418868347,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/enum.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10020,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1169,
+      "ts_ns": 52419176013,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/types.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10089,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1170,
+      "ts_ns": 52419354370,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/functools.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10022,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1171,
+      "ts_ns": 52421890561,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/.ssh/id_ed25519",
+        "dev": 46,
+        "ino": 6,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1172,
+      "ts_ns": 52421948912,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/.aws/credentials",
+        "dev": 46,
+        "ino": 10,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1173,
+      "ts_ns": 52422041606,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/encodings/__pycache__/idna.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 9957,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1174,
+      "ts_ns": 52422161028,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/stringprep.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10082,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1175,
+      "ts_ns": 52422552989,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/re/__pycache__/__init__.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 10071,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1176,
+      "ts_ns": 52422683674,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/re",
+        "dev": 65025,
+        "ino": 9831,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1177,
+      "ts_ns": 52422737304,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/re/__pycache__/_compiler.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 8809,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1178,
+      "ts_ns": 52422918759,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/re/__pycache__/_parser.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 8795,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1179,
+      "ts_ns": 52423084280,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/re/__pycache__/_constants.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 8783,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1180,
+      "ts_ns": 52423391155,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/re/__pycache__/_casefix.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 8767,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1181,
+      "ts_ns": 52423643959,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/python3.11/__pycache__/copyreg.cpython-311.pyc",
+        "dev": 65025,
+        "ino": 9119,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1182,
+      "ts_ns": 52424172835,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Connect",
+        "family": "inet",
+        "addr": "203.0.113.10",
+        "port": 443,
+        "sock": "stream"
+      }
+    },
+    {
+      "id": 1183,
+      "ts_ns": 52424226575,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents",
+        "dev": 46,
+        "ino": 26,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1184,
+      "ts_ns": 52424250459,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file00.docx",
+        "dev": 46,
+        "ino": 27,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1185,
+      "ts_ns": 52424340419,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file00.docx",
+        "new": "/home/victim/Documents/file00.docx.locked",
+        "dev": 46,
+        "ino": 27,
+        "approx": true
+      }
+    },
+    {
+      "id": 1186,
+      "ts_ns": 52424350435,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file01.xlsx",
+        "dev": 46,
+        "ino": 28,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1187,
+      "ts_ns": 52424492192,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file01.xlsx",
+        "new": "/home/victim/Documents/file01.xlsx.locked",
+        "dev": 46,
+        "ino": 28,
+        "approx": true
+      }
+    },
+    {
+      "id": 1188,
+      "ts_ns": 52424498902,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file02.pdf",
+        "dev": 46,
+        "ino": 29,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1189,
+      "ts_ns": 52424586637,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file02.pdf",
+        "new": "/home/victim/Documents/file02.pdf.locked",
+        "dev": 46,
+        "ino": 29,
+        "approx": true
+      }
+    },
+    {
+      "id": 1190,
+      "ts_ns": 52424592981,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file03.txt",
+        "dev": 46,
+        "ino": 30,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1191,
+      "ts_ns": 52424660419,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file03.txt",
+        "new": "/home/victim/Documents/file03.txt.locked",
+        "dev": 46,
+        "ino": 30,
+        "approx": true
+      }
+    },
+    {
+      "id": 1192,
+      "ts_ns": 52424667057,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file04.docx",
+        "dev": 46,
+        "ino": 31,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1193,
+      "ts_ns": 52424773369,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file04.docx",
+        "new": "/home/victim/Documents/file04.docx.locked",
+        "dev": 46,
+        "ino": 31,
+        "approx": true
+      }
+    },
+    {
+      "id": 1194,
+      "ts_ns": 52424783031,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file05.xlsx",
+        "dev": 46,
+        "ino": 32,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1195,
+      "ts_ns": 52424855201,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file05.xlsx",
+        "new": "/home/victim/Documents/file05.xlsx.locked",
+        "dev": 46,
+        "ino": 32,
+        "approx": true
+      }
+    },
+    {
+      "id": 1196,
+      "ts_ns": 52424862030,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file06.pdf",
+        "dev": 46,
+        "ino": 33,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1197,
+      "ts_ns": 52424980897,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file06.pdf",
+        "new": "/home/victim/Documents/file06.pdf.locked",
+        "dev": 46,
+        "ino": 33,
+        "approx": true
+      }
+    },
+    {
+      "id": 1198,
+      "ts_ns": 52424987078,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file07.txt",
+        "dev": 46,
+        "ino": 34,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1199,
+      "ts_ns": 52425115831,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file07.txt",
+        "new": "/home/victim/Documents/file07.txt.locked",
+        "dev": 46,
+        "ino": 34,
+        "approx": true
+      }
+    },
+    {
+      "id": 1200,
+      "ts_ns": 52425122070,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file08.docx",
+        "dev": 46,
+        "ino": 35,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1201,
+      "ts_ns": 52425208050,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file08.docx",
+        "new": "/home/victim/Documents/file08.docx.locked",
+        "dev": 46,
+        "ino": 35,
+        "approx": true
+      }
+    },
+    {
+      "id": 1202,
+      "ts_ns": 52425214347,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file09.xlsx",
+        "dev": 46,
+        "ino": 36,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1203,
+      "ts_ns": 52425337972,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file09.xlsx",
+        "new": "/home/victim/Documents/file09.xlsx.locked",
+        "dev": 46,
+        "ino": 36,
+        "approx": true
+      }
+    },
+    {
+      "id": 1204,
+      "ts_ns": 52425346065,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file10.pdf",
+        "dev": 46,
+        "ino": 37,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1205,
+      "ts_ns": 52425409036,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file10.pdf",
+        "new": "/home/victim/Documents/file10.pdf.locked",
+        "dev": 46,
+        "ino": 37,
+        "approx": true
+      }
+    },
+    {
+      "id": 1206,
+      "ts_ns": 52425415667,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file11.txt",
+        "dev": 46,
+        "ino": 38,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1207,
+      "ts_ns": 52425555510,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file11.txt",
+        "new": "/home/victim/Documents/file11.txt.locked",
+        "dev": 46,
+        "ino": 38,
+        "approx": true
+      }
+    },
+    {
+      "id": 1208,
+      "ts_ns": 52425562714,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file12.docx",
+        "dev": 46,
+        "ino": 39,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1209,
+      "ts_ns": 52425687379,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file12.docx",
+        "new": "/home/victim/Documents/file12.docx.locked",
+        "dev": 46,
+        "ino": 39,
+        "approx": true
+      }
+    },
+    {
+      "id": 1210,
+      "ts_ns": 52425695948,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file13.xlsx",
+        "dev": 46,
+        "ino": 40,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1211,
+      "ts_ns": 52425762487,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file13.xlsx",
+        "new": "/home/victim/Documents/file13.xlsx.locked",
+        "dev": 46,
+        "ino": 40,
+        "approx": true
+      }
+    },
+    {
+      "id": 1212,
+      "ts_ns": 52425771095,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file14.pdf",
+        "dev": 46,
+        "ino": 41,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1213,
+      "ts_ns": 52425907462,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file14.pdf",
+        "new": "/home/victim/Documents/file14.pdf.locked",
+        "dev": 46,
+        "ino": 41,
+        "approx": true
+      }
+    },
+    {
+      "id": 1214,
+      "ts_ns": 52425914691,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file15.txt",
+        "dev": 46,
+        "ino": 42,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1215,
+      "ts_ns": 52426046288,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file15.txt",
+        "new": "/home/victim/Documents/file15.txt.locked",
+        "dev": 46,
+        "ino": 42,
+        "approx": true
+      }
+    },
+    {
+      "id": 1216,
+      "ts_ns": 52426053911,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file16.docx",
+        "dev": 46,
+        "ino": 43,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1217,
+      "ts_ns": 52426153016,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file16.docx",
+        "new": "/home/victim/Documents/file16.docx.locked",
+        "dev": 46,
+        "ino": 43,
+        "approx": true
+      }
+    },
+    {
+      "id": 1218,
+      "ts_ns": 52426160101,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file17.xlsx",
+        "dev": 46,
+        "ino": 44,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1219,
+      "ts_ns": 52426279613,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file17.xlsx",
+        "new": "/home/victim/Documents/file17.xlsx.locked",
+        "dev": 46,
+        "ino": 44,
+        "approx": true
+      }
+    },
+    {
+      "id": 1220,
+      "ts_ns": 52426287226,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file18.pdf",
+        "dev": 46,
+        "ino": 45,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1221,
+      "ts_ns": 52426420239,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file18.pdf",
+        "new": "/home/victim/Documents/file18.pdf.locked",
+        "dev": 46,
+        "ino": 45,
+        "approx": true
+      }
+    },
+    {
+      "id": 1222,
+      "ts_ns": 52426428399,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file19.txt",
+        "dev": 46,
+        "ino": 46,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1223,
+      "ts_ns": 52426554748,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file19.txt",
+        "new": "/home/victim/Documents/file19.txt.locked",
+        "dev": 46,
+        "ino": 46,
+        "approx": true
+      }
+    },
+    {
+      "id": 1224,
+      "ts_ns": 52426564846,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Pictures",
+        "dev": 46,
+        "ino": 47,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1225,
+      "ts_ns": 52426585671,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo00.jpg",
+        "dev": 46,
+        "ino": 48,
+        "approx": true
+      }
+    },
+    {
+      "id": 1226,
+      "ts_ns": 52426627424,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo01.jpg",
+        "dev": 46,
+        "ino": 49,
+        "approx": true
+      }
+    },
+    {
+      "id": 1227,
+      "ts_ns": 52426635963,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo02.jpg",
+        "dev": 46,
+        "ino": 50,
+        "approx": true
+      }
+    },
+    {
+      "id": 1228,
+      "ts_ns": 52426643650,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo03.jpg",
+        "dev": 46,
+        "ino": 51,
+        "approx": true
+      }
+    },
+    {
+      "id": 1229,
+      "ts_ns": 52426650820,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo04.jpg",
+        "dev": 46,
+        "ino": 52,
+        "approx": true
+      }
+    },
+    {
+      "id": 1230,
+      "ts_ns": 52426657773,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo05.jpg",
+        "dev": 46,
+        "ino": 53,
+        "approx": true
+      }
+    },
+    {
+      "id": 1231,
+      "ts_ns": 52426664841,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo06.jpg",
+        "dev": 46,
+        "ino": 54,
+        "approx": true
+      }
+    },
+    {
+      "id": 1232,
+      "ts_ns": 52426672772,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo07.jpg",
+        "dev": 46,
+        "ino": 55,
+        "approx": true
+      }
+    },
+    {
+      "id": 1233,
+      "ts_ns": 52426679811,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo08.jpg",
+        "dev": 46,
+        "ino": 56,
+        "approx": true
+      }
+    },
+    {
+      "id": 1234,
+      "ts_ns": 52426687430,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo09.jpg",
+        "dev": 46,
+        "ino": 57,
+        "approx": true
+      }
+    },
+    {
+      "id": 1235,
+      "ts_ns": 52426704689,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/README_RESTORE.txt",
+        "dev": 46,
+        "ino": 486,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1236,
+      "ts_ns": 52426745163,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/.bashrc",
+        "dev": 46,
+        "ino": 61,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1237,
+      "ts_ns": 52429725226,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Exit"
+      }
+    },
+    {
+      "id": 1238,
+      "ts_ns": 52429904857,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Exit"
+      }
+    },
+    {
+      "id": 1239,
+      "ts_ns": 52429918629,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Exit"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "family": "inet",
+      "addr": "203.0.113.10",
+      "port": 443,
+      "sock": "stream",
+      "count": 1,
+      "last_ts": 52424172835
+    }
+      "dev": 46,
+        "ino": 40,
+        "approx": true
+      }
+    },
+    {
+      "id": 1212,
+      "ts_ns": 52425771095,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file14.pdf",
+        "dev": 46,
+        "ino": 41,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1213,
+      "ts_ns": 52425907462,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file14.pdf",
+        "new": "/home/victim/Documents/file14.pdf.locked",
+        "dev": 46,
+        "ino": 41,
+        "approx": true
+      }
+    },
+    {
+      "id": 1214,
+      "ts_ns": 52425914691,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file1    t",
+        "dev": 46,
+        "ino": 42,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1215,
+      "ts_ns": 52426046288,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file15.txt",
+        "new": "/home/victim/Documents/file15.txt.locked",
+        "dev": 46,
+        "ino": 42,
+        "approx": true
+      }
+    },
+    {
+      "id": 1216,
+      "ts_ns": 52426053911,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file16.docx",
+        "dev": 46,
+        "ino": 43,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1217,
+      "ts_ns": 52426153016,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file16.docx",
+        "new": "/home/victim/Documents/file16.docx.locked",
+        "dev": 46,
+        "ino": 43,
+        "approx": true
+      }
+    },
+    {
+      "id": 1218,
+      "ts_ns": 52426160101,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file17.xlsx",
+        "dev": 46,
+        "ino": 44,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1219,
+      "ts_ns": 52426279613,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file17.xlsx",
+        "new": "/home/victim/Documents/file17.xlsx.locked",
+        "dev": 46,
+        "ino": 44,
+        "approx": true
+      }
+    },
+    {
+      "id": 1220,
+      "ts_ns": 52426287226,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file18.pdf",
+        "dev": 46,
+        "ino": 45,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1221,
+      "ts_ns": 52426420239,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file18.pdf",
+        "new": "/home/victim/Documents/file18.pdf.locked",
+        "dev": 46,
+        "ino": 45,
+        "approx": true
+      }
+    },
+    {
+      "id": 1222,
+      "ts_ns": 52426428399,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Documents/file19.txt",
+        "dev": 46,
+        "ino": 46,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1223,
+      "ts_ns": 52426554748,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Rename",
+        "old": "/home/victim/Documents/file19.txt",
+        "new": "/home/victim/Documents/file19.txt.locked",
+        "dev": 46,
+        "ino": 46,
+        "approx": true
+      }
+    },
+    {
+      "id": 1224,
+      "ts_ns": 52426564846,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/Pictures",
+        "dev": 46,
+        "ino": 47,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1225,
+      "ts_ns": 52426585671,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo00.jpg",
+        "dev": 46,
+        "ino": 48,
+        "approx": true
+      }
+    },
+    {
+      "id": 1226,
+      "ts_ns": 52426627424,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo01.jpg",
+        "dev": 46,
+        "ino": 49,
+        "approx": true
+      }
+    },
+    {
+      "id": 1227,
+      "ts_ns": 52426635963,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo02.jpg",
+        "dev": 46,
+        "ino": 50,
+        "approx": true
+      }
+    },
+    {
+      "id": 1228,
+      "ts_ns": 52426643650,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo03.jpg",
+        "dev": 46,
+        "ino": 51,
+        "approx": true
+      }
+    },
+    {
+      "id": 1229,
+      "ts_ns": 52426650820,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo04.jpg",
+        "dev": 46,
+        "ino": 52,
+        "approx": true
+      }
+    },
+    {
+      "id": 1230,
+      "ts_ns": 52426657773,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo05.jpg",
+        "dev": 46,
+        "ino": 53,
+        "approx": true
+      }
+    },
+    {
+      "id": 1231,
+      "ts_ns": 52426664841,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo06.jpg",
+        "dev": 46,
+        "ino": 54,
+        "approx": true
+      }
+    },
+    {
+      "id": 1232,
+      "ts_ns": 52426672772,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo07.jpg",
+        "dev": 46,
+        "ino": 55,
+        "approx": true
+      }
+    },
+    {
+      "id": 1233,
+      "ts_ns": 52426679811,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo08.jpg",
+        "dev": 46,
+        "ino": 56,
+        "approx": true
+      }
+    },
+    {
+      "id": 1234,
+      "ts_ns": 52426687430,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Unlink",
+        "path": "/home/victim/Pictures/photo09.jpg",
+        "dev": 46,
+        "ino": 57,
+        "approx": true
+      }
+    },
+    {
+      "id": 1235,
+      "ts_ns": 52426704689,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/home/victim/README_RESTORE.txt",
+        "dev": 46,
+        "ino": 486,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": true,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1236,
+      "ts_ns": 52426745163,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Ope{"t":{
+  "run_³d":n",
+        "path": "/home/victim/.bashrc",
+        "dev": 46,
+        "ino": 61,
+        "read": false,
+        "write": true,
+        "create": true,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1237,
+      "ts_ns": 52429725226,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Exit"
+      }
+    },
+    {
+      "id": 1238,
+       "17945"ts_ns": 52429904857,
+  4728  3-1",
+  /  "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Exit"
+      }
+    },
+    {
+      "id": 1239,
+      "ts_ns": 52429918629,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+  idun    "uid": 993,
+      "kind": {
+        "k": "Exit"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "family": "inet",
+      "addr": "203.0.113.10",
+      "port": 443,
+      "sock": "stream",
+      "count": 1,
+      "last_ts": 52424172835
+    }
+  ],
+  "children": [
+ 

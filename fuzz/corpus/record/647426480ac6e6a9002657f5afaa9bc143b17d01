@@ -1,0 +1,5 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "startpath": "/home/u/d1/f21", "dev": 1, "ino": 31, "read": false, "write": true, "create": false, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 24, "ts_ns": 1024000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/d0/f22", "dev": 1, "ino": 32, "read": false, "write": true, "create": false, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 25, "tsalse, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvenWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWt", "event": {"id": 2, "ts_ns"pprox": faome": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns"pprox": false}}}

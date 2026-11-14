@@ -1,0 +1,181 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscopa/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon #erified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001d_units"
+reason = "systemctl enables and edits units on request"
+
+[[a|low]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "shell_rc"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys o"/usr/bin/pacman"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subes"
+reason = "the package manager installs system files (packagwhy = ["{subje# Sysct_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = w"
+reason = "debconf's pre-install step, run by apt before every install, reads the account database"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/chromium/chromium"
+subject = "*"
+reaso=rn  "bowsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 owed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+Scope `exeallow]]
+rule = "R001"
+exe = "/usr/sbi# SysScope defject = "udev_rules"
+reason = "the package manager installs system files (pacese; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+subes"
+reason = "the package manager installs system files (packagwhy = ["{subje# Sysct_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = w"
+reason = "debconf's pre-install step, run by apt before every install, reads the account database"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/chromium/chromium"
+subject = "*"
+reaso=rn  "bowsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benignponent only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+Scope `exeallow]]
+rule = "R001"
+exe = "/usr/sbipackagwhy = ["{subje# Sysct_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+titl# SysScope defject = "udev_rules"
+reason = "the package manager installs system files (packagwhy = ["{subje# Sysct_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confi/ence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = w"
+reason = "debconf's pre-install step, run by apt before every install, reads the account database"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/chromium/chromium"
+subject = "*"
+reaso=rn  "bowsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 owed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allowkagwhy = ["{subje# Sysct_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confi/ence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = w"
+reason = "debconf's pre-install step, run by apt before every install, reads the account database"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/chromium/chromium"
+subject = "*"
+reaso=rn  "bowsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 owed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+Scope `exeallow]]
+rule = "R001"
+exe = "/usr/sbi# SysScope defaultreason allowl

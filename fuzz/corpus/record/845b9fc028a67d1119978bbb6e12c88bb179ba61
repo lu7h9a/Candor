@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "xuiefrt", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "Decoys", "inod_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wallt": 1}, "tid": 500, "uid": ": 2, "ino": 100, "read": true, "write": false, "create": false, "trunc": false, "path_trunc": false}}}

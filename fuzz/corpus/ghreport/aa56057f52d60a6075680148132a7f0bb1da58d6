@@ -1,0 +1,19 @@
+{
+  "run_id": "1794547284-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": 
+
+
+î
+": 864,
+      "uid": 993,
+      "kinh": "/proc/864/uid_map",
+        "dev"  "eStapu`2nt"RunÐÐÐÐÐÐÐÐÐÐÐÐÐÐÐys

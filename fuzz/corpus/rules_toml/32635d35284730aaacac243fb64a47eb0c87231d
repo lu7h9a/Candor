@@ -1,0 +1,33 @@
+# SysScope defauln a server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subjec
+
+[[allow]]
+rule = "R004"
+exe = = R003o checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks $asswords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/logads itS own saved passwords"
+
+[[allow]]
+rule = "R001"
+eart)"
+
+[[allohem"
+s package mubject =a na

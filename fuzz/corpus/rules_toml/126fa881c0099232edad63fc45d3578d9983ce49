@@ -1,0 +1,166 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[a# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# worl}d-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reaso# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) le = "R001"
+exe = "/usr/cin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"chromium/chromium"
+subject = browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject llow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = browser_creds"
+reason = "the browser reads its own saved paser's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, auRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRthorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "shell_rc"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a nae agent"
+
+[[allow]]
+rule = "R001"chromium/chromium"
+subject = browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject llow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = browser_creds"
+reason = "the browser reads its own saved paser's autostart)"
+
+[[allow]]
+rule R007004"
+exe = "/usr/bin/dpkg"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "shell_rc"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system sswords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/polkit-1/polkit-agent-helper-1"
+subject = "shadow"
+reason = "polkit checks passwords for admin prompts"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+reason = "PAM helper that checks passwords for screen lockers"
+
+[[allow]]
+rule = "R001"ystem files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]
+exe = "/opt/google/chrome/chrome"
+subject = "borwser_creds"
+reason] = 
+"

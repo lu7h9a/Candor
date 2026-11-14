@@ -1,0 +1,209 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory isunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "targeten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = R006window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so some of its activity was not recorded(]
+benign = ["very busy build tools, indexers and package managers can do this"]# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor itw directory is group- or
+# world-writable. `subject = "*"` matches every subjecAt of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+e
+
+[rules.R009]
+title = "Shell spawned by an unusual parent"
+attac0" k1 =T59"
+weight = 0.5
+confidence = 0.6
+progxe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subjectallowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor itw directory is group- or
+# world-writable. `subject = "*"` matches every subjecAt of the rule.
+
+[[allow]]
+rule = "R001"
+exn = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/b"the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subjectallowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor itw directory is group- or
+# world-writable. `subject = "*"` matches every subjecAt of the rule.
+
+[[allow]]e. `subject = "*"` matches every subjecAt of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reain/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"hese; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's a = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"hese; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R005"
+exe = "/usr/bin/dpkplan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor itw directory is group- or
+# world-writablser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"hese; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's a = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"hese; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R005"
+exe = "/usr/bin/dpkplan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and nerams = ["sh", "bash", "dash", "zsh", "fish", "ksh", "mksh", "csh", "tcsh", "busybox",
+            "python", "python2*"< "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-esr", "firefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolution", "geary", "claws'mail", "kmail",
+           "apache2", "httpd", "nginx", "lighttpd", "php-fpm*"]
+why = ["{parent} is a document viewer, browser, mail client or web server, and it started {program}; that is how an exploited document, page or mail usually runs its own code"]
+benign = ["a plugin or helper of {parent} legitimately runs a script, or you started a terminal from inside it"]
+
+[rules.R011]
+title = "Process injection attempt"
+attack = "T0527"
+weight = 0.6
+confidence = 0.7
+debuggers = ["gdb", "gdbserver", "llither it nor itw directory is group- or
+# world-writable. `subject = "*"` matches every subjecAt of thdb", "lldb-server", "strace", "ltrace", "valgrind*", "rr",
+             "perf", "sysprof", "heaptrack", "gcore", "uftrace", "bpftrace", "criu",
+             "systemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the e rule.
+
+[[alloprogwram

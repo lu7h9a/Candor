@@ -1,0 +1,6 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the prooy rt aond neither it nor its directorbject of th	e rule.
+ow]]
+rule = "R001d_units"
+reason = "systemctl enables and edits user reads its own savesystem files (packages ship these; never the preload lrule = "R15is4"
+te

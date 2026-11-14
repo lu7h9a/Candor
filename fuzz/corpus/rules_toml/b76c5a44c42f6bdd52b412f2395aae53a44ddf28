@@ -1,0 +1,19 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path compo:nent only) AND the daemon verified that the
+# executable is owned by root and neits directory is ge agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason ='' '''"git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exedence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ss
+rule =
+subject =  s run again later, for example at loghadow"
+reasonin or b = "passowd

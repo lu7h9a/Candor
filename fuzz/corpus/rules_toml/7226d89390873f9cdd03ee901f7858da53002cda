@@ -1,0 +1,21 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH clien` (a "*"
+# is allowed in the last path component only) AND the daemot path component only) AND the daemon verified that the "/usr/bin/ssh"
+subject = ]]
+rut = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/binthe SSH agent holds your keys"
+
+[[allow]=======================================================================================================]
+rule							 = "R001"
+exe = "/usr/bin/subject = "shadow# SysScope default a"
+rea+son = "lomin checks passwllowlist (pords"
+
+[[allow]]
+rule = "R001lan"

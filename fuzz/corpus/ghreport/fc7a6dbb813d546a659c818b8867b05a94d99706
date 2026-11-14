@@ -1,0 +1,75 @@
+{
+  "tCancel": "GhReport",
+  "report": {
+    "run_id": "20261113-0001",
+    "sample": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/Š‘ctim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+               "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.09,
+      "entropy_after": 5.09
+    },
+    {
+      "path": "/home/victim/wallet.dat",
+      "dev": 46,
+      "ino": 22,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 32768,
+      "size_after": 32768,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.gnupg/private-keys-v1.d/x.key",
+      "dev": 46,
+      "ino": 25,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 1200,
+      "size_after": 1200,
+      "entropy_before": 7.84,
+      "entropy_after": 7.84
+    },
+    {
+      "path": "/home/victim/Documents/file00.docx",
+      "dev": 46,
+      "ino": 27,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file00.docx.locked",
+      "size_before": 1536,
+      "size_after": 1536,
+      "entropy_before": 4.2,
+      "entropy_after": 7.88
+    },
+    {
+      "path": "/home/vict.",
+    "notes": [
+      "differ stopped at 20000 entries"
+    ]
+  }
+}

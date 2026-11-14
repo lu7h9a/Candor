@@ -1,0 +1,65 @@
+{"s": 60,
+    "starteargs": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_co[fade": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 64,
+        "entropy": 4.5,
+        "previ`ew": "your files are locked (demo)\\x0A",
+        "kind": "file"
+      }
+    ],
+    "timeline": [
+      {
+        "id": 18812,
+        "ts_ns": 5000000000,
+        "proc": {
+          "tgid": 4312,
+          "start": 120034
+        },
+        "tid": 4312,
+        "uid": 1000,
+        "kind": {
+          "k": "Open",
+          "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+          "dev": 66306,
+          "ino": 1234567,
+          "read": true,
+          "write": false,
+          "create": false,
+          "trunc": false,
+          "path_trunc": false
+        }
+      }
+    ],
+    "connections": [
+      {
+        "family": ",
+            "tid": 4312,
+            "uid": 1000,
+            "kind": {
+              "k": "Openÿÿÿÿÿÿ[inet",
+        "addr": "203.0.113.10",

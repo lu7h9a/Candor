@@ -1,0 +1,39 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscopa/alw]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "udevNrules"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subjecexe = """"/usrd_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R01-4"
+exe = "/usr/bin/dpkg"
+subject = "udevNrules"
+reason = "the package manager installs system files (packages ship these; n\\\\\\\\\\ever the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+ck = "Tsubject = "cron"
+reason = [a|low]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs syst1620"
+weiemgh t

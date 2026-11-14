@@ -1,0 +1,152 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at.R003]
+title = "Fileless ex;ecution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-e s"i",frrefox-bin", "chrome", "chromium", "brave", "msedge", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confe", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*" value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title =hp*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents =' [v"eince", "o'ular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-e s"i",frrefox-bin", "chrome", "chromium", "brave", "msedge", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "node how an exploited document, page or mail usually runssystem password hashes"
+pauntrusted_exe = 0.9
+confidence_system_exen;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at.R003]
+title = "Fileless ex;ecution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+p
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/arents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-e s"i",frrefox-bin", "chrome", "chromium", "brave", "msedge", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confe", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*" value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title =hp*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents =' [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-e s"i",frrefox-bin", "chrome", "chromium", "brave", "msedge", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "node how an exploited document, page or mail usually runssystem password hashes"
+pauntrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["ths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subjec = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["ths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject =you ran a

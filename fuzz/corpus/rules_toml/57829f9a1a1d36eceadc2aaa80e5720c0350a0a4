@@ -1,0 +1,7 @@
+# SysScope default allowlist (owlils `exe` (a "*"
+# ). /etc/sysscope/allow.toml add# SysScopemmmmmmmmmmmmusr/bin/ssh-agent"
+subject = """h_keys"
+reason = "the SS#H agent holds your keys"
+
+[[alcopubject = "ssh_01"
+exe asl=l owed  """"/us

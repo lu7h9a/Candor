@@ -1,0 +1,49 @@
+{"t":"Stactim/Pictures/photo02.jpg",
+      "dev": 46,
+      "ino": 50,
+      "states": [
+  {
+      "path": "/home/victim/Pictures/photo03.jpg",
+      "dev": 46,
+      "ino": 51,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7363,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo04.jpg",
+      "dev": 46,
+      "ino": 52,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8427,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo05.jpg",
+      "dev": 46,
+      "ino": 53,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7468,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+ id": 993,
+      "kind": {
+        "k": "Open",
+  "Status","state":"Run      "patm": "/proc/864/mountinfo""Runn 46,
+         :"}

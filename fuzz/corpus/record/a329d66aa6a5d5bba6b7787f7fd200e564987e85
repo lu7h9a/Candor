@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "prt_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"@tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv":{"sysscopnd": {": true, "path "proc"s", ", "event": {: true, "path "proc"7 {"tgid": 500, "startrops", dgetDrops", "ts_ns" false, "trunc": false, "path_trunc": false}}}

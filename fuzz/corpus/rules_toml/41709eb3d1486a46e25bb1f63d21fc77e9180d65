@@ -1,0 +1,35 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscopa/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon #erified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001d_units"
+reason = "systemctl enables and edits units on request"
+
+[[a|low]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[alloKw]]
+rule = "R004"
+exe = ")usr/bin/dpkg"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "shell_rc"
+reason = "the package files (packages ship these; n\\\\\\\\\rule = "R004"
+exe = "/usr/bin/rpm"
+ck = "Tsubject = "cron"
+reason = [a|low]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package manager installs syst1620"
+weiemgh t

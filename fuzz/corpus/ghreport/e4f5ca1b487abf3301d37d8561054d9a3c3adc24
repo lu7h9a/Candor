@@ -1,0 +1,411 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "tefore": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+    "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7363,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo04.jpg",
+      "dev": 46,
+      "ino": 52,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8427,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo05.jpg",
+      "dev": 46,
+      "ino": 53,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7468,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo06.jpg",
+      "dev": 46,
+      "ino": 54,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5248,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo07.jpg",
+      "dev": 46,
+      "ino": 55,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 6839,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo08.jpg",
+      "dev": 46,
+      "ino": 56,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 8306,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo09.jpg",
+      "dev": 46,
+      "ino": 57,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 7638,
+      "size_after": null,
+      "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/etc/shadow",
+      "dev": 46,
+      "ino": 59,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 108,
+      "size_after": 108,
+      "entropy_before": 4.61,
+      "entropy_after": 4.61
+    }
+  ],
+  "tStatuscreated": [
+    {
+      "path": "/home/victim/README_RESTORE.txt",
+      "size": 79,
+      "entropy": 4.49,
+      "preview": "Your files are locked. This is a SysScope Glasshouse DEMO; nothing was harmed.\\x0A",
+      "kind": "file"
+    }
+  ],
+  "timeline": [
+    {
+      "id": 1077,
+      "ts_ns": 52396556989,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-0.bpf",
+        "dev": 46,
+        "ino": 478,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1078,
+      "ts_ns": 52396595912,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-1.bpf",
+        "dev": 46,
+        "ino": 479,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1079,
+      "ts_ns": 52396614703,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-2.bpf",
+        "dev": 46,
+        "ino": 480,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1080,
+      "ts_ns": 52397026515,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Exec",
+        "exe": "/usr/bin/bwrap",
+        "argv": "/usr/bin/bwrap\\x00--unshare-all\\x00--die-with-parent\\x00--new-session\\x00--cap-drop\\x00ALL\\x00--hostname\\x00glasshouse\\.00--clearenv\\x00--setenv\\x00PATH\\x00/usr/local/bin:/usr/bin:/bin\\x00--setenv\\x00HOME\\x00/home/victim\\x00--setenv\\x00USER\\x00victim\\x00--setenv\\x00LANG\\x00C.UTF-8\\x00--uid\\x001000\\x00--gid\\x001000\\x00--ro-bind\\x00/u",
+        "argv_trunc": true,
+        "fileless": false,
+        "dev": 65025,
+        "ino": 112
+      }
+    },
+    {
+      "id": 1081,
+      "ts_ns": 52397286023,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+   ": 1092,
+      "ts_ns": 52399571877,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/uid_map",
+        "dev": 21,
+        "ino": 19764,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1093,
+      "ts_ns": 52399593698,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/setgroups",
+        "dev": 21,
+        "ino": 19765,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1094,
+      "ts_ns": 52399602542,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/gid_map",
+        "dev": 21,
+        "ino": 19766,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1095,
+      "ts_ns": 52399867765,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1096,
+      "ts_ns": 52400148773,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 7471,
+      "ts_ns": 52400281355,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/mountinfo",
+        "dev": 21,
+        "ino": 19769,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1099,
+      "ts_ns": 52400385272,
+      "proc": {
+        "tgid": 864,
+        "start": 5u started"
+      ],
+      "evidence": [
+        ocked",
+            "dev": 8,
+            "read": true,
+            "write": true,
+            "create": false,
+            "trunc": false,
+            "path_trunc": false
+          }
+        },
+        {
+          "id": 1187,
+          "ts_ns": 52424492192,
+          "proc": {
+            "tgid": 865,
+            "start": 5240
+          },
+          "tid": 865,
+          "uid": 993,
+          "kind": {
+            "k": "Rename",
+            "old": "/home/victim/Documents/file01.xlsx",
+            "new": "/home/victim/Documents/file01.xlsx.locked",
+            "dev": 46,
+            "ino": 28,
+            "approx": true
+          }
+        },
+        {
+          "id": 1188,
+          "ts_ns": 52424498902,
+          "proc": {
+            "tgid": 865,
+            "start": 5240
+          },
+          "tid": 865,
+          "uid": 993,
+          "kind": {
+            "k": "Open",
+            "path": "/home/visandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.",
+  "notes": [
+    "pre-existing non-decoy file changed: /home/victim/.bashrc"
+  ]
+}

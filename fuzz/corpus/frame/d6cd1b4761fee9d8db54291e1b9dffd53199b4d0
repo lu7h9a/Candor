@@ -1,0 +1,7 @@
+[
+    {
+"ino": 1234567,
+        "read": true,
+        "write": false,
+        "ceate": false,
+        "trunc": false         %

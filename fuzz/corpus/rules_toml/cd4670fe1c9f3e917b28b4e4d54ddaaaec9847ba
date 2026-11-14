@@ -1,0 +1,58 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T0776"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "dynamthe program is not on onitoming agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanneh_profile", "~/.profile", "~/.zshrc", "/etc/profile.d/*"]
+
+[[persistence]]
+subject = "autostart"
+desc = "a desktop autostart entry"
+paths = ["~/.config/autostart/*"]
+
+[[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a boot script"
+paths = ["/etc/rc.local", "/etc/init.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+desc = "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

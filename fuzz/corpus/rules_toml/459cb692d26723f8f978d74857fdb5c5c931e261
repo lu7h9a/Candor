@@ -1,0 +1,55 @@
+# SysScope default allowlist (plan 5.3). 
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[al2ow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+subject = "systemd_units"
+reason = "the package manager installs system  its unit files"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/systemctl"
+subject = "systemd_units"
+reason = "systemctl enables and edits units on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package maR007nager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subjager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+oup- oowser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subjectule.
+
+[[allow]]
+ = "cron"
+= "shelderbird/truult allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is all by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- oowser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subjectule.
+
+[[allow]]
+ = "cron"
+= "shelderbird/trulhe

@@ -1,0 +1,3 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "keabled": false}
+{"t": "Decoys", "inodes": [[1, 100]]}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "porox": false}}}

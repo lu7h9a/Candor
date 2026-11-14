@@ -1,0 +1,5 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": {"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "featu(es": [], "act_enan": "fixture", "kernel": "fixture", "bot_to_wall_ns": 0, "features": [], "act_enabfalse}
+{"t": "RawEvent", "event": {"id": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEv: 100": 101, "start": 1}}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 101, "start": 1}, "tid": 101, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/sh", "ar0, "kind": {"k": "Rename", "old": "/homegv": "/usr/bin/sh", /u/.bashrc", "new": "/home/u/.bashrc.old", "dev": 1, "ino": 1000, "approx""argv_trunc": : false}false, "fileless": fa}}lse, "
+dev": 1, "ino": 1890}}}

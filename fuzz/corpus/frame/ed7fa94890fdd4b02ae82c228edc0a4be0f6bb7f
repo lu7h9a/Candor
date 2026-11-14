@@ -1,0 +1,9 @@
+{ "n_conn": 0,"n_exec": 1,
+      "n_child": 0,
+      "n_sys": 120,
+   "score": 72,
+      "tree_score": 72,
+      "top_rule": "R001",
+      "exid_ts": null,  "t": "GetDetail",
+  "xrocmps": true
+}

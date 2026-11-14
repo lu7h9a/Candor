@@ -1,0 +1,190 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 2.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 5.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/ctim/Documents/file05.xlsx",
+      "dev": 46,
+      "ino": 32,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file05.xlsx.locked",
+      "size_before": 1633,
+      "size_after": 1633,
+      "entropy_before": 4.17,
+      "entropy_after": 7.89
+    },
+    {
+      "path": "/home/victim/Documents/file06.pdf",
+      "dev": 46,
+      "ino": 33,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file06.pdf.locked",
+      "size_before": 3427,
+      "size_after": 3427,
+      "entropy_before": 4.2,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file07.txt",
+      "dev": 46,
+      "ino": 34,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file07.txt.locked",
+      "size_before": 3775,
+      "size_after": 3775,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file08.docx",
+      "dev": 46,
+      "ino": 35,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file08.docx.locked",
+      "size_before": 2370,
+      "size_after": 2370,
+      "entropy_before": 4.17,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/file09.xlsx",
+      "dev": 46,
+      "ino": 36,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file09.xlsx.locked",
+      "size_before": 3579,
+      "size_after": 3579,
+      "entropy_before": 4.17,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file10.pdf",
+      "dev": 46,
+      "ino": 37,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file10.pdf.locked",
+      "size_before": 1649,
+      "size_after": 1649,
+      "entropy_before": 4.2,
+      "entropy_after": 7.86
+    },
+    {
+      "path": "/home/victim/Documents/file11.txt",
+      "dev": 46,
+      "ino": 38,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file11.txt.locked",
+      "size_before": 4096,
+      "size_after": 4096,
+      "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file12.docx",
+      "dev": 46,
+      "ino": 39,
+      "states": [
+        "mod     "create": false,
+        "trunc": false,
+      "read": true,
+            "write": true,
+            "create": false,
+            "trunc": false,
+            "path_trunc": false
+          }
+        },
+        {
+          "id": 1185,
+          "ts_ns": 52424340419,
+          "proc": {
+            "tgid": 865,
+            "start": 5240
+          },
+          "tid": 865,
+          "uid": 993,
+          "kind": {
+            "k": "Rename",
+            "old": "/home/victim/Docume would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.",
+  "notes": [
+    "pre-existing non-decoy file changed: /home/victim/.bashrc"
+  ]
+}

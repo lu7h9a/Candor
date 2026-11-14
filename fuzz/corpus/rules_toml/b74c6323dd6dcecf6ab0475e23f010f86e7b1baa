@@ -1,0 +1,314 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equal you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R008]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload"," ssh_authorized_keys"]
+why =001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equal you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R008]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_mit"
+
+[[allow]]
+rule ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/itle = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload"," ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/hom = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+sub ject = "shadow"
+reason = "su checks passwords later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file re~write (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/hom = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+sub ject = "shadow"
+reason = "su checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equal you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R008]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.hom = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+sub ject = "shadow"
+reason = "su checks passwords later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file re~write (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/hom = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+sub ject = "shadow"
+reason = "su checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equal you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run code this way"]
+
+[rules.R008]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1.0
+strong_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boot"]
+benign = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_mit"
+
+[[allow]]
+rule =lowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equals `exe` (a "*"
+# is allowed in"/ucks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+sub jesr/sbin/sshd"
+subject = "ssh_keys"
+reason =low]]
+rule = "R001"
+e "R001"
+exd = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for vemotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/ SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/bil/sudo"
+subject = "shusr/sbi

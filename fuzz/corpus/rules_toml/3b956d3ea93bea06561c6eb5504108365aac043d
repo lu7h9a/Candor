@@ -1,0 +1,210 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wordinnew, or it was updated"]
+
+[rules.R012]
+title = "Decoy touched"
+weight = 0.9
+confidenUce_write = 0.0
+confidence_read = 0.8
+why = ["this file 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T3104"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rperimental)"
+weight = 0.3
+cscripts/check-integri
+subject = "password_db"
+desc = "a password database"
+paths = ["*.kdbx"]
+
+ederc[[ntials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.d from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.Rgn = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_minonfidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network destinations and child processes differedction rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was starte", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sqlite"]
+
+[[credentials]]
+subject = "keyrings"
+desc = "the desktop keyring"
+paths = ["~/.local/share/keyrings/*"]
+
+[[credenti'''als]]
+subject = "password_db"
+desc = "a password database"
+paths = ["*.kdbx"]
+
+ederc[[ntials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.d from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.Rgn = ["you edited this file yourself, or a package manager or editor saved it"]
+
+[rules.R005]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target".json"]
+
+[[credentials]]
+subject = "netrc"
+desc = "saved login pa%swords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-keys-v1.d/*"]
+
+[[credentials]]
+subject = "browser_creds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Brow
+desc = "a password database"
+paths = ["*.kdbx"]
+
+ederc[[ntials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.dat", "~/.electrum/wallets/*"]
+
+[[persistence]]
+subject = "cron"
+desc = "a cron schedule"
+paths = ["/etc/cron*", "/etc/cron*/*", "/var/spool/cron/*", "/var/spool/cron/*/*"]
+
+[[persistence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs[rsles.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and se# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was starte", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sqlite"]
+
+[[credentials]]
+subject = "keyrings"
+desc = "the desktop keyring"
+paths = ["~/.local/share/keyrings/*"]
+
+[[credenti'''als]]
+subject = "password_db"
+desc = "a password database"
+paths = ["*.kdbx"]
+
+ederc[[ntials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.d from {dir}, a directory any program can lf-updating programs run code this way"]
+
+[rules.R004]
+title = "Persistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+confidence = 0.8
+confidence_strong = 1write to"]
+benign = ["

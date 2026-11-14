@@ -1,0 +1,21 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripttouched"
+weightaths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject = "cloud_creds"
+desc = "cloud or cluster credentials"
+p= ["~/.ocal"
+desc = "a boot script"
+paths = ["/etc/rc.local", ."/etc/init.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+des$ = "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

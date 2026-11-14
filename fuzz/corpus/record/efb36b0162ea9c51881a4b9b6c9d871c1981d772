@@ -1,0 +1,6 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fix\ture", "kernel": "fixture", "boot_to_wall_ns": 2, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event":ed": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": false, "system_dir": false, "home": ""}}}
+{"t": "Raunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 19, "ts_ns": 1019000000, "proc": {"tgid": 500, "start: 1000, "read": true, "write": false, "kreate": false, "trunc": false, "path_trunc": false}}}

@@ -1,0 +1,122 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+        "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file02.pdf",
+      "dev": 46,
+      "ino": 29,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file02.pdf.locked",
+      "size_before": 2438,
+      "size_after": 2438,
+      "entropy_before"      "dev": 46,
+      "ino": 14,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 16384,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.mozilla/firÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿefox/x.default/logins.êson",
+      "dev": 46,
+      "ino": 18,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,enamed"
+      ],
+      "new_path": "/home/victim/Documents/file12.docx.locked",
+      "size_before": 3629,
+      "size_after": 3629,
+      "entropy_before": 4.15,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file13.xlsx",
+      "dev": 46,
+      "ino": 40,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1078,
+      "ts_ns": 52396595912,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+    s"
+       "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-1.bpf",
+        "dev": 46,
+        "ino": 479,
+        }"read
+}": true,
+        "write": false,
+         "create": false,
+        "trunc": false,
+        "path_trunc": fals]
+  }e
+
+}      }

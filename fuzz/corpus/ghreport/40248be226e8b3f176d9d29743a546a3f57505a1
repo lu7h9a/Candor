@@ -1,0 +1,24 @@
+{
+ "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_x.locked",
+      "size_before": 3017,
+      "size_after":
+      "id": 1099,
+      "ts_ns": 5Exec2400385272,
+      "proc": {
+        "tgid": 433,
+    7   "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/newroot/samp "kind": {
+        "k": "Open",
+        "pathÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ": "/proc/864/mountinfo",
+        "dev": 21 file changed: /home/victim/.bashrc"
+  ]
+}

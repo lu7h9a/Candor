@@ -1,0 +1,9 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable`dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.1", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "dev": 1, "ino": 26, "read": false, "write": true, "create": true, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 19, "ts_ns": 1019000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/x/f17", "dev": 1, "ino": 27, "read": false, "write": true, "create": true, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 10, "ts_ns": 1020000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/x/f18", "dev": 1, "ino": 28, "read": false, "write": true, "create": true, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 21, "ts_ns": 1021000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/x/f19", "dev": 1, "ino": 29, "read": false, "write": true, "create": true, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 22, "ts_n, "start": 1}, "tid": 500, "uid": 1000, "kint": "Rd": {"k": "Connect", "famawEvent",i

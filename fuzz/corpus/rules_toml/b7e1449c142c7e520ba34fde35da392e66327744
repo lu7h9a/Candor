@@ -1,0 +1,178 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executab# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+#_s = 10
+distinct_dests = 100
+ports_one_addr = 06
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T0781"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so some of its activity was not recorded"]
+benign = ["very busy build tools, indexers and packageentials]]
+subject = "wallets"
+desc = "a cryptocurrency an" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests= 1 00
+ports_one_ale is owned by root and neither it nor its directory is group- or
+# world-writable. `subjec= "/usr/bin/ssh-agent"
+subject = "ssh_keyt = "*"` matches evernly if the procesverified that the
+# executable is owned by root and nbither it nor its directory is group- or
+# world-writable. `subject = n = "the SSH server reads hoddr = 06
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T0781"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events fast and user keys"
+
+.stean section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+#_s = 10
+distinct_dests = 100
+ports_one_addr = 06
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T0781"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so some of its activity was not recorded"]
+benign = ["very busy build tools, indexers and packageentials]]
+subject = "wallets"
+desc = "a cryptocurrency an" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests= 1 00
+ports_one_ale is owned by root and neither it nor its directory is group- or
+# world-writable. `subjec= "/usr/bin/ssh-agent"
+subject = "ssh_keyt = "*"` matches evernly if the procesverified that the
+# executable is owned by root and nbither it nor its directory is group- or
+# world-writable. `subject = n = "the SSH server reads hoddr = 06
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+#_s = 10
+distinct_dests = 100
+ports_one_addr = 06
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T0781"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so some of its activity was not recorded"]
+benign = ["very busy build tools, indexers and packageentials]]
+subject = "wallets"
+desc = "a cryptocurrency an" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} s008]
+title = "Event flood"
+attack = "T0781"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events fast and user keys"
+
+.ster than the tracer's per-process budget econds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0.7
+window_s = 10
+distinct_dests= 1 00
+ports_one_addr = 06
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T0781"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program profor {r than the tracer's per-process budgeduced events faster than the tracer's per-process budget for {consecutive_s} seconds, st foo so

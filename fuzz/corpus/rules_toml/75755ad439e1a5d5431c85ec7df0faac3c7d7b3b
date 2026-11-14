@@ -1,0 +1,10 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's rulcutable path equals `exe` (a "*"
+# iow"
+reason = "Qhe service manager starts login sessions through PAM,gn corpus: hip these; never the preload list, authoriz<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ed_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "udev_rules"
+reason = "the package manager installs system files (packages ship thee package manmndail clients poll update, connectivity and sync ensubints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"

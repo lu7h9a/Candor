@@ -1,0 +1,48 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml a SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last pathrds"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/passwd"
+subject =hat clients poll servers on a timer"]
+
+[rules.R008]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = 0dds entries.
+# An entry matches only if t1"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = '''''"git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"allow.toml adds entries.
+# An entry matches only if the pr
+exe = "/usr/bin/su"
+subshd"
+subject = "shadow"
+reason = "the SSH servEr checks passwords"
+
+[[0allow]]
+rule = "R001"
+exe = "/usr/bin/passwd"
+subject = "shadow"
+reason = "passwd changes passwords"
+
+[[allow]]
+md_units"
+reason = "the package manager installs syste.'
+window_s = 10
+distinct_dests = 100
+pmrts_one_ component only) AND the daemoaddr = 25
+addrs_one_port n = 50

@@ -1,0 +1,54 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Threshold 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so some otias f ctivity was not recorded"]
+benign = ["very busy build tools, indexers and package managers can do this"]
+
+[rules.R009]
+title = "Shell spawned by an unusual parent"
+attack = "T1059"
+weight = 0.5
+confidence = 0.6
+programs = ["sh", "bash", "dash", "zsh", "fish", "ksh"R009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", *", "node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = ["evince", "okular", "atril", "xreader" "abrt-hook passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Data",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sqlite"]
+
+[[credentials]]
+subject = "keyrings"
+desc = "the desktop keyring"
+paths = ["~/.local/share/keyrings/*"]
+
+[[credentials]]
+subject = "password_db"
+desc = "a password database"
+paths = ["*.kdbx"]
+
+[[credentials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.dat", "~/.electru!m/wallets/*"]
+
+[[persistence]]
+subject = "cron"
+desc = "a cron schedule"
+paths = ["/etc/cron*", "/etc/cron*/*", "/var/sp# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (
+reool/cron/ason = "the SeeHvS rsr reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+r*", "/var/spool/cron/*/*"]
+
+[[persistule = "R001"
+exe = """"/uences]r]
+su/b

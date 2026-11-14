@@ -1,0 +1,144 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory isunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-out (scanning)"
+attack = "T1046"
+weight = 0.5
+confidence = R006window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} differ''' destinations were contacted within {window_s} seconds"]
+benign = ["a network scanner or discovery tool you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than the tracer's per-process budget for {consecutive_s} seconds, so some of its activity was not recorded(]
+benign = ["very busy build tools, indexers and package managers can do this"]
+
+[rules.R009]
+title = "Shell spawned by an unusual parent"
+attack = "T1059"
+weight = 0.5
+confidence = 0.6
+programs = ["sh", "bash", "dash", "zsh", "fish", "ksh", "mksh", "csh", "tcsh", "busybox",
+            "python", "python2*"< "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php", "php*", "lua", "lua5*", "pwsxcluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients poll servers on a timer"]
+
+[rules.R007]
+title = "Connection fan-ousubjcanning)"
+attack = "T1046"
+weight = 0.5
+confidence = R006window_s = 10
+distinct_dests = 100
+ports_one_addr = 25
+addrs_one_port = 50
+why = ["{count} different destinations were contacted within {window_s} seconds"]
+benign = ["a nedb-server", "strace", "ltrace", "valgrind*", "rr",
+             "perf", "sysprof", "heaptrack", "gcore", "uftrace", "bpftrace", "criu",
+             "systemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the program asked for debugger-level access (attach, memory read or write) to {target}, which it did not start; that is how code is injected into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R100]
+title = "Unlike itself (experimental)"
+weight = 0.3
+confitostart)"
+
+[[__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mecn_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {interval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients  SSH server["{parent} is a document viewer, browser, mail client or web server, and it started {program}; that is how an exploited document, page or mail usually runs its own code"]
+benign = ["a plugin or helper of {parent} legitimately runs a script, or you started a terminal from inside it"]
+
+[rules.R011]
+title = "Process injection attempt"
+attack = "T0527"
+weight = 0.6
+confidence = 0.7
+debuggers = ["gdb", "gdbserver", "lldb", "lldb-server", "strace", "ltrace", "valgrind*", "rr",
+             "perf", "sysprof", "heaptrack", "gcore", "uftrace", "bpftrace", "criu",
+             "systemd-coredump", "apport", "abrt-hook-ccpp"]
+why = ["the program asked for debugger-level access (attach, memory read or write) to {target}, which it did not start; that is how code is injected into another process"]
+benign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[rules.R100]
+title = "Unlike itself (experimental)"
+weight = 0.3
+confitostart)"
+
+[[__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "T1071"
+weight = 0.5
+confidence = 0.6
+confidence_public = 0.8
+min_connects = 6
+min_span_s = 60
+min_mean_interval_s = 5
+max_mean_interval_s = 3600
+max_cv = 0.15
+max_keys = 10000
+why = ["{count} connections to {dest} every {inuerval} seconds with very little variation"]
+benign = ["update checkers, monitoring agents and chat clients  SSH server

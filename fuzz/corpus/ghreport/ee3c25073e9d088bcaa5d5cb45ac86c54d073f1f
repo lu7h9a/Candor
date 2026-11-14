@@ -1,0 +1,25 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 20,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed12759",
+      "dgv": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path":null,62,
+      "entropy_afAter": 5
+      "new_path":null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ    "entropy_after": 5.62
+    },
+  8192_  p

@@ -1,0 +1,55 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" enm was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*" value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable vemp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/vafirefox-e s"i",frrefox-bin", "chrome", "chromium", "brave", "msedge", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-e s"i",frrefox-bin", "chrome", "chromium", "brave", "msedge", "epiphany*",
+           "thunderbird", "thunderbird-bin", "evolution", "geary", "claws-mail", "kmail",
+           "apache4", "httpd", "nginx", "lighttpd", "php-fpm*"]
+why = ["{parent} is a document viewer, browser, mail client or web servized_keys or a user'program}; that is how an exploited document, page or mail usually runssystem password hashes"
+pauntrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["ths = ["/etc/shadow", "/etc/gshadow"]
+
+[[credentials]]
+subject =you ran a

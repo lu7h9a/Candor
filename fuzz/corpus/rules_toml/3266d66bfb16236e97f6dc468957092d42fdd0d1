@@ -1,0 +1,12 @@
+# SysScop 0.4
+confidence
+  .0=1dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, the process's executable path equals `exe` (a "*"
+# is allowed in the last pjth component onl["an instalSSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason =1" "
+exet 

@@ -1,0 +1,259 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 2.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_beforh": null,
+      "size_before": 108,
+      "size_after": 108,
+      "entropy_before": 4.61,
+      "entropy_after": 4.61
+    }
+  ],
+  "created": [
+    {
+      "path": "/home/victim/README_RESTORE.txt",
+      "size": 79,
+      "entropy": 4.49,
+      "preview": "Your files are locked. This is a SysScope Glasshouse DEMO; nothing was harmed.\\x0A",
+      "kind": "file"
+    }
+  ],
+  "timeline": [
+    {
+      "id": 1077,
+      "ts_ns": 52396556989,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-0.bpf",
+        "dev": 46,
+        "ino": 478,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1078,
+      "ts_ns": 52396595912,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-1.bpf",
+        "dev": 46,
+        "ino": 479,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1079,
+      "ts_ns": 52396614703,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-2.bpf",
+        "dev": 46,
+        "ino": 480,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1080,
+      "ts_ns": 52397026515,
+      "proc": {
+        "tgid": 862,
+        "start": 5226
+      },
+      "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Exec",
+        "exe": "/usr/bin/bwrap",
+        "argv": "/usr/bin/bwrap\\x00--unshare-all\\x00--die-with-parent\\x00--new-session\\x00--cap-drop\\x00ALL\\x00--hostname\\x00glasshouse\\x00--clearenv\\x00--setenv\\x00PATH\\x00/usr/local/bin:/usr/bin:/bin\\x00--setenv\\x00HOME\\x00/home/victim\\x00--setenv\\x00USER\\x00victim\\x00--setenv\\x00LANG\\x00C.UTF-8\\x00--uid\\x001000\\x00--gid\\x001000\\x00--ro-bind\\x00/u",
+        "argv_trunc": true,
+        "fileless": false,
+        "dev": 65025,
+        "ino": 112
+      }
+    },
+    {
+      "id": 1081,
+      "ts_ns": 5239e13.xlsx",
+      "dev": 46,
+      "ino": 40,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file13.xlsx.locked",
+      "size_before": ÿÿÿÿÿÿÿC    "size_after": 1688,
+      "entropy_before": 4.19,
+      "entropy_after": 7.87
+    },
+    {
+      "path": "/home/victim/Do },
+    {
+      "path": "/home/victim/Documents/file18.pdf",
+      "dev": 46,
+      "ino": 45,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file18.pdf.locked",
+      "size_before": 3817,
+      "size_after": 3817,
+      "entropy_before": 4.19,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file19.txt",
+      "dev": 46,
+      "ino": 46,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file19.txt.locked",
+      "size_before": 3663,
+      "size_after": 3663,
+ [trun     "entropy_before": 4.18,
+      "entropy_after": 7.95
+    },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_MESSAGES/SYS_LC_MESSAGES",
+        "dev": 68050,
+        "ino": 4292,
+        "read": tr      "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1133,
+      "ts_ns": 52404518701,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "tid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/usr/lib/locale/C.utf8/LC_NUMERIC"{"s": 60,
+    "started_ts": 1000,
+ ,
+        "dev": 65025,
+        "ino": 4295,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1134,
+      "ts_ns": 52404545608,
+      "proc": {
+        "tgid": 865,
+        "start": 5240
+      },
+      "   "ended_ttid": 865,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+ [trun       "path": "/usr/lib/locale/C.utf8/LC_CTYPE",
+        "dev": 65025,
+  ~     "ino": 4289,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+  s"e    "id": 1135,
+      "ts_n"s": 52404,n817009,Ce
+  }    "

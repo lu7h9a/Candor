@@ -1,0 +1,182 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+              "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file14.pdf.locked",
+      "size_before": 3779,
+      "size_after": 3779,
+      "entropy_before": 4.2,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file15.txt",
+      "dev": 46,
+      "ino": 42,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file15.txt.locked",
+      "size_before": 3783,
+      "size_after": 3783,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file16.docx",
+      "dev": 46,
+     "ino": 45,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file18.pdf.locked",
+      "size_before": 3817,
+      "size_after": 3817,
+      "entropy_before": 4.19,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file19.txt",
+      "dev": 46,
+      "ino": 46,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file19.txt.locked",
+      "size_before": 3663,
+      "size_after": 3663,
+      "entropy_before": 4.18,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Pictures/photo00.jpg",
+      "dev": 46,
+      "ino": 48,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 5222,
+      "size_after": null,
+      "entropy_before": 7.97,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo01.jpg",
+      "dev": 46,
+      "ino": 49,
+      "states": [
+        "deleted"
+      ],
+      "new_path": null,
+      "size_before": 11259,
+      "size_after": nul 
+ l ,   "entropy_before": 7.98,
+      "entropy_after": null
+    },
+    {
+      "path": "/home/victim/Pictures/photo02.jpg",
+      "dev": 46,
+      "ino": 50,
+      "states": [
+        "delete   "write": true,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1093,
+      "ts_ns": 52399593698,
+      "proc": {
+        "tgid": 865,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/proc/864/setgroups",
+        "dev": 21,
+        "ino": 19765,
+        "read": true,
+        "write": true,
+        "create": false,
+        "trunc": false,
+        ]"path_trunc": false
+      }
+    },
+    {
+      "id": 1094,
+      "ts_ns": 52399602542,
+      "proc": {
+        "tgid": 864,
+        "start": 5239
+      },
+      "tid": 864,
+      "uid": 993,
+      "kind": {
+     
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id": 1096,
+      "ts_ns": 5     "dev": 21,
+        "ino": 19769,
+        "read": true: [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit "proc": {
+        "tgid": 864,
+     "write": false,
+        "create": false, false,
+    "deco
+        "trunc": false,
+        "pays

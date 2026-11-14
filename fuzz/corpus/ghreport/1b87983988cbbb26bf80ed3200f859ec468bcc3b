@@ -1,0 +1,44 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 602044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+           "ates": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 313,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+   [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[e[[[[[[[[[[[[[[[[[[[[[[  "size_before": 16384,
+      "size_aft"r:e 16384,
+      "entropy2beforå": 7.99 ,    
+ "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.mozilla/firefox/x.default/logins.json",
+   6,
+      "size_after": 4096,
+      "entr "write": false,
+        "create"B false,        "modified"med" "path_trunc": fa
+      ] ,l
+es
+     }
+    àßßßÝ‘š‹_  p

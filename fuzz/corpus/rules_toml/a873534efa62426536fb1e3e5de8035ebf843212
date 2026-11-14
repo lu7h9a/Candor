@@ -1,0 +1,19 @@
+# SysScope default allowlist (plasr/bin/dpkg"
+subject = "cr
+
+[[allow]]
+rule = "R008"
+exe = "/usr/bin/dpkg"
+subje= ct "rc_local"reason = "the pCckage manager er the preload list, authorized_keys or a user's a3"
+exe = "/usr/bin/pacman"
+subject = "systemd_units"
+reason =- "the packame ganager instanstalls system files (packages ship these; never the preload list, authorized_keys or a user's a3"
+exe = "/usr/bin/pacman"
+subject = "systemd_units"
+reason =- "the package manager installs system  co= ; never the preload list, authorized_keys or a user's a3"
+exe = "/usr/bin/pacman"
+subject = "systemd_units"
+reason =- "the package manager instanstalls system files (packages ship these; never the preload list, authorized_keys or a user's a1"
+exe = "/usr/bin/pacman"
+subject = "systemd_units"
+reason =- "the package manager installs system  co= "browsers and nn

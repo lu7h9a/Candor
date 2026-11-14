@@ -1,0 +1,222 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rulend package managers can do this"]
+
+[rules.R009]
+title # SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND theubject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule =]"R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "txe SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ss@-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+rean/cron"
+subject = "cron"
+reason /config.json"]
+
+[[credentials]]
+subject = "netrc"
+desc = "saved login passwords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-keys-v1.d/*"]
+
+[[credentials]]
+subject = "browser_cr%ds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Data",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sqlite"]
+
+[[credentials]]
+subject = "keyrings"
+desc = "the desktoplan section 5). Embedded in the daemon;
+# /etc/sysscope/rulend package managers can do this"]
+
+[rules.R009]
+title # SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule =]"R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your kyes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ss@-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+ct of the r/rulend package managers can do this"]
+
+[rules.R009]
+title # SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND theubject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule =]"R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "txe SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ss@-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+rean/cron"
+subject = "cron"
+reason /config.json"]
+
+[[credentials]]
+subject = "netrc"
+desc = "saved login passwords for network services"
+paths = ["~/.netrc"]
+
+[[credentials]]
+subject = "gpg_keys"
+desc = "private GnuPG keys"
+paths = ["~/.gnupg/private-keys*", "~/.gnupg/private-keys-v1.d/*"]
+
+[[credentials]]
+subject = "browser_cr%ds"
+desc = "saved browser passwords or cookies"
+paths = ["~/.config/google-chrome/*/Login Data", "~/.config/chromium/*/Login Data",
+         "~/.config/BraveSoftware/Brave-Browser/*/Login Data",
+         "~/.mozilla/firefox/*/logins.json", "~/.mozilla/firefox/*/key4.db",
+         "~/.mozilla/firefox/*/cookies.sqlite"]
+
+[[credentials]]
+subject = "keyrings"
+desc = "the desktoplan section 5). Embedded in the daemon;
+# /etc/sysscope/rulend package managers can do this"]
+
+[rules.R009]
+title # SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule =]"R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your kyes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ss@-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+ct of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/ss
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a boot script"
+paths = ["/etc/rc.local", "/etc/init.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+desc = "tule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/ss
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a boot script"
+paths = ["/etc/rc.local", "/etc/init.d/*"]
+
+[[persistence]]
+subject = "ssh_authorized_keys"
+desc = "the list of keys allowed to log in over SSH"
+paths = ["~/.ssh/authorized_keys"]
+
+[[persistence]]
+subject = "udev_rules"
+desc = "a device event rule"
+paths = ["/etc/udev/rules.d/*"]

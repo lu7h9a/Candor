@@ -1,0 +1,13 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/git", "argv": "/usr/bin/git", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": true, "system_dir": true, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/repo/.git/objects/f0.txt", "dev": 1, "ino": 10, "read": false, "write": true, "create": false, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/repo/.git/objects/f0.txt", "new": "/home/u/repo/.git/objects/f0.txt.locked", "dev": 1, "ino": 10, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 1004000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/repo/.git/objects/10.0.0.1", "port": 1007, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 10, "ts_ns": 1010000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.1", "port": 1008, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 11, "ts_ns": 1011000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet: "10.0. 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.1", "port": 1019, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 22, "ts_ns": 1022000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.2", "port": 1000, ";ock": "stream"}}}
+{"t": "RawEvent", "event":alse}}}
+{"t": "RawEvent", "event": {"id": 6, "ts_ns": 1006000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k":"k": "Open", "path": "/home/u/repo/.git/objects/f0.txt", "dev": 1, "ino": 10, "read": false, "write": true, "create": false, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/repo/.git/objects/f0.txt", "new": "/home/u/repo/.git/objects/f0.txt.locked", "dev": 1, "ino": 10, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 1004000000, "proc":no": 39, "approx": false}}}

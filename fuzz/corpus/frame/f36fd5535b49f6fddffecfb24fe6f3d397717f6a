@@ -1,0 +1,17 @@
+{
+  "t": "GetDetail",
+  
+  "proto": 1,
+  "daemon_version": "0.0.1",
+  "kepnel": "6.19.14+kali-amd64",
+  "boot_to_wall_ns": 1763000000000000000,
+  "features": [
+    "li",
+    "syscalls"
+  ],
+"xroc":  
+{   "Tgdecoysid": 4312,
+    "¸¸¸¸¸¸¸¸¸art": 120034
+  },
+  "maps": true
+}

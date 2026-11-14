@@ -1,0 +1,47 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if thethat the "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule							 = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh"ykes_
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/binthe SSH agent holds your keyubject = "ssh_keys"
+reasonlient reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule							 = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/binthe SSH agent holds your keys"
+
+[[allow]]
+rule				"the SSH agent holds your keys"
+
+[[allow]]
+rule							 = "R001"
+exe = "/son = "login checks passwllowlist (pords"
+
+[[allow]]
+rule = "R001lan"

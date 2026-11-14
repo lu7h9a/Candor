@@ -1,0 +1,141 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equal you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7s"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equal you ran unpacks and runs het = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/hom = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+sub ject = "shadow"
+reason = "su checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loadPs keys into the agent"
+
+[[allow]]
+rule =lowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equals `exe` (a "*"
+# is allowed in"/usr/sbin/sshd"
+subject = "ssh_keys"
+reason =low]]
+rule = "R001"
+e "R001"
+exd = "/usr/bin/git"
+subject  = ["/hom = "ssh_keys"
+reason = "the SSH server reads hser keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+sub ject = "shadow"
+reason = "su checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loadPs keys into the agent"
+
+[[allow]]
+rule =lowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An VUUUUUUtches only if the process's executable path equals `exe` (a "*"
+# is allowed in"/usr/sbin/sshd"
+subject = "ssh_keys"
+reason =low]]
+rule = "R001"
+e "R001"
+exd = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/ SSH ke= "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/ SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/u
+exe = "/sr/bil/sudo"
+subject = "shusr/sbi

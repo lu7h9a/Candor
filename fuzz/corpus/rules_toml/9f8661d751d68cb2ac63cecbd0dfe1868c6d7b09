@@ -1,0 +1,131 @@
+# SysScope default allowlist (pl$an 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matchre-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cachence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cachence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtim(es and se# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml e = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/sysials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.dat", "~/.electrum/wallets/*"]
+
+[[persistence]]
+subject = "cron"
+desc = "a cron schedule"
+paths = ["/etc/cron*", "/etc/cron*/*", "/var/spool/cron/*", "/var/spool/cron/*/*"]
+
+[[persistence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from, "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learneod ver {runs[rules.R003]
+tit"""le = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and se# SysScope default detection rules (plan section 2). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/ce_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cachence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confexe = "/usr/lib/firefox/firefox"
+subject = "browser_cre
+"sdreason = "the browser reads its , "/var/spool/cron/*/*"]
+
+[[persistence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/systcheck-integrity.sh:
+# changinn/ssh-adR001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_cre
+"sdre "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and se# SysScope default detection rules (plan section 2). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/ce_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cachence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs[r"
+#  i

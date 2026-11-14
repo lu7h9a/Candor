@@ -1,0 +1,5 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# Anhe process's executable pathght = 0.5
+confidence = 0.'
+windom(addr = 25
+addrs_one_port n = 50

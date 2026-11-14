@@ -1,0 +1,88 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in/ the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-i002"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrintegrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack =confidence_write "T1552"
+weight = 0.6. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/bin/ssh"
+subjeconfidencekeys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml maysholds are guarded by scripts/check-i002"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrintegrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack =confidence_write "T1552"
+weight = 0.6
+confidenhat the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "th( SSH server reads host and user keys"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason =*"the # SysScope default detection rules (plan section 5). Embedded in/ the daemon;
+# /etc/sysscope/rules.to yourself"]
+ = [".cache", ".git", ""
+reason = "polkit checks passwonode_modules",rds for admi "target", n prompts"
+
+[["_

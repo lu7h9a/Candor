@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daeabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001011111111111111111111111111111111113", "argv_trunc": false, : 0, "ts_ns": 1001": {"k": "Ptrace", "target": {"tgid": 300, "start": 1}, "adescttach": true}}}

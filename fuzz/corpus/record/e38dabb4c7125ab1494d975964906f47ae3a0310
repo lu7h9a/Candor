@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001088888888888888888888888888888888888888888888888888888888800000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/sbin/apache2", "argv": "/usr/sbin/apache2", "argv_trunc": false, "xe": "/usr/bin/python3.12", "argv": "/usrin/python3.12", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 19}}}

@@ -1,0 +1,47 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals hes every subject of the rule
+.
+[[allow]]
+rule = "
+
+[[allow]]
+rule =tches every subject of the rule
+.
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+cks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow# SysScope default a"
+reason = "login checks passwllowl in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sshthe rule
+.
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+cks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow# SysScope default a"
+reason = "login checks passwllowlist (pords"
+
+[[allow]]
+rule = "R001lan"

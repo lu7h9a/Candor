@@ -1,0 +1,10 @@
+# SysScope default detection rules (plan section 5). Embeddet in the rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has no nam
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ =efault detection rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has no npdnce = 0.9
+why = ["the program's file has no name on disk (memfd or deleys"
+reason = "the SSH client reads your keys to log in"
+
+[[alrou

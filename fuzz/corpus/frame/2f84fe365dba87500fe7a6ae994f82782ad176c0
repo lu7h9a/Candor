@@ -1,0 +1,32 @@
+[[[
+    {
+      "key": {
+        "sgid": 4312,
+        "start": 120034
+      },
+      "parent": {
+        "tgid": 4100,
+        "start": 110000
+      },
+      "exe": "/tmp/x",
+      "comm": "x",
+      "uid": 1000,
+      "kthread": false,
+      "cpu_pct": 12.5,
+      "rss": 4194304,
+      "threads": 1,
+      "io_r": 4096,
+      "io_w": 0,
+      "n_open": 3,
+      "n_conn": 0,
+      "n_exec": 1,
+      "n_child": 0,
+      "n_sys": 120,
+      "score": 72,
+      "tree_score": 72,
+      "top_rule": "R001",
+      "exid_ts": null,
+      "fol{
+   12,
+    "screcode": 0,
+    "since_ts_ns": 10[]]]]r

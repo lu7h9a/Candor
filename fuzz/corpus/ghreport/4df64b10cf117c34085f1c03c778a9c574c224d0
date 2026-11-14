@@ -1,0 +1,178 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.09,
+      "entropy_after": 5.09
+    },
+    {
+      "path": "/home/victim/wallet.dat",
+      "dev": 46,
+      "ino": 22,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 32768,
+      "size_after": 32768,
+      "entropy_before": 7.99,
+      "entropy_after": 7.99
+    },
+    {
+      "path": "/home/victim/.gnupg/private-keys-v1.d/x.key",
+      "dev": 46,
+      "ino": 25,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 1200,
+      "size_after": 1200,
+      "entropy_before": 7.84,
+      "entropy_after": 7.84
+    },
+    {
+      "path": "/home/victim/Documents/file00.docx",
+      "dev": 46,
+      "ino": 27,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file00.docx.locked",
+      "size_before": 1536,
+      "size_after": 1536,
+      "entropy_before": 4.2,
+      "entropy_after": 7.88
+    },
+    {
+      "path": "/home/victim/Documents/file01.xlsx",
+      "dev": 46,
+      "ino": 28,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file01.xlsx.locked",
+      "size_before": 4005,
+      "size_after": 4005,
+      "entropy_before": 4.17,
+      "entropy_after": 7.96
+    },
+    {
+      "path": "/home/victim/Documents/file02.pdf",
+      "dev": 46,
+      "ino": 29,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file02.pdf.locked",
+      "size_before": 2438,
+      "size_after": 2438,
+      "entropy_before": 4.2,
+      "entropy_after": 7.92
+    },
+    {
+      "path": "/home/victim/Documents/file03.txt",
+      "dev": 46,
+      "ino": 30,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file03.txt.locked",
+      "size_before": 1730,
+      "size_after": 1730,
+      "entropy_before": 4.12,
+      "entropy_after": 7.87
+    },
+    {
+      "path": "/home/victim/Documents/file04.docx",
+      "dev": 46,
+      "ino": 31,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file04.docx.locked",
+      "size_before": 3017,
+      "size_after": 3017,
+      "entropy_before": 4.16,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file05.xlsx",
+      "dev": 46,
+      "ino": 32,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file05.xlsx.locked",
+      "size_before": 1633,
+      "size_after": 1633,
+      "entropy_before": 4.17,
+      "entropy_after": 7.89
+    },
+    {
+      "path": "/home/victim/Documents/file0ath_trunc": fa
+      ],
+lse
+      }
+        "new_  p

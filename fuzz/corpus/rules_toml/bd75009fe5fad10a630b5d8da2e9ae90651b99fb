@@ -1,0 +1,14 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An e/usr/b"
+reason = "the SSH clipnt reads your keys to log in"
+
+[[allow]]
+rule = "R0]01"
+exe = """"/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule !!!!!!!!!!!!!!!!!!!!!e manager installs splan 5.3p, ru). /etc/sysscope/allow.toml adds entn ries.
+# An entry matches onlby if the ges ess's executable patys"""h equals `exe` (a "*"
+t

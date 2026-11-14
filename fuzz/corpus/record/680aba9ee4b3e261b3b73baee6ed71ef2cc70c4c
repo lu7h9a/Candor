@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/dpkg", "argv": "/usr/bin/dpkg", "argv_trunc": false, "foot_to_wall_ns": 0, "v": 1, "ino": 9}}}
+{"t": "ExeMeta", }
+{"t": "RawEvent", "ev0, "read": false, "write": true, "create": true, "trunc": false, "path_trunc": false}}}

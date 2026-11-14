@@ -1,0 +1,9 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 11001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "unix", "addr": "/run/x.sock", "port": 0, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 21001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "unix", "addr": "/run/x.sock", "port": 0, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 31001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "unix", "addr": "/run/x.sock", "port": 0, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 41001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "unix", "addr": "/run/x.sock", "port": 0, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 6, "ts_ns": 51001000000, "proc": {"tgid": 500, "start": a}, "tid": 500, "uid": 1000, "kind": {"k": "Connect",ock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 9, "ts_ns": 81001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "unix", "addr": "/run/x.sock", "port": 0, "sock": "stream"}}}

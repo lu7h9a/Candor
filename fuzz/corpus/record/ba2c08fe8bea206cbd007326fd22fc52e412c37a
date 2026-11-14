@@ -1,0 +1,5 @@
+{"sysscope_record": 1, "proto": 1, "daemobled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/bash", "argv": "/usr/bin/bash4444444444444444444444444444", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 13}}}
+{"t": "RawEve": 2, "ts_ns": 1002000000, "proc": {"tgid": 200, "start": 1}, art": 1}}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": 
+{"": 100kind": {"k": "Ptrace", "target": {"tgid": 100, "start": 1}, "attach": true}}}

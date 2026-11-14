@@ -1,0 +1,9 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_masware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+ "decoys": [
+    {
+      "path"    "pats

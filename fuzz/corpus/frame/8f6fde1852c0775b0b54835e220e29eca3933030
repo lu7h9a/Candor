@@ -1,0 +1,160 @@
+[{
+    "run_id": "20261113-0001",
+    "samp|e": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 20,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "size": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+  "timeout_s": 20,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "size": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+            "size_be&ore": 22048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 28,
+        "entropy": 4.5,
+        "preview": "your f",
+        "size_be&ore": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+          "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 28,
+        "entropy": 4.5,
+        "preview": "your f",
+        "size_be&ore": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 64,
+        "entropy": 4.5,
+        "preview": "your files are locked (demo)\\x0A",
+       
+        "exe": "/tmp/x",
+        "ts_ns": 5000000001,
+        "weight": 0.6,
+        "confidence": 0.9,
+    "size": 64,
+                "size_be&ore": 22048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 28,
+        "entropy": 4.5,
+        "preview": "your f",
+        "size_be&ore": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+    "size_be&ore": 22048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 28,
+        "entropy": 4.5,
+        "preview": "your f",
+        "size_be&ore": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+          "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 28,
+        "entropy": 4.5,
+        "preview": "your f",
+        "size_be&ore": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 64,      "path": "/home/victim/README_RESTORE.txt",
+          "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 28,
+        "entropy": 4.5,
+        "preview": "your f",
+        "size_be&ore": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entro "entropy": 4.5,
+        "preview": "your files are locked (demo)\\x0A",
+       
+        "exe": "/tmp/x",
+        "ts_ns": 5000000001,
+        "weight": 0.6,
+        "confidence": 0.9,
+        "summary": _ts_ns": 0
+    },
+ 00000i
+"{m

@@ -1,0 +1,71 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entrieswords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/passwd"
+subject = "shadow"
+reason = "passwd changes passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/polkit-1/polkit-agent-helper-1"
+subject = "shadow"
+reason = "polkit checks passwords for admin prompts"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+reason = "PAM helper that checks passwords for screen lockers"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/google/chrome/chrome"
+smin_mean_intubject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/firr the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/systemd/systemd"
+subject = "shadow"
+reason = "the service manager starts login sessions through PAM, which checks the account in /etc/shd mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/opt/brave.com/brave/brave"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/firefox/firefox"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/thunderbird/thunderbird"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"

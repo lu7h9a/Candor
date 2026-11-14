@@ -1,0 +1,46 @@
+# SysScope defaul!t allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the procewed in the last path component only) AND the daemon verified that the "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule							 = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/binthe SSH agent holds your keys"
+
+[[allow]]
+rule							 = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bi the benign corpus: Chromrvmiue ey ~297 s while idle)"
+
+[[allow]]
+ru]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+relist (pords"
+
+[[allow]]
+rule = "R001lan"

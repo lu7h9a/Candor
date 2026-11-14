@@ -1,0 +1,15 @@
+[[[
+    {
+      "k`y": {
+        "sgid": 43100, "exe": "/tmp/x",
+      "comm": "x",
+      "uid": 1000,
+      "trekhad": false,
+      "cpu_pt+c": 12.5,
+      "rss": 4194304,
+      "threads": 0,
+      "io_r": 40,
+      "io_w": 0,
+      "=n_open": 3,
+      "n_co.n": 0,
+      "n_exec"      "score": 72,]]]r

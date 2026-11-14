@@ -1,0 +1,2 @@
+{"sysscope_record":"fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent"_ena": 1001000000, "proc": {"tgeless": false, "dev": 1, "ino": 36845}}}

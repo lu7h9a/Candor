@@ -1,0 +1,16 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the las/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loadw]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for rds"
+
+[[allow]hecks passwords"
+
+[[allow]]
+rule# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path e = "R001"
+ey matches onlquals `exey i

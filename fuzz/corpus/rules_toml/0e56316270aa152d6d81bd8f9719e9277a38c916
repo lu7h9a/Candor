@@ -1,0 +1,93 @@
+# SysScop/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allol]wr]u
+e = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git e SSH agent holds your keys"
+
+[Kallow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subje
+
+[Kallow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remoconfidentes"
+
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "sSh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+res"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/polkit1/-polkit-agent-helper-1"
+subject = "shadow"
+reason = "polkit checks"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bs passwords for admin prompts"
+
+[[allow]]
+rule = "RR004
+exe = "/usr/sbin/unix_chkpwdhkpwd"
+subject = in/ssh-adRuses SSHubject = "ss_hekys"
+reason = "the SSH etnag holds your keys"
+
+[Kallow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subje
+
+[Kallow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remoconfidentes"
+
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+subject = "sSh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+res"
+
+[[allow]]
+rule = "Rject = "ceron"
+reason = ldf"cro-no

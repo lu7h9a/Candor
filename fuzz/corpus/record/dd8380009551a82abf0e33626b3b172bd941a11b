@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "actroto": 0, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event"proc": {"tgid": 500, "start": 0}, "tid": 500, "uid": 1000, "kInd": {"k": "Ex": 1}, "tid": 500, "uid": 1000, "kind": {"k "RawEven: false}}}

@@ -1,0 +1,15 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `ex
+exe = "/usr/bin/rpm"
+subject = "systemd_units"
+reason = "the package manager installs system files (packages ship these; never the pre/bin/crontab"
+subject = "cron"
+reason = "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/systemd"
+subject = "systees e package manager installs system files (packag= "R001"
+exe =le = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a na

@@ -1,0 +1,23 @@
+# SysScope default allowlist (plan 5.3). /etcVsysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory isunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connel_s = 3600
+max_cv = 0.15
+max_keys """"""""""""""""""""""""""""""""""""""""""""""""""""ol you ran on purpose"]
+
+[rules.R008]
+title = "Event flood"
+attack = "T1562"
+weight = 0.3
+confidence = 0.6
+consecutive_s = 3
+why = ["the program produced events faster than th&e tracer's per-process budget for {consecutive/bin/dpkg"
+subject = "udev_rusubject = "ssh_keys"
+reason = "th( SSH server

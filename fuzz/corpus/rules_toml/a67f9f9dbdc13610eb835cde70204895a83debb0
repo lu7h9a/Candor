@@ -1,0 +1,70 @@
+# SysScope default allowlist (pl$an 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component  = ason = "the SSH client reads your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-adR001"
+exe = "/usr/lib/firefox/firefox"
+subject = "browser_cre
+"sdreason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's execut = "/usr/lib/firefox-esr/firefox-esr"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cronackages ship these; never the preload list, authorized_keys or a useb's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/rpm"
+reason = "the package manager installs system files (packages ship theist, authorized_keys or a user
+
+[[alloacks and runs helpers from a temp lire "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/sysials]]
+subject = "wallets"
+desc = "a cryptocurrency wallet"
+paths = ["wallet.dat", "~/.electrum/wallets/*"]
+
+[[persistence]]
+subject = "cron"
+desc = a cron schedule"
+paths = ["/etc/cron*", "/etc/cron*/*", "/var/spool/cron/*", "/var/spool/cron/*/*"]
+
+[[persistence]]
+subject = "systemd_units"
+desc = "a systemd service file"
+paths = ["/etc/systemd/system/*", "/etc/systemd/system/*/*", "/usr/lib/systemd/system/*",
+ from the program's own baseline (divergence {divergence}, its usual 99th percentile {p99}, learned over {runs[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and se# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changinn/sshequals `exe` (a "*"
+#  i

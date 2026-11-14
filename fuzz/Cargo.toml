@@ -1,0 +1,66 @@
+# Fuzz targets (plan WP29 b). Built with `cargo +nightly fuzz run <target>`;
+# a separate workspace so the main build never needs nightly.
+[package]
+name = "sysscope-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+build = "build.rs"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+serde_json = "1"
+thiserror = "2"
+sysscope-proto = { path = "../crates/sysscope-proto" }
+sysscope-core = { path = "../crates/sysscope-core" }
+
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "frame"
+path = "fuzz_targets/frame.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "bstr_unescape"
+path = "fuzz_targets/bstr_unescape.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "abi_decode"
+path = "fuzz_targets/abi_decode.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "rules_toml"
+path = "fuzz_targets/rules_toml.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "record"
+path = "fuzz_targets/record.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ghreport"
+path = "fuzz_targets/ghreport.rs"
+test = false
+doc = false
+bench = false

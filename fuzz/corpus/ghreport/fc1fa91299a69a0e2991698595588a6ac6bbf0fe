@@ -1,0 +1,166 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after": 5.32
+    },
+    {
+      "path": "/home/victim/.ssh/known_hosts",
+      "dev": 46,
+      "ino": 8,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 312,
+      "size_after": 312,
+      "entropy_before": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path": "/home/victim/.aws/credentials",
+      "dev": 46,
+      "ino": 10,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 116,
+      "size_after": 116,
+      "entropy_before": 2.19,
+      "entropy_after": 5.19
+    },
+    {
+      "path": "/home/victim/.config/google-chrome/Default/Login Data",
+      "dev": 46,
+      "ino": 14,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 16384,
+      "size_after": 16384,
+      "entrt": "ssh_keys",
+        "attack": "T1552",
+        "proc": {
+          "tgid": 4312,
+          "start": 120034
+        },
+        "exe": "/tmp/x",
+        "ts_ns": 5000000000,
+        "weight": 0.6,
+        "confidence": 0.9,
+        "summary": "opened /home/u/.ssh/id_ed25519 for reading",
+        "why": [
+          "this file is a private SSH key"
+        ],
+        "benign": [
+          "you ran a backup or key-management tool yourself"
+        ],
+        "evidence": [
+          18812
+        ],
+        "evidence_events": [
+          {
+            "id": 18812,
+            "ts_ns": 5000000000,
+            "proc": {
+              "tgid": 4312,
+              "start": 120034
+            },
+            "tid": 4312,
+            "uid": 1000,
+            "kind": {
+              "k": "Open",
+              "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+              "dev": 66306,
+              "ino": 1234567,
+              "read": true,
+   new           "write": false,
+              "create": false,
+              "trunc": false,
+              "path_trunc": false
+            }
+          }
+        ]
+      }
+    ],
+    "loss": {
+      "ringbuf": 0,
+      "budget": 0,
+      "scratch": 0,
+      "decode": 0,
+      "since_ts_ns": 0
+    },
+    "limitation": "Glasshouse is a behaviour-demonstration sandbox, neforÿÿÿÿÿÿÿÿe": 4096,
+      "size_after": 4096,
+      "entropy_before": 7.95,
+      "entropy_after": 7.95 "path": "/home/victim/.mozilla/firefox/x.default/key4.db",
+      "dev": 46,
+      "ino": 19,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 8192,
+      "size_after": 8192,
+      "entropy_before": 7.98,
+      "entropy_after": 7.98
+    },
+    {
+      "path": "/home/victim/.bash_history",
+      "devb: 46,
+      "ino": 20,
+      "states": [
+     are.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "rena"med"
+        ],
+x        "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2048,
+        "size_after": 2048,
+       " }

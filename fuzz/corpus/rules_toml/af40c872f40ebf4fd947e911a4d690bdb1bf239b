@@ -1,0 +1,38 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toh_keys"
+reason = ule = "R001"
+exe = "/usr/libmanager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+ directory any program can write to"]
+beni"an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R004]
+title = = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks idence_untrusted_exe = 0.9
+confid nor its directory is(group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and userow (seen for every SSH login)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reasocious_at = 30
+high_at = 61
+max_evidence_event{ = 10
+
+[rules.R001]
+title =enign = ["an installer or build tool you ran unpacks idence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {sue idle)"
+why

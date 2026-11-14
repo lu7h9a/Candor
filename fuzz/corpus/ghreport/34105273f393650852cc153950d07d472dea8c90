@@ -1,0 +1,28 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_pat;h": null,
+      "size_before": 205,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entrfore": 5.82,
+      "entropy_after": 5.82
+    },
+    {
+      "path"        "read"
+  h": null,
+      "size_before": 411,
+      "size_after": 411.jpg",
+      "dev": 46,
+       "create": f044,
+,
+       

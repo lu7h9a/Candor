@@ -1,0 +1,24 @@
+{
+  "t": "GhReport",
+  "report": {
+    "run_id": "20261113-0001",
+    "sample": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 59,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "renapreview      ],
+        "new_path": "/home/victim/Docu###################e,
+        "pa ys }
+}

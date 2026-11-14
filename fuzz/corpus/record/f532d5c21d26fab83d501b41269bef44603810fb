@@ -1,0 +1,5 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 1, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "": false, "home": "/home/u", "world_writable_dir": fa
+}sle{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 50ent": {"id": 3, {"sysscope_record": 1, "p, "ino": 15, "read": false, "write": true, "create": false, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", ise}
+{"t": "event": {"id": "R(wEvent8"

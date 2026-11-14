@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixtur/tmp/e", "boot_to_wall_ns": 1, "featurt": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/b/uin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "filelesR004s": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 5, "path": "/home/u/docs/f3.txt", "dev": 1, "ino": 13, "read": false, "write": true, "create": false, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 9, "ts_ns": 1009000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid: "RawEvent", "event": {"id": 13, "ts_ns": 1013"start": 1}, 100]]}
+{"t": "BudgetDrops", "ts_ns": 7000000000, "drops": [[{"tgid": 499, "start": 1}, 100]]}

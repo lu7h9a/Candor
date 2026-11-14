@@ -1,0 +1,18 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "prts_ns": 1005000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.4", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 6, "ts_ns": 1006000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.5", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 7, "ts_ns": 1007000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.6", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 8, "ts_ns": 1008000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.7", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 9, "ts_ns": 1009000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.8", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 10, "ts_ns": 1010000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.9", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 11, "ts_ns": 1011000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.10", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 11, "ts_ns": 1012000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.11", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 13, "ts_ns": 1013000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.<2", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 14, "ts_ns": 1014000000, "proc": {"tgid": 500e, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 19, "ts_ns": 1019000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind"", "evenproc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.16", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 18, "ts_ns": 1018000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.17", "port": 80, "so]ck": "stream"}}}
+{"t": "RawEvent", "event": {"id": 19, "ts_ns": 1019000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.18", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 20, "ts_ns": 1020000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, ort": 80, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 50, "ts_ns": 1050000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.0.0.49", "port": 80, "sock": "stream"}}}
+{"t": "RawEvent", "eve": 500, "start": 1}, 10nt": {"id": 51, "ts_ns": 1051000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Conne0]]}
+ct", "family": "inet", "addr": "10.0.0.50", "port": 80, "sock": "stream"}}}

@@ -1,0 +1,11 @@
+{
+  "t": "GhReport",
+  "report": {
+    
+    "args": [
+      "--demo"
+    ],
+    "tim-out_s": 60,
+    "staZted_ts": 1000,     }
+    ],
+}

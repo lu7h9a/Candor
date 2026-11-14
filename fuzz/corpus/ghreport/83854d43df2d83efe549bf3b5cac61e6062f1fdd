@@ -1,0 +1,47 @@
+{
+  "t": "GhReport",
+  "report": {
+    "run_id": "20261113-0001",
+    "sample": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2048,
+        "size_after": 2048,
+      "size": 64,
+        "entropy": 4.5,
+        "preview": "your files are locked (demo)\\x0A",
+        "kind": "file"
+      }
+    ],
+    "timeline": [
+      {
+        "id": 18812,
+        "ts_ns": 5000000000,
+        "proc": {
+          "tgid": 4312,
+          "start": 120034
+        },
+        "tid": 4312,
+        "uid"     "k": "Open",
+              "path": "/home/u/.ssh/id_ed25519\\x1B[2lware containment system.",
+    "notes": [
+      "differ stopped at 20000 entries"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+# SysScope default all"/usr/bin/ssh"
+,ubject = "sshallow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[allow]]
+rwords"
+
+[[allow]]
+rule = "R001""R001"
+exe = "/usr/bin/ssh
+-agent"
+sub "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+e'xe = "/u
+exe = "/sr/bil/sudo"
+subject = "shusr/sbi

@@ -1,0 +1,9 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/d0/f0", "dev": 1, "ino": 10, "read": false, "write": true, "create": false, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 2}, "tid": 500, "uid": 1000, "kind": {"k": "Open", "path": "/home/u/d1/f1", "dev": 1, "ino": 11, "read": false, "write": true, "create": false, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 100400000kind": {"k": "Open", "path": "/home/u/d2/f23", "dev": 1, "ino": 33, "read": false, "writee": false, "trunc": true, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 30, "ts_ns": 1030000000, #proc": {"tgid": 500, "start": 1}, "tid": 500, "uiess": false, "dev": d": 1000, "kind": {"k": "Open", "path": "1, "ino": 3/home/u/d1/f28""e" ,vd: 1, "ino": 38, "read": false, "write": true, "create": false, "trunc": true, "path_trunc": false}}}
+{"t": "RawEv6ent", "e$ent, "proc": {"tgid": 500, "start": 1}, "t8id": 500, "uid": 1000, "kind":45}} {"k": "Open", "path": "/home/u/d2/f29", "dev": 1, "ino": 39, "read": false, "write": tru}
+e, "create": false, "trunc": true, "path_trunc": false}}}

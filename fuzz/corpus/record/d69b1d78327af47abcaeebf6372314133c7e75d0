@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 509, "start": 1}, "tid": 510, "uid": 1000, "kind": {"k": "Exec", "exe": "/root/tool", "argv": "/root/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 510, "start": 1}, "trusted": false, "system_dir": false, "home": "/root", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 510, "start": 1}, "tid": 510, "uid": 1000, "kind": {"k": "Open", "path": "/home/alice/.ssh/id_ed25519", "dev": 1, "ino": 1000, "read": true, "write": false, "create": false, "trunc": false, "path_trunc": false}}}

@@ -9,6 +9,8 @@ members = [
     "crates/sysscope-glasshouse",
     "crates/sysscope-itest",
 ]
+# cargo-fuzz targets build with nightly in their own workspace (WP29).
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.0.1"

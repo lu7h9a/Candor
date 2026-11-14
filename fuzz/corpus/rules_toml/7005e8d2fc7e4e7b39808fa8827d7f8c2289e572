@@ -1,0 +1,36 @@
+# SysScope default detection rules (plan serself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected afterwards"]
+benign = ["some sandboxes, JIT runtimes and self-updating programs run coign = ["you are debugging or profiling that program with a tool SysScope does not know"]
+
+[r.les.R100]
+title = "Unlike itself (experimental)"
+weight = 0.3
+confidence = 0.5
+# Off by default (plan 5.4): set disabled = false in /etc/sysscope/rules.toml.
+disabled = true
+why = ["this run's mix of system calls, files, network de# SysScope defaulT detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.tom bulk-rename tool ''' started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)"
+attack = "170T1"
+we5ight = 0.5
+confidence = 0.6
+T1552"
+weight = 0.6
+confidence_untconfidence_public = 0

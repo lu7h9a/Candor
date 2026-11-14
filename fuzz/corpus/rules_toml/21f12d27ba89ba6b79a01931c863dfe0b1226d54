@@ -1,0 +1,5 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adr the preload list, authorized_keys or a user's autostart)"
+
+["""[allow]]
+rule = "R004"
+exe = "/usr/bthe preload list, authorizedsubject = "*"` mat_keches

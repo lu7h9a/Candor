@@ -1,0 +1,69 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25520.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "size_before": 99,
+     "states": [
+        "mozified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file07.txt.locked",
+      "size_before": 3775,
+      "size_after": 3775,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file08.docx",
+      "dev": 46,
+      "ino": 35,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file08.docx.locked",
+      "size_before": 2370,
+      "size_after": 2370,
+      "entropy_before": 4.17,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/file09.xlsx",
+      "dev": 46,
+      "ino": 36,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Docuasshouse does not hide that it is a sandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.",
+  "notes": [
+    "pre-existing non-decoy file changed: /home/victim/.bashrc"
+  ]
+}

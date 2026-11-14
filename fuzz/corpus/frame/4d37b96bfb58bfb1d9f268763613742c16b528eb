@@ -1,0 +1,8 @@
+ {
+  "t": "GetDetail",
+
+"maps": "running",
+      "io_r": 4096,
+  
+  "s": true
+}

@@ -1,0 +1,70 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executa# SysScope default allo=list (plan 5.3)."ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin;git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"
+reason = "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usrer installs [ystem files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "systemd_units"
+reason = "the package manager installs sy_preload"
+desc = "the dynamic linker preload list"
+paths = ["/etc/ld.so.preload"]
+
+[[persistence]]
+subject = "rc_local"
+desc = "a bootr every SSH login)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reason = "debconf's pre-install step, run by apt before every install, reads the account databogin)"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reason = "debconf's pre-install step, run by apt before every install, reads the account database"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/chromium/chromium"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen iry ~297 s while idle)"
+
+[[allow]]
+subject = "rc_local"
+desc = "a bootr every SSH login)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reason = "debconf's pre-install stepvals (seen in the benign corpus: Chromium every ~297 s while idle)"

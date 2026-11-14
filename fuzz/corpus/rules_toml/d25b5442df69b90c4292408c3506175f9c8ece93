@@ -1,0 +1,15 @@
+# SysScope default allowlist user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_key reads your keys to log in"
+
+[[exe = "/usr/bin/ssh-agey subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/ssh"
+subject = "ssh_keys"
+reason = "path compo
+[

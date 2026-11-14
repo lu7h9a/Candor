@@ -1,0 +1,5 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/git", "argv": "/usr/bin/git", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": true, "systemox": false}}}
+ite": true, "create": false, "trunc": fa.git/objects/f3.txt", "dev": 1, "ino": 13, "read": false, "write": tru{"id": 5, "ts_ns": 100": false}}}
+{"t": "RawEvent", "event": {"id": 7, "ts_ns": 1007000000, "proc": 1, "ts_ns": 10010000": {"tgid": 00, "p500, "start": 1}, roc""

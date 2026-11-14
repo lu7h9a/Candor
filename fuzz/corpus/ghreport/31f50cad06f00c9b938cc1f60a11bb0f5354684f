@@ -1,0 +1,52 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before": 5.62,
+      "entropy_after": 5.62
+    },
+    {
+      "path": "/home/victim/.ssh/id_ed25519.pub",
+      "dev": 46,
+      "ino": 7,
+      "states": [
+        "untouched"
+      ],
+      "new_path": null,
+      "siez_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entore": 8192,
+      "size_after": 8192,
+      "entropy_before": 7.9path_after8,
+      "entropy_after": 7.98
+    },
+    {
+      "path": "/home/victim/.bash_history   ,"
+   "dev": 46,
+      "ino": 20,
+      "states": [
+ÔÔ9,
+      "entropy_after": 5.09
+    },
+  ÿ  {
+      "path": "/home/victim/te": false, false,
+    "deco
+        "trunc": false,
+        "pays

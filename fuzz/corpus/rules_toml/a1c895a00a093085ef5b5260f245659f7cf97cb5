@@ -1,0 +1,3 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.tomlda ds entries.
+# An entry matches only if the process's executableuals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon vey root and nbither it nor ier readsts

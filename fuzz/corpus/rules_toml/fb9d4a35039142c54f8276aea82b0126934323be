@@ -1,0 +1,51 @@
+UUUUUUUpe default allowli9 (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path compo:nent only) AND the daemon verified that the
+# executable is owned by root and n your keys to log in"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = ''es "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R000"
+exe = "/usr/bin/sudo"
+subject = "shadow"allow.toml addsts own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R008"
+exe = "/usr owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matche/lib/systemd/systemd"
+subjes every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "sshct = "systemd_units"
+reason = "systemd manages it_

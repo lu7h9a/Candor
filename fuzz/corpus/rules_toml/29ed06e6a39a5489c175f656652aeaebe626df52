@@ -1,0 +1,43 @@
+# SysScope p these; never the preload list, authorized_keys or a user's autostart)"
+
+[= "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reason = "debconf's pre-install step, run by apt before every install, reads the account database"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/chromium/chromium"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed interval `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/us6"
+exe = "/opt/google/chromu/chrome"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fiR009xed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/opt/brave.com/brave/brave"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~2)7 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/firefox/firefox"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/firefox-esr/firefox-esr"
+subject = "*"
+reason = "browsers and mail clisubjecents poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/usr/lib/thunderbird/thunderbird"
+subject = "*"
+reason = "browsers and mail clients poll update, connectivity and sync pnedoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"

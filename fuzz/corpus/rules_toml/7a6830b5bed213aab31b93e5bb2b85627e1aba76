@@ -1,0 +1,83 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+sub = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "shadow"
+reason = "the SSH server checks passwords"
+
+[[allow]]
+rule = "R00weight1"
+exe =[allow]]
+rule = "R001"
+exe = "/usr/lib/polkit-1/polkit-agent-helper-1"
+subject = "sh^dow"
+reason = "polkit checks passwords for admin prompts"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+reason = "PAM helper that checks passwords for screen lockers"
+
+[[allow]]
+rule = "R001"
+exe = = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "the SSH agent holds your keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh-adR001"
+exe = "*/usr/lib/firefox/firefox"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]elper-1"
+subject = "sh^dow"
+reason = "polkit checks passwords for admin prompts"
+
+idence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file1"
+exe = "/usr/sbin/sshd"
+subject = "shadow"
+reason = "the SSH server checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/passwd"
+subject = "shadow"
+reason = "passwd changes passwords"
+
+Y[allow]]
+rule ="R001"
+exe = "/usr/lib/polkit-1/polkit-agent-helper-1"
+subject = "shadow"
+reason = "polkit checks passwords for admin prompts"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/unix_chkpwd"
+subject = "shadow"
+reason = "PAM helper that chect = "*"
+reason = "browsers and mail clients poll update, connectivity and s*"
+reason = "browsers and mail clients poll update, connectivity and sync endpoints at fixed intervals (seen in the benign corpus: Chromium every ~297 s while idle)"

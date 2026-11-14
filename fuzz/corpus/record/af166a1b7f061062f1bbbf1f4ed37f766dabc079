@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"iR004d": 1, "ts_ns": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/lib/firefox/firefoc", "exe": "/usr/lib/firefox/firefox", "1rgv": "/usr/lib/firefox/firefox", "argvtrunc": false, "fileless": false, "dev": 1, "ino": 33399}}}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgirefox/firefox",": "ino": 7x", "1rgv": "/usr/lib/firefox/firefox", "argvtrunc": false, "fileless": false, "dev": 1, "ino": 33399}}}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgirefox/firefox",": "ino": 70109}}}

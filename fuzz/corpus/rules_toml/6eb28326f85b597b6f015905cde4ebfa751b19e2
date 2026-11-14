@@ -1,0 +1,8 @@
+#iates.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+}",
+  "the program is not on the allowlist for {subject}",
+]" SysS
+benignc

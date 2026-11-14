@@ -1,0 +1,15 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states"z [
+    629,
+      "entropy_before": 2.15,
+      "eTTTTTTTTTTTTTTTTTTTTT

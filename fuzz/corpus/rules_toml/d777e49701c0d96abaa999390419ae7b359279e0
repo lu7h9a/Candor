@@ -1,0 +1,9 @@
+# SysScope default allowlist (owlils `exe` (a "*"
+# is allowed in the last path compo"browser]creds"
+tches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path compo"browser]ccompo"browser]creds"
+tches only irsde"
+reason # SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml add# SysScope default allowli n = "the SSH agent holds your keys"
+
+[[alcopubject = "ssh_01"
+exe asl=l owed  """"/us

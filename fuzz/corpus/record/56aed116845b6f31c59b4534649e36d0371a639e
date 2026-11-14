@@ -1,0 +1,15 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "syssco": "f/ixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/mv", "argv": "/usr/bin/mv", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": true, "system_dir": true, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f0.txt", "new": "/home/u/docs/f0.bak", "dev": 1, "ino": 10, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f1.txt", "new": "/home/u/docs/f1.bak", "dev": 1, "ino": 11, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 1004000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f2.txt", "new": "/home/u/docs/f2.bak", "dev": 1, "ino": 12, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 1005000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f3.txt", "new": "/home/u/2, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 1005000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "127.0.0.1", "port": 20003, "sock": "stream"}}}
+{"t1008000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "onCenct", "family": "inet", "addr": "127.0.0.1", "port": 20006, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 9, "ts_ns": 1009000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "127.0.0.1", "port": 40014, "sock": "stream"}}}
+{"t": "RawEvenEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEt", "event": {"id": 10, "ts"_:n s1010000000, "proc": {"tgid": 500, , "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 31002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"txt", "new": "/home/u/docs/f27.bak", "dev": 1, "ino": 37, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 60, ": "/home/u/docs/f28.bak", "dev": 1, "ino": 38, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 31, "ts_ns": 1031000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f29.txt", "new": "/home/u/docs/f29.bak", "dev": 1, "ino": 39, "approx": false}}}

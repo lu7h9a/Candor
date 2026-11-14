@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/python3", "apgv": "/usr/bin/python3", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 5461}}}
+{"t": "RawEvent", "event": {"id", "child": {"t": 1}}}}
+{", "start": 1}, "attach": true}}}

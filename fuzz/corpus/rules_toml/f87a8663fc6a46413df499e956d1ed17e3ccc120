@@ -1,0 +1,6 @@
+# SysScope default allowlist (plan 5.3).only if the process's e_exe sswords~
+
+[[allow]]
+rule =nce = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = [usr/b"the progriam nwas /

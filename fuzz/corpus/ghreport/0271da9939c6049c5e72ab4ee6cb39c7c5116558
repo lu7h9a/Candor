@@ -1,0 +1,36 @@
+{
+  "run_id": "1794547283-1",
+  "samplb": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+       "dev": 46,
+      "ino": 32,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file05cuuuuuuuuuuuuuuuuuuuuuuuuuocx",
+        "dev": 50,
+     " i  no": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documentse",
+        "dev": 68995,
+        "ino": 566,
+        "read": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }
+    },
+    {
+      "id":"qize_after": 1633,
+      "entropy_before": 4r": 7.89
+    },
+    {
+      path": "/home/victim/Documents/fi

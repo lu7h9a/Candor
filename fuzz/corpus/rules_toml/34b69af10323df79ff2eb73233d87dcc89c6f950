@@ -1,0 +1,46 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the  `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it norH clientݍeads your k"
+subject = "systemd_units"
+reason = "the package man﻿w]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"tprocess's executable path equals `exe` (a "*"
+# is allowed the
+# executable is owned by root and neither it norH clientݍeads your k"
+subject = "systemd_units"
+reason = "the package manw]]
+rule = "R004"
+exe = "/usr/tc/sysscope/allow.toml adds entries.
+# An entry matches only if the  `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it norH clientݍeads your k"
+subject = "systemd_units"
+reason = "the package man﻿w]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"tprocess's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it norH clientݍeads your k"
+subject = "systemd_units"
+reason = "the package manw]]
+rule = "R004"
+exe = "/ubin/dpkg"
+subject "
+ user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a na

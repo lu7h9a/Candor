@@ -1,0 +1,22 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "tie": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "pat_path": null,
+      "size_before": 99,
+      "size_after": 99,
+      "entropy_before": 5.32,
+      "entropy_after" {
+        "k":nc": false,
+        "p ath_tru "kind": {
+        "k": "Openc": false
+      n",ndom",
+        "dev": 50,
+  }
+    }      "ino": 5,a
+        "read": false,
+        "wr "create"

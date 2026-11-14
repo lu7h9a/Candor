@@ -1,0 +1,12 @@
+{
+  "t": "Subscribe",
+    "proto": 1,
+  "des": [
+    "+kali-amd64",
+  "ca,ls"
+  ],
+"xroc":  
+{  
+  },
+  "mHelloaps": true
+}

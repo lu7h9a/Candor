@@ -1,0 +1,2 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 300, "start": 1}, "tid": 300, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/sbin/sshd", "argv": "/usr/sbin/sshd", "argv_trunc": false, "fileless": 200, "start": 1}, "tid": 200, "uid": 1000, "kind": {"k": "Ptrace", "target": {"tgid": 300, "start": 1}, "attach": true}}}

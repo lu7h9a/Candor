@@ -1,0 +1,43 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is group- or
+# world-writable. `subject = "*"` matches every subject of th	e rule.
+
+[[allow]]
+rule = "R001d_units"
+reason = "systemctl enables and edits units on request"
+
+[[a|low]]
+rule = "R004"
+exe  "/usr/bin/dpkg"
+subject = "cron"
+reason = "the package managerR006 installs system files (packages ship these; never t user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs sy# SysScope default allowlist (plan 5.3). /etc/sysscll step,= "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/sbin/cron"
+subject = "cron"
+reason = "cron manages its own schedules"
+
+[,[allow]]
+rule = "R004"
+exe = "/usr/bin/crontab"
+subject = "cron"
+reason = "crontab edits schedules on request"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/lib/systemd/systemd"
+su# SysScope default allowlts"
+reason = "the package man's autostart)"
+
+[[allow]]
+ager installs system filesoad lrule = "R00is4"
+te

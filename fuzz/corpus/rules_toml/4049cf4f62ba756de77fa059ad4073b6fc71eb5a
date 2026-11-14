@@ -1,0 +1,5 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml addshes every subjecence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/",sr/sbin/sshd"
+subject = 'ssh_ke "/run/user/"]
+why = ["the ys"
+reason = "the SprograSHm

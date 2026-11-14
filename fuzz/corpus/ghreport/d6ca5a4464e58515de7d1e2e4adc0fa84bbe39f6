@@ -1,0 +1,17 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "irgs": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 5,
+  "timed_out": false,
+  "decoys": [
+   [],
+ ev": 45,
+      "ino": 14,
+      "
+      "sttaes"  "tid": 862,
+      "uid": 99   "entropy_after": 5.19
+   "filenfig/google-chrome/Delefss"

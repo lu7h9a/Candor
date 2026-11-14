@@ -1,0 +1,35 @@
+{"s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "ti#med_out": false,
+    "decoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+      "ino": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size" 46:,
+        "entropy": 4.5,
+        "preview": "GGGGGGGGGG,
+    btimeline": [
+    ende"exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/victiExitm/Documents/a.docx"   }
+      }
+ t :@Can,el"}

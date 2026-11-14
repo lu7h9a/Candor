@@ -1,0 +1,23 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable is owned by roo# SysScope default allowlist (plan 4.3). [[allow]]
+rule = "R004"
+exe = "/usr/bin/dpkg"
+sustalls system files (packages ship these; never the preload list, authorized_keys or a d.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspmcious_at = 30
+high_at = 60
+max_evidence_even read"
+attack '= "T1552"
+weight = 0.6
+confidence_unom {dir}, a directory
+high_at = 60
+max_evidence_even read"
+attack '= "T1552"
+weight = 0.6
+confidence_unom {dir}, a directory any progratrustm can write to"]
+beed#_exnign = ["an inste

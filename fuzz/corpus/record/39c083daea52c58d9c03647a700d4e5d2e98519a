@@ -1,0 +1,4 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 100, "start": 1}, "tid": 100, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/evince", "argv": "/usr/bin/evince", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 52208}}}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 100, "start": 1}, "tia": 100, "uid": 1000, "kind": {"k": "Fork", "child": {"tgid": 101, "start": 1}}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 101, "start": 1}, "tid": 101, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/bash", "argv": "/usr/bin/bash", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 36845}}}

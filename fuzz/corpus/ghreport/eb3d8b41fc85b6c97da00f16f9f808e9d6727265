@@ -1,0 +1,34 @@
+{
+  "run_id": "17945=47283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 411,
+      "size_after": 411,
+      "entropy_before":
+
+
+
+
+    "states": [
+    
+      ],
+      "new_path": "/home/viath": "/home/victim/Documents/fsle0    "k": "Open",
+        "path": "/home/victim/Documents",
+    411748,
+  "ended_ts": 5250w_  p4062044,
+,
+       

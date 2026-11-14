@@ -1,0 +1,115 @@
+{
+  "t": "GhReport",
+  "report": {
+    "run_id": "20261113-0001",
+    "sample": "fake_malware.py",
+    "args": [
+      "--demo"
+    ],
+    "timeout_s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "decoys": [
+      {
+        "path": "/home/victim/Documents/a.docx",
+        "dev": 50,
+        "ino": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 64,
+        "entropy": 4.5,
+        "preview": "your files are locked (demo)\\x0A",
+        "kind": "file"
+      }
+    ],
+    "timeline": [
+      {
+        "id": 18812,
+        "ts_ns": 5000000000,
+        "proc": {
+          "tgid": 4312,
+          "start": 120034
+        },
+        "tid": 4312,
+        "uid": 1000,
+        "kind": {
+          "k": "Open",
+          "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+          "dev": 66306,
+          "ino": 1234567,
+          "read": true,
+          "write": false,
+          "create": false,
+          "trunc": false,
+          "path_trunc": false
+        }
+      }
+    ],
+    "connections": [
+      {
+        "family": "inet",
+        "addr": "203.0.113.10",
+        "weight": 0.6,
+        "confidence": 0.9,
+        "summary": "opened /home/u/.ssh/id_ed25519 for reading",
+        "why": [
+          "this file is a private SSH key"
+        ],
+        "benign": [
+          "you ran a backup or key-management tool yourself"
+        ],
+        "evidence": [
+          18812
+        ],
+        "evidence_events": [
+          {
+            "id": 18812,
+            "ts_ns": 5000000000,
+            "proc": {
+              "tgid": 4312,
+              "start": 120034
+            },
+            "tid": 4312,
+            "uid": 1000,
+            "kind": {
+              "k": "Openÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ",
+              "path": "/home/u/.ssh/id_ed25519\\x1B[2J\\xFF",
+              "dev": 66306,
+              "ino": 1234567,
+              "read": true,
+              "write": false,
+              "create": false,
+              "trunc": false,
+              "path_trunc": false
+            }
+          }
+        ]
+      }
+    ],
+    "loss": {
+      "ringbuf": 0,
+      "budget": 0,
+      "scratch": 0,
+      "decode": 0,
+      "since_ts_ns": 0
+    },
+    "limitation": "Glasshouse is a behaviour-demonstration sandbox, not a malware containment system.",
+    "notes": [
+      "differ stopped at 20000 entries"
+    ]
+  }
+}

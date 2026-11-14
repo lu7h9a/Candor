@@ -1,0 +1,33 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/s
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1[persistence]]
+subject = "ld_so_preload"
+desc = "the dynamicsion = 2
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_events = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+w97 s while idle)"
+
+[[allow]]
+rule = "R006"
+exe = "/opt/brave.com/brave/brave"
+subject = "*"
+reason = "browsers and mail clients poll update, connectudev/rules.d/*"]

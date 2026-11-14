@@ -1,0 +1,31 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path eddednce = 0.9
+why = ["the program's fn = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title &= "Credential file read"
+attack = "T1552"
+we# SysScope default detect"/usr/sbin6sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe= "R004"
+exe = "/usr/bin/dpkg"
+subject "
+ user's autostart)"
+ = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = 
+[[allow]]
+rule = "R004"
+exe = "/reason = usr/bin/rp"them"
+s package mubject =a "the SSH clien"/	t reads your keys tnaod self-us file holds {subject_desc}",
+  "the p"{srou

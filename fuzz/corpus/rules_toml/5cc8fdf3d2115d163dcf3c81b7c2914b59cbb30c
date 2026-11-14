@@ -1,0 +1,99 @@
+# SysScope default allowlist (plan 5.3). /etcnly) AND the daemon verified that the
+# executable is owned by root and neither it nor its directory is(group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[ = "/usr/bin/sudo"
+subject = "shadow"
+reason = "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "shadow"
+reason = "the SSH server checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/passwd"
+subject = "shadow"
+reason = "	passwd changes passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/libmanager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R004"
+exe = "/usr/bin/pacman"
+ directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R004]
+title = = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks idence_untrusted_exe = 0.9
+confid nor its directory is(group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys to log in"
+
+[ = "/usrls system files (packages ship these; never the preload list, authorized_keys or a use2's autostart)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/systemd/systemd"
+subject = "shadow"
+reason = "the service manager starts login sessions through PAM, which checks the account in /etc/shadow (seen for every SSH login)"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/perl"
+script = "/usr/sbin/dpkg-preconfigure"
+subject = "shadow"
+reasocious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title =enign = ["an installer or build tool you ran unpacks idence_un/sysver reads hser keys"
+
+[[allow]]
+rule '= "R002"exe = "/usr/bin/ssh"
+subject = "sshal
+rule = "R001"
+e4e = "/usr.bin/sudo"
+{ubject = "sh"
+subject = "shusr/sbi

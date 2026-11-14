@@ -1,0 +1,102 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys": [
+    {
+      "path": "/home/victim/.ssh/id_ed25519",
+      "dev": 46,
+      "ino": 6,
+      "states": [
+        "read"
+      ],
+      "new_path": null,
+      "size_before": 46,
+      "ino": 28,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file01.xlsx.lockedictim/Documents/file05.xlsx",
+      "dev": 46,
+      "ino": 32,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file05.xlsx.locked",
+      "size_before": 1633,
+      "size_after": 1633,
+      "entropy_before": 4.17,
+      "entropy_after": 7.89
+    },
+    {
+      "path": "/home/victim/Documents/file06.pdf",
+      "dev": 46,
+      "ino": 33,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file06.pdf.locked",
+      "size_before": 3427,
+      "size_after": 3427,
+      "entropy_before": 4.2,
+      "entropy_after": 7.94
+    },
+    {
+      "path": "/home/victim/Documents/file07.txt",
+      "dev": 46,
+      "ino": 34,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file07.txt.locked",
+      "size_before": 3775,
+      "size_after": 3775,
+      "entropy_before": 4.15,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/Documents/file08.docx",
+      "dev": 46,
+      "ino": 35,
+      "states": [
+        "modified",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file08.docx.locked",
+      "size_before": 2370,
+      "size_after": 2370,
+      "entropy_before": 4.17,
+      "entropy_after": 7.93
+    },
+    {
+      "path": "/home/victim/Documents/file09.xlsx",
+      "dev": 46,
+      "ino": 36,
+      "states": [
+        "modified",
+  [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[      "renamed"
+      ],
+      "new_path": "/home/victim/ucDmoents/file09.xlsx.locked",
+       "tid": 862,
+      "uid": 993,
+      "kind": {
+        "k": "Open",
+        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-1.bpf",
+        "dev": 46,
+        "ino": 479,
+        }"read
+}": true,
+        "write": false,
+        "create": false,
+        "trunc": false,
+        "path_trunc": false
+      }

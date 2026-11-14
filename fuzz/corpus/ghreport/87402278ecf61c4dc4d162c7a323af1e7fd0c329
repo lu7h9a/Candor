@@ -1,0 +1,42 @@
+{
+  "run_id": "1794547283-1",
+  "samplb": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+       "dev": 46,
+      "ino": 32,
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+       "dev": 46,
+      "ino": 32,
+      "states": [
+        "modifiExeced",
+        "renamed"
+      ],
+      "new_path": "/home/victim/Documents/file05ctim/Documents/a.docx",
+        "dev": 50,
+     " i  no": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docxino "new_path": "/home/victim/Documents/file05ctim/Documents/a.docx",
+        "dev": 50,
+     " i  no": 9,
+        "states": [
+          "modified",
+          "renamed"
+        ],
+        "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "•‘tropy_after": 7.875
+ 
+      "states": [
+        "modified",.875
+fi

@@ -1,0 +1,35 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that t# hee
+excutable is owned by roo# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "t and neither it nor its directory ittttttttttttttttts group- or
+# world-writable. `subject = "*"` matches every subject of the rule.
+
+[[allowdence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+min_co = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["try in PROGRESS.md.
+version = 1
+
+[score]
+half_live_s = 600.0
+suspmcious_at = 30
+high_at = 60
+max_evidence_even read"
+attack '= "T1552"
+weight = 0.6
+confidence_unom {dir}, a directory any progratrustm can write to"]
+beed#_exnign = ["an inste

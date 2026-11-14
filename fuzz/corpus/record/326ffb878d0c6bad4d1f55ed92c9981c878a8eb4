@@ -1,0 +1,13 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/usr/bin/mv", "argv": "/usr/bin/mv", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": true, "system_dir": true, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f0.txt", "new": "/home/u/docs/f0.bak", "dev": 1, "ino": 10, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 1003000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f1.txt", "new": "/home/u/docs/f1.bak", "dev": 1, "ino": 11, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 1004000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f2.txt", "new": "/home/u/docs/f2.bak", "dev": 1, "ino": 12, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 1005000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f3.txt", "new": "/home/u/docs/f3.bak", "dev": 1, "ino": 13, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 6, "ts_ns": 1006000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f4.txt", "new": "/home/u/docs/f4.bak", "dev": 1, "ino": 14, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 7, "ts_ns": 1007000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f5.txt", "new": "/home/u/docs/f5.bak", "dev": 1, "ino": 15, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 8, "ts_ns": 1008000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f6.txt", "new": "/home/u/docs/f6.bak", "dev": 1, "ino": 16, "approx": false}}}
+{"t" 1000, "kind": {"k": "Rename", "old": "/home/u/docs/f9.txt", "new": "/home/u/docs/f9.bak", "dev": 1, "ino": 19, "approx": false}}}
+{"t": "RawEvent", "event": {"id": 12, "ts_ns": 1012000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Rename", "old"ir": false}
+{read": tru"event": {"id": 21, "ts_ns": 1021000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "e/Re,n

@@ -1,0 +1,48 @@
+{
+  "t": "GetDetail",
+  "proc": {
+    "Tgdry": {
+        "tgid": 4312,
+        "start": 120034
+      },
+      "parent": {
+        "tgid": 4100,
+        "start": 110000
+      },
+      "exe": "/tmp/x",
+      "comm": "x",
+      "uid": 1000,
+      "kthread": false,
+      "cpu_pct": 12.5,
+     "r ss": 4194304,
+      "threads": 1,
+      "io_r": 4096,
+      "bo_t"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+: 120033
+  },  "maps": true
+}

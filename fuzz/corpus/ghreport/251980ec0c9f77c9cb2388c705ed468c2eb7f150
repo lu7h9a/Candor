@@ -1,0 +1,18 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 30,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code":95,
+      "entropy_after": 7.95
+    },
+    {
+      "path": "/home/victim/.fault/key: [
+        "untouched"
+       þÿÿñ "count": 1,
+ se,
+    "deco
+        "trunc": false,
+        "pays

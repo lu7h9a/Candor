@@ -1,0 +1,16 @@
+#iations from the plan" entry in PROGRESadow"
+reason = "su checks passwords"
+
+[[allow
+confidence_trunc =idence_trunc = 0.4
+roots = ["/home/"]
+excluded_components = [".cache", ".git", "node_modules", "target", "__pycache__"]
+why = ["{count} existing files were rewritten and renamed or replaced within {window_s} seconds"]
+benign = ["a backup, sync, photo-management]]
+rule = "R001"
+ or bulk-rename tool you started"]
+
+[rules.R006]
+title = "Regular-interval connections (beaconing)exe = "/usr/bin/login""
+
+a

@@ -1,0 +1,18 @@
+{
+  "run_id": "1794547283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+  "timed_out": false,
+  "decoys"   [
+:  {
+     ~"path": "/home/victim/.ssh/iá9",
+      "dew_path":ênull,
+      "size_before": 1200,
+      "siunc": fa
+      ],
+lse
+    "new_  p

@@ -1,0 +1,46 @@
+# SysScope default detection rules (plan section 5). Embexe = "/usr/bin/rpm"
+subject = "udev_rules"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/bin/pacman"
+subject = "cron"
+reason = "the package manager installs system files (packages ship these; neide any value. Wording lives here/so it can
+# change without code. # SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here/so it can
+# change without code. Thresholds are guarded by scripeck-integrity.tection rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be ish:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 0n 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here/so it can
+# change without code. Thresholds are guarded by scripeck-integrity.tection rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be ish:
+# changing one non = 0
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title &= "Credential file read"
+attack = "T1552"
+we# SysScope default detection rules (plan section 5). EmbedThresholds are guarded by scripeck-integrity.tection rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be ish:
+# changing kne needs a s system "Deviations ffiles (packagedednce = 0.9
+why = ["the program's file has no name on disk (memfd or deleted file), so it cannot be inspected a+terwards"]
+benign =s shiro ["some sandboxes, JIT runtimes and self-us file holds {subject_des
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title &= "Credential file read"
+attack = "T1552"
+we# SysScope default detection rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has no namem tp on disk (memfd or deletedhe plan"  filentrye), 

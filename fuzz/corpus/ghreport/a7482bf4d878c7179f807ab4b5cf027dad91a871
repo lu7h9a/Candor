@@ -1,0 +1,26 @@
+{"s": 60,
+    "started_ts": 1000,
+    "ended_ts": 2000,
+    "exit_code": 0,
+    "timed_out": false,
+    "dPPPecoys": [
+      {
+     "new_path": "/home/victim/Documents/a.docx.locked",
+        "size_before": 2048,
+        "size_after": 2048,
+        "entropy_before": 4.125,
+        "entropy_after": 7.875
+      }
+    ],
+    "created": [
+      {
+        "path": "/home/victim/README_RESTORE.txt",
+        "size": 64,
+        "entropy": 4.5,
+        "preview": "your files are locked (demo)\\x0A",
+GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGfalse,
+          "trunc": entropyfalse,
+          "path_trunc": false
+        }
+      }
+ t :@Can,el"}

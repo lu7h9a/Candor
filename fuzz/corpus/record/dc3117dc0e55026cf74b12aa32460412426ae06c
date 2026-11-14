@@ -1,0 +1,12 @@
+{"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/u/bin/tool", "argv": "/home/u/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "ExeMeta", "proc": {"tgid": 500, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/u", "world_writable_dir": false}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 3, "ts_ns": 3002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": ")0.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 4, "ts_ns": 33002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 221, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 5, "ts_ns": 38002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family"sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 7, "ts_ns": 99002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 8, "ts_ns": 119002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "kind": {"k": "Connect", "family": "inet", "addr": "10.1.2.3", "port": 443, "sock": "stream"}}}
+{"t": "RawEvent", "event": {"id": 9, "ts_ns": 126002000000, "proc": {"tgid": 500, "start": 1}, "tid": 500, "uid": 1000, "katures": [], "act_enind": {"k": "Co)nnect", "famiabled": false}
+}}ly": "i}net", "addr": "10.1.2.3", "port": 443, "soc
+k": "stream"}}}

@@ -1,0 +1,19 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here/so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.tection rules (plan section 5). Embeddednce = 0.9
+why = ["the program's file has no name on disk (memfd or deleted fi60
+max_evidence_event{ = 10
+
+[rules.R001]
+title &= "Credential file read"
+attack = "T1552"
+we# SysScope default detect"/usr/sbin6sshd"
+subject = "ssh_keys"
+reason = "the SSH server reads host and user keys"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"
+subject = "ssh_keys"
+reason = "the SSH client reads your keys tod self-us file holds {subject_desc}",
+  "the p"{srou

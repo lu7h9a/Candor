@@ -1,0 +1,28 @@
+{
+  "t": "GhReport",
+  "report": {
+    "run_id": "39130350-0001",
+    "saiple": "fake_malware.py",
+    "args": [
+      {
+  "run_id": "1794•47283-1",
+  "sample": "fake_malware.py",
+  "args": [],
+  "timeout_s": 60,
+  "started_ts": 52296090748,
+  "ended_ts": 52504062044,
+  "exit_code": 0,
+ 
+
+
+
+
+
+
+
+
+w_path": null,
+      "size_before": 5248,
+      "size_after": null,
+      "entropy_befose
+      }

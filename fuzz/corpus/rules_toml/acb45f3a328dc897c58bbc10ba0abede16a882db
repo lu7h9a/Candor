@@ -1,0 +1,75 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the [[allow]]
+rule = "R001"
+exe = "/usr/bin/ssh"ys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = "git uses SSH keys for remotes"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"
+reason = "sudo checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[in checks passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/sbin/sshd"
+subject = "shadow"
+reason = "the SSH server checks passwords"
+
+[[allow]]
+rule- = "R001"
+exe = "/usr/bin/passwd"
+subject = "shadow"
+reason = "passwd changes passwords"
+
+[[allow]]
+md_units"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_ke4"
+exe = "/usr/bin/dpkg"
+subject = "rc_local"
+reason = "the package manager installs system files (packages ship these; never the preload list, authorized_keys or a user's autostart)"
+
+[[
+rule = "R001"
+exe = "/usr/bin/ssh-agent"
+subject = "ssh_keys"
+reason = "th
+subject = "shadow"
+reason = "the SSH server checks passwords"
+
+[[allow]]
+rule = "R001"
+xe = "/usr/bin/passwd"
+subject = "shadow"
+reason = "passwd changes passwords"
+
+[[allow]# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toms"
+reason = "th
+subject = "shadow"
+reason = "the SSH server checks passwords"
+
+[[allow]]
+rule = "R001"
+xe = "/usr/bin/passwd"
+subject = "shadow"
+reason = "passwd changes passwords"
+
+[[allow]# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is allowed in the last path component only) AND the daemon verified that the
+# executable ]
+md_units"
+reason = "the package manager installs systemis owned by root and neither it nor its directory is g files (packagesrou ship these; never the 

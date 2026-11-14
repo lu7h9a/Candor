@@ -1,0 +1,119 @@
+# Syslow]]
+rule = "R001"
+exe = "/usr/bin/sudo"
+subject = "shadow"
+reason = "sudo chec"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = d passwords"
+
+[[allow]]
+rule = "R002"
+exe = "/usr/lib/chromium/chromium"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads its own saved passords"
+
+[[allow]]
+ "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confe", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_ scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title =hp*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents =' [v"eince", "o'ular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox", "firefox-e s"i",frrefox-bin", "chrome", "chromium", "brave", "msedge", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "node how an exploited document, page or mail usually runssystem password hashes"
+pauntrusted_exe = 0.9
+confidence_system_exen;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRESS.md.
+version = 1
+
+[score]
+half_life_s = 600.0
+suspicious_at = 30
+high_at.R003]
+title = "Fileless ex;ecution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*", "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword", "gnumeric", "calligra*",
+           "firefox"der", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confe", "epi, "perl", "perl5*", "ruby", "ruby*", "node", "nodejs",
+            "php",`"php*", "lua", "lua5*", "pwsh", "tclsh*", "wish*"]
+parents = [v"eince", "okular", "atril", "xreader", "zathura", "mupdf", "qpdfview", "xpdf",
+           "soffice.bin", "oosplash", "abiword" = 60
+max_evidence_event{ = 10
+
+[rules.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why a directory any program can write to"]
+benign = ["an installer or build tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack009ksh", "csh", "tcsh", "busybox",
+            "python", "python2*", "python3*" value. Wording lives herrule = "R001"
+exe = "/usr/lib/firefox/firefox"
+subjstall step,= "the browser reads its ints at fixedrule = "R002"
+exe = "/usr/lib/chromium/chromi5m"
+subject = "browser_creds"
+reason = "the browser reads its own saved passwords"
+
+[[allow]]
+rule = "R001"
+exe = "/opt/brave.com/brave/brave"
+subject = "browser_creds"
+reason = "the browser reads  intervals (seen in the benign ", "oosplash", "abiword" = 60
+max_evidence
+m 

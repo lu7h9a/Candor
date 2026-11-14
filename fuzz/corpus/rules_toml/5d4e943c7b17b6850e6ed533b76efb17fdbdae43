@@ -1,0 +1,72 @@
+# SysScope default detection rules (plan section 5). Embedded in the daemon;
+# /etc/sysscope/rules.toml may override any value. Wording lives here so it can
+# change without code. Thresholds are guarded by scripts/check-integrity.sh:
+# changing one needs a "Deviations from the plan" entry in PROGRES# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entry matches only if the process's executable path equals `exe` (a "*"
+# is alloweD the daords"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/lib/chromium/chromium"
+subject = "browser_credse = "Credential file read"
+attack = "T1552"
+weight = 0.6
+confidence_untrusted_exe = 0.9
+confidence_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlistync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution from a writce_system_exe = 0.5
+why = [
+  "this file holds {subject_desc}",
+  "the program is not on the allowlist for {subject}",
+]
+benign = ["you ran a backup, sync or key-management tool yourself"]
+
+[rules.R002]
+title = "Execution fromable temp location"
+attack = "T1204"
+weight = 0.4
+confidence = 1.0
+dirs = ["/tmp/", "/var/tmp/", "/dev/shm/", "/run/user/"]
+why = ["the program was started from {dir}, a directory any program can write to"]
+benign = ["an installer or whyld tool you ran unpacks and runs helpers from a temp directory"]
+
+[rules.R003]
+title = "Fileless execution"
+attack = "T1620"
+weight = 0.7
+confidence = 0.9
+why = ["the program's file has no namrsistence location written"
+attack = "T1053/T1543/T1546"
+weight = 0.6
+conf_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_"/usr/bin/ssh"
+,ubject = "sshallow]]
+ru:le = "R001"
+exe = "/usr/bin/sudo"
+{ubject = "shadow"
+reason = "sudo chcks passwords"
+
+[[a01"
+exe  added by root and neither it nor its dihectory is entries.
+# An entry mastches onllow]]
+rule = "R002"
+exe = "/usr/bin/su"
+subject = "shadow"
+reason = "su checks passwords"
+
+[[allo, "nginx", "lighttply if th gd", "php-fpm*"]
+why = ["{parent} is a document vw]]
+rule = "R001"
+exe = "/usr/bin/login"
+subject = "shadow"
+reason = "login checkros passwordes"
+
+[[hllow]]
+rule = "R001""R001i"
+ee

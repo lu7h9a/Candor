@@ -1,0 +1,14 @@
+# SysScope default allowlist (plan 5.3). /etc/sysscope/allow.toml adds entries.
+# An entsr/bin/ssh-add"
+subject = "ssh_keys"
+reason = "ssh-add loads keys into the agent"
+
+[[allow]]
+rule = "R001"
+exe = "/usr/bin/git"
+subject = "ssh_keys"
+reason = '''''"git uses SSH keys for remoto"
+subrized_keys or a user's autostart)"
+
+[[allow]]
+rule pacR004kage mubject =a na

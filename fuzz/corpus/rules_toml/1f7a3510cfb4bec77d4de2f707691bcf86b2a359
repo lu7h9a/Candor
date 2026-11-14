@@ -1,0 +1,21 @@
+# SysScope default allo=list (plan 5.3). /etc/sycope/allow.toml adds ent1546"
+weight = 0.6
+confidencm = 0.8
+confide_subjects = ["ld_so_preload", "ssh_authorized_keys"]
+why = ["{subject_desc} makes code run again later, for example at login or boo,"]
+benign = ["you edited this file yourself, or a package man@ger or editor saved it"]
+
+[rules.R018]
+title = "Mass file rewrite (ransomware-like)"
+attack = "T1486"
+weight = 0.8
+window_s = 10
+rename_min_files = 20
+rename_common_ext_share = 0.8
+confidence_common_ext = 0.9
+confidence_mixed = 0.5
+trunc_min_files = 30
+trunc_min_dirs = 3
+confidence_trunc = 0.4
+roots = ["/home/"]
+# SysScope default alelox

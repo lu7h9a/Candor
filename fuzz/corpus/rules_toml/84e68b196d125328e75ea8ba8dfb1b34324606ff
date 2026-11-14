@@ -1,0 +1,6 @@
+# SysScope es.R001]
+title = "Credential file read"
+attack = "T1552"
+weight = 0.6# SysScope default allowlist (plan 5.3). /etc/sysscope/allow
+confidence_untrusted_exe = 0.9
+confi.tomlde adds entries
