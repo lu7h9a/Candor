@@ -255,11 +255,16 @@ mod tests {
 
     #[test]
     fn limitation_is_the_plan_text_verbatim() {
-        let plan = std::fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../docs/MASTER_PLAN.md"),
-        )
-        .unwrap();
-        assert!(plan.contains(&format!("\"{LIMITATION}\"")));
+        // The plan's section 6.4 text is kept as a tracked fixture (the plan
+        // itself is a local file, owner 2026-11-14); where the plan exists
+        // it is compared too, so the fixture cannot drift from it (I13).
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let fixture =
+            std::fs::read_to_string(root.join("fixtures/core/glasshouse_limitation.txt")).unwrap();
+        assert_eq!(fixture.trim_end_matches('\n'), LIMITATION);
+        if let Ok(plan) = std::fs::read_to_string(root.join("docs/MASTER_PLAN.md")) {
+            assert!(plan.contains(&format!("\"{LIMITATION}\"")));
+        }
     }
 
     #[test]
