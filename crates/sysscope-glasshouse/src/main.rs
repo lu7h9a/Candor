@@ -605,20 +605,44 @@ fn run_differ(run: &Path, input: &differ::DiffInput) -> Result<differ::DiffOutpu
     serde_json::from_slice(&out).context("differ output")
 }
 
+/// The SELinux context of `p` when SELinux is enabled (else None). Read
+/// with stat(1) (`%C`), which prints the security.selinux label.
+fn selinux_context(p: &Path) -> Option<String> {
+    if !Path::new("/sys/fs/selinux/enforce").exists() {
+        return None;
+    }
+    let out = Command::new("/usr/bin/stat")
+        .args(["-c", "%C"])
+        .arg(p)
+        .output()
+        .ok()?;
+    let ctx = String::from_utf8(out.stdout).ok()?.trim().to_string();
+    // A label is user:role:type:level; refuse anything that could break
+    // out of the mount option string.
+    let ok = out.status.success()
+        && ctx.split(':').count() >= 4
+        && ctx
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | ':' | '.' | ',' | '-'));
+    ok.then_some(ctx)
+}
+
 /// One run (plan 6.1 steps 2-7) in `RUNS/<run_id>`. Sends Need/Status/Diff
 /// through `bridge`; on error the caller sends Failed.
 fn run_box(run_id: &str, job: &GhJob, sample: &Path, bridge: &mut dyn Bridge) -> Result<Outcome> {
     let run = PathBuf::from(RUNS).join(run_id);
     std::fs::create_dir_all(RUNS)?;
     std::fs::create_dir(&run).with_context(|| format!("creating {}", run.display()))?;
+    let mut opts = String::from("size=512m,nodev,nosuid,mode=0750");
+    // Under SELinux a tmpfs takes its label from whoever mounts it; started
+    // from a login shell (run-local) that is user_tmp_t, and systemd may not
+    // create the unit's output files there (Fedora, found in WP31). The run
+    // filesystem gets the label of its parent directory instead.
+    if let Some(ctx) = selinux_context(Path::new(RUNS)) {
+        opts.push_str(&format!(",context=\"{ctx}\""));
+    }
     let st = Command::new("/usr/bin/mount")
-        .args([
-            "-t",
-            "tmpfs",
-            "-o",
-            "size=512m,nodev,nosuid,mode=0750",
-            "tmpfs",
-        ])
+        .args(["-t", "tmpfs", "-o", &opts, "tmpfs"])
         .arg(&run)
         .status()?;
     if !st.success() {

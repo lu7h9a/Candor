@@ -21,6 +21,16 @@ export PATH=/root/.cargo/bin:$PATH
 cd "$src"
 cargo build --release --locked -p sysscoped -p sysscope-cli -p sysscope-gui -p sysscope-glasshouse 2>&1 | tail -3
 bin="$src/target/release"
+# Root itest binaries and the static workload, built here too so the distro
+# matrix (vm/matrix.sh, WP31) runs them on the oldest glibc as well.
+mkdir -p "$out/itest"
+cargo test --release --locked -p sysscope-itest --no-run --message-format=json 2>/dev/null |
+    python3 -c 'import json,sys,shutil
+for l in sys.stdin:
+    m=json.loads(l)
+    if m.get("reason")=="compiler-artifact" and m.get("executable") and m["target"]["kind"]==["test"]:
+        shutil.copy(m["executable"], sys.argv[1]+"/sysscope-itest-"+m["target"]["name"])' "$out/itest"
+gcc -static -O2 -Wall -Wextra -Werror -pthread -o "$out/itest/sysscope-wl" testkit/wl/wl.c
 echo "glibc needed: $(objdump -T "$bin"/sysscoped "$bin"/sysscope "$bin"/sysscope-gui "$bin"/sysscope-glasshouse | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1)"
 ldd "$bin/sysscoped" | grep -q libbpf && { echo "libbpf is linked dynamically"; exit 1; } || echo "libbpf: static"
 

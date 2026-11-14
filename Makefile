@@ -96,8 +96,13 @@ vm-test: release itest-bin
 		vm/run.sh $(DISTRO) "$$(cat $$t)"; \
 	done; vm/down.sh $(DISTRO)
 
+# Plan WP31: install the package in each distro and run the itest subset,
+# a simulator per rule, the CLI export and the Glasshouse demo; writes
+# docs/COMPAT.md. Needs target/packages from `make package`.
 vm-matrix:
-	@echo "make vm-matrix: not implemented yet (WP31)"; exit 1
+	@set -e; for d in debian12 ubuntu2204 ubuntu2404 fedora arch; do \
+		echo "== vm-matrix $$d"; vm/matrix.sh $$d; done
+	python3 scripts/compat.py
 
 gui-shot: sysroot
 	$(CARGO) build -p sysscope-gui -p sysscope-cli

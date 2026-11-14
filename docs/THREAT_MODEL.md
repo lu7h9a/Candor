@@ -128,6 +128,7 @@ without CAP_SYS_ADMIN.
 | Glasshouse relies on seccomp alone to forbid nested user namespaces | low; `bwrap --disable-userns` as a second layer is planned |
 | Pid reuse within one clock tick (10 ms) between two processes | accepted; start_ticks granularity, documented in plan D11 |
 | A stalled filesystem (FUSE, network) under a traced program's path | each executable check waits at most 50 ms on a pool of at most 4 workers; then "not trusted" (review 2 finding 1) |
+| A program that exits before the daemon can inspect /proc/<pid> (microseconds) | its trust and private-view checks fail: it is treated as untrusted (the safe answer) and its path is not marked |
 | Path shown for a program in a private mount namespace is its own view | trust checks resolve through /proc/<pid>/root (review 2 finding 5); the displayed path and R002's prefix test still use the program's view: NEEDS_USER Q7 |
 | Glasshouse adopts a process that vanished before its cgroup could be read, on its uid alone | accepted: only the sandbox runs as `sysscope-box`; refusing would lose short-lived box processes (review 2 finding 14) |
 | Act and maps decisions use SO_PEERCRED uid; act group membership is read from /proc/<pid>/status at act time | low; SO_PEERGROUPS at connect needs unsafe code outside abi.rs (I14) (review F12, review 2 finding 3) |

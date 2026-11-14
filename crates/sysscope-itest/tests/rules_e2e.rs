@@ -332,7 +332,10 @@ fn r001_is_not_silenced_by_a_fake_usr_bin_in_a_private_mount_namespace() {
     })
     .unwrap();
     let script = format!(
-        "mount --bind {} /usr/bin && exec /usr/bin/ssh --dir {} open-path /root/.ssh/id_sysscope_ns",
+        // It stays alive 2 s: the daemon inspects /proc/<pid> after the
+        // exec, and a process gone by then cannot be judged (it is treated
+        // as untrusted, but not marked; seen on ubuntu2204 in WP31).
+        "mount --bind {} /usr/bin && exec /usr/bin/ssh --dir {} open-path /root/.ssh/id_sysscope_ns sleep 2000",
         fake.display(),
         base.join("wl").display()
     );

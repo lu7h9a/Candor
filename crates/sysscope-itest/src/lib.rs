@@ -129,13 +129,18 @@ impl Dump {
     }
 }
 
+/// A number no other call in this process gets (work directory names).
+/// `Instant::now().elapsed()` was used before: about 0 for every call, so
+/// two workloads started together shared one directory and one deleted the
+/// other's files (intermittent loss-identity failure, WP31 matrix).
+fn unique() -> u64 {
+    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
+}
+
 /// Runs `wl` with the given actions in a fresh directory and returns its manifest.
 pub fn wl(actions: &[&str]) -> Result<Manifest, String> {
-    let dir = std::env::temp_dir().join(format!(
-        "sysscope-wl-{}-{}",
-        std::process::id(),
-        Instant::now().elapsed().as_nanos()
-    ));
+    let dir = std::env::temp_dir().join(format!("sysscope-wl-{}-{}", std::process::id(), unique()));
     let _ = std::fs::remove_dir_all(&dir);
     let out = Command::new(bin_dir().join("sysscope-wl"))
         .arg("--dir")
@@ -230,11 +235,8 @@ pub struct PausedWl {
 impl PausedWl {
     /// Starts wl paused; its pid is known before it does anything.
     pub fn start(actions: &[&str]) -> Result<PausedWl, String> {
-        let dir = std::env::temp_dir().join(format!(
-            "sysscope-wlp-{}-{}",
-            std::process::id(),
-            actions.len()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("sysscope-wlp-{}-{}", std::process::id(), unique()));
         let _ = std::fs::remove_dir_all(&dir);
         let child = Command::new(bin_dir().join("sysscope-wl"))
             .arg("--dir")

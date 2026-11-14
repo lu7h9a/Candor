@@ -23,7 +23,7 @@ snap() {
 }
 # Build tools the test itself needs come before the snapshot.
 if [ "$d" = arch ]; then
-    pacman -Sy --noconfirm --needed base-devel >/dev/null
+    pacman -Syu --noconfirm --needed base-devel >/dev/null
     id builder >/dev/null 2>&1 || useradd -m builder
 fi
 snap > /tmp/before
