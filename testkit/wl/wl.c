@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /*
- * wl - ground-truth workload generator for SysScope tests (plan WP05).
+ * wl - ground-truth workload generator for Candor tests (plan WP05).
  *
  * Performs exactly N of each requested action using direct syscalls
  * (syscall(2), no stdio buffering in the measured paths) and prints a JSON

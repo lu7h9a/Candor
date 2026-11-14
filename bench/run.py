@@ -4,9 +4,9 @@
 Each benchmark runs ROUNDS times in every mode, modes alternating within a
 round (off, on, ...), so drifting machine load hits all modes alike:
   off      no daemon
-  on       sysscoped --dev (syscall counting on, the default)
-  sysoff   sysscoped --dev --syscalls off            (getppid only)
-  follow   sysscoped --dev following an unrelated idle process
+  on       candord --dev (syscall counting on, the default)
+  sysoff   candord --dev --syscalls off            (getppid only)
+  follow   candord --dev following an unrelated idle process
 Then the idle daemon's CPU share over 5 minutes and its RSS. Writes
 docs/BENCH.md; exits 0 only if every threshold in bench/thresholds.toml holds.
 The daemon runs as root through `sudo -n`; benchmarks run as the user.
@@ -37,7 +37,7 @@ def sh(cmd, **kw):
 class Daemon:
     def __init__(self, extra=()):
         self.log = open(os.path.join(WORK, "daemon.log"), "w")
-        self.p = subprocess.Popen(["sudo", "-n", os.path.join(REL, "sysscoped"), "--dev", *extra],
+        self.p = subprocess.Popen(["sudo", "-n", os.path.join(REL, "candord"), "--dev", *extra],
                                   stdout=subprocess.DEVNULL, stderr=self.log)
         for _ in range(200):
             m = re.search(r"pid (\d+)", open(self.log.name).read())
@@ -74,7 +74,7 @@ def freeze_source():
 def cargo_build():
     tgt = os.path.join(WORK, "cargo-target")
     shutil.rmtree(tgt, ignore_errors=True)
-    crates = "-p sysscope-proto -p sysscope-core" if QUICK else "--workspace"
+    crates = "-p candor-proto -p candor-core" if QUICK else "--workspace"
     sh(f"taskset -c {PCORES} cargo build -q --offline {crates} --target-dir {tgt}", cwd=SRC)
 
 
@@ -111,7 +111,7 @@ def c_make():
 def wl(*args):
     d = os.path.join(WORK, "wl")
     shutil.rmtree(d, ignore_errors=True)
-    subprocess.run(["taskset", "-c", MICRO_CPU, os.path.join(REL, "sysscope-wl"), "--dir", d, *args],
+    subprocess.run(["taskset", "-c", MICRO_CPU, os.path.join(REL, "candor-wl"), "--dir", d, *args],
                    check=True, stdout=subprocess.DEVNULL)
 
 
@@ -133,7 +133,7 @@ def start(mode):
     d = Daemon()
     if mode == "follow":
         d.sleeper = subprocess.Popen(["sleep", "100000"])
-        out = subprocess.run([os.path.join(REL, "sysscope"), "follow", str(d.sleeper.pid)],
+        out = subprocess.run([os.path.join(REL, "candor"), "follow", str(d.sleeper.pid)],
                              capture_output=True, text=True)
         if "following" not in out.stdout:
             raise SystemExit("follow failed: " + out.stdout + out.stderr)

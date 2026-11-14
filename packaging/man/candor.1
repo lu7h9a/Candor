@@ -1,0 +1,73 @@
+.TH CANDOR 1 "2026-11-15" "candor 0.0.1" "User Commands"
+.SH NAME
+candor \- command-line client for the Candor process monitor
+.SH SYNOPSIS
+.B candor
+[\fB\-\-socket\fR \fIPATH\fR] [\fB\-\-json\fR] \fICOMMAND\fR [\fIARGS\fR]
+.SH DESCRIPTION
+.B candor
+shows what programs on the computer are doing, as seen by the
+.BR candord (8)
+daemon, and explains findings that look suspicious. It is a visibility tool
+with explainable heuristics, not an antivirus.
+.PP
+It needs membership in the \fBcandor\fR group (or root) to connect.
+.SH COMMANDS
+.TP
+.B status
+Daemon version and kernel, available features (and why any is not), mode,
+process counts, lost events.
+.TP
+.BR top " [" \-\-sort " cpu|mem|score] [" \-n " N]"
+The process table.
+.TP
+.B tree
+The process tree with tree scores.
+.TP
+.BR tail " [" \-\-proc " PID] [" \-\-count " N]"
+Stream events live.
+.TP
+.BI detail " PID"
+Files, connections, syscalls and findings of one process.
+.BR \-\-maps
+adds its memory map (own processes only, unless root).
+.TP
+.B findings
+Every finding with its explanation and evidence.
+.TP
+.BI follow " PID" "\fR, \fBunfollow"
+Trace only PID and its descendants, or go back to system-wide. Needs root or
+the \fBcandor-act\fR group: while following, other processes are not traced.
+.TP
+.BR act " pause|resume|kill " \fIPID\fR
+Experimental. Signal one process. The daemon must run with
+\fB\-\-enable\-act\fR; needs root or \fBcandor-act\fR; protected processes
+are refused.
+.TP
+.BR export " \-\-format json|csv [" \-\-raw "] [" \-\-redact\-ips ]
+The current view. Personal details are redacted unless \fB\-\-raw\fR.
+.TP
+.BI replay " FILE"
+Run a recording through the detector offline.
+.TP
+.BR "glasshouse run" " [" \-\-timeout " S] " \fIFILE\fR " [" \fIARGS\fR ]
+Run FILE in the Glasshouse sandbox and print what it touched. Glasshouse is a
+behaviour-demonstration sandbox, not a malware containment system; read the
+warning it prints.
+.TP
+.BI "glasshouse report" " FILE.json"
+Print a saved report.
+.SH OPTIONS
+.TP
+.B \-\-json
+Machine-readable output.
+.TP
+.BR \-V ", " \-\-version
+Version, git commit and protocol version.
+.SH EXIT STATUS
+0 ok, 1 error, 2 usage, 3 daemon not running, 4 permission denied, 5 daemon error.
+.SH SEE ALSO
+.BR candor-gui (1),
+.BR candord (8),
+.BR candor-glasshouse (8),
+/usr/share/doc/candor/README.md

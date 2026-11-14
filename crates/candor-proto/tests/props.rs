@@ -1,0 +1,156 @@
+//! Property tests: round trips for every message type and byte string, and
+//! the frame decoder on hostile input (plan WP02 Verify).
+// Integration tests are test code: unwrap/expect/panic are allowed here (SKILL.md 5).
+#![allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::panic,
+    clippy::indexing_slicing
+)]
+
+mod common;
+
+use proptest::prelude::*;
+use candor_proto::*;
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(2000))]
+
+    #[test]
+    fn bstr_roundtrips_any_bytes(bytes in proptest::collection::vec(any::<u8>(), 0..512)) {
+        let escaped = bstr::escape(&bytes);
+        // The escaped form never contains raw control bytes (I10).
+        prop_assert!(!escaped.bytes().any(|b| b < 0x20 || b == 0x7F));
+        prop_assert_eq!(bstr::unescape(&escaped).unwrap(), bytes.clone());
+        let json = serde_json::to_string(&BStr(bytes.clone())).unwrap();
+        let back: BStr = serde_json::from_str(&json).unwrap();
+        prop_assert_eq!(back.0, bytes);
+    }
+
+    #[test]
+    fn client_messages_roundtrip(msg in common::arb_client()) {
+        let body = encode(&msg).unwrap();
+        prop_assert_eq!(decode_client(&body).unwrap(), msg);
+    }
+
+    #[test]
+    fn daemon_messages_roundtrip(msg in common::arb_daemon()) {
+        let body = encode(&msg).unwrap();
+        prop_assert_eq!(decode_daemon(&body).unwrap(), msg);
+    }
+
+    #[test]
+    fn framed_messages_roundtrip(msg in common::arb_client()) {
+        let body = encode(&msg).unwrap();
+        let mut wire = Vec::new();
+        write_frame(&mut wire, &body, MAX_CLIENT_FRAME).unwrap();
+        let got = read_frame(&mut &wire[..], MAX_CLIENT_FRAME).unwrap().unwrap();
+        prop_assert_eq!(decode_client(&got).unwrap(), msg);
+    }
+}
+
+proptest! {
+    #![proptest_config(ProptestConfig::with_cases(10_000))]
+
+    #[test]
+    fn garbage_never_panics(bytes in proptest::collection::vec(any::<u8>(), 0..256)) {
+        let mut r = &bytes[..];
+        // Read frames until the input is exhausted or an error occurs.
+        while let Ok(Some(body)) = read_frame(&mut r, 64) {
+            let _ = decode_client(&body);
+            let _ = decode_daemon(&body);
+        }
+        let _ = decode_client(&bytes);
+        let _ = decode_daemon(&bytes);
+        if let Ok(s) = std::str::from_utf8(&bytes) {
+            let _ = bstr::unescape(s);
+        }
+    }
+
+    #[test]
+    fn truncated_frames_are_errors(msg in common::arb_client(), cut in 1usize..1000) {
+        let body = encode(&msg).unwrap();
+        let mut wire = Vec::new();
+        write_frame(&mut wire, &body, MAX_CLIENT_FRAME).unwrap();
+        let cut = cut.min(wire.len() - 1);
+        let res = read_frame(&mut &wire[..cut], MAX_CLIENT_FRAME);
+        prop_assert!(matches!(res, Err(FrameError::Truncated)));
+    }
+
+    #[test]
+    fn oversized_frames_are_errors(len in (MAX_CLIENT_FRAME + 1)..=u32::MAX) {
+        let mut wire = len.to_le_bytes().to_vec();
+        wire.extend_from_slice(b"{}");
+        let res = read_frame(&mut &wire[..], MAX_CLIENT_FRAME);
+        let is_too_large = matches!(res, Err(FrameError::TooLarge { .. }));
+        prop_assert!(is_too_large);
+    }
+}
+
+#[test]
+fn unknown_type_and_malformed_are_distinguished() {
+    let e = decode_client(br#"{"t":"Nope"}"#).unwrap_err();
+    assert_eq!(e.code(), "unknown_type");
+    let e = decode_client(br#"{"t":"Ping"}"#).unwrap_err();
+    assert_eq!(e.code(), "malformed");
+    let e = decode_client(br#"[1,2]"#).unwrap_err();
+    assert_eq!(e.code(), "malformed");
+    // A daemon type is unknown when sent by a client.
+    let e = decode_client(br#"{"t":"Welcome"}"#).unwrap_err();
+    assert_eq!(e.code(), "unknown_type");
+}
+
+#[test]
+fn unknown_fields_are_ignored() {
+    let m = decode_client(br#"{"t":"Ping","n":5,"future":true}"#).unwrap();
+    assert_eq!(m, ClientMsg::Ping { n: 5 });
+}
+
+#[test]
+fn unknown_type_name_is_escaped_and_capped() {
+    let long = format!(r#"{{"t":"\u001b[2J{}"}}"#, "A".repeat(500));
+    match decode_client(long.as_bytes()).unwrap_err() {
+        DecodeError::UnknownType(s) => {
+            assert!(s.starts_with("\\x1B[2J"));
+            assert!(s.len() <= 64 + 3);
+        }
+        other => panic!("unexpected {other:?}"),
+    }
+}
+
+#[test]
+fn non_finite_floats_are_clamped() {
+    let msg = DaemonMsg::Detail {
+        proc: ProcKey::default(),
+        series: Series {
+            t: vec![1, 2, 3],
+            cpu: vec![f32::NAN, f32::INFINITY, f32::NEG_INFINITY],
+            rss: vec![0, 0, 0],
+        },
+        recent: vec![],
+        files: vec![],
+        conns: vec![],
+        syscalls: vec![],
+        children: vec![],
+        maps: None,
+        findings: vec![],
+    };
+    let body = encode(&msg).unwrap();
+    match decode_daemon(&body).unwrap() {
+        DaemonMsg::Detail { series, .. } => assert_eq!(series.cpu, vec![0.0, f32::MAX, f32::MIN]),
+        other => panic!("unexpected {other:?}"),
+    }
+    let mut row = common::sample_row();
+    row.cpu_pct = f32::NAN;
+    let json = serde_json::to_string(&row).unwrap();
+    assert!(json.contains("\"cpu_pct\":0.0"), "{json}");
+}
+
+#[test]
+fn decode_errors_never_carry_raw_control_bytes() {
+    let body = br#"{"t":"GhStatus","state":"\u001b]2;pwn\u0007","run_id":"r","message":"m"}"#;
+    match decode_daemon(body).unwrap_err() {
+        DecodeError::Malformed(m) => assert!(!m.bytes().any(|b| b < 0x20 || b == 0x7f), "{m:?}"),
+        other => panic!("unexpected {other:?}"),
+    }
+}

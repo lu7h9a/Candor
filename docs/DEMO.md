@@ -1,6 +1,6 @@
 # 60-second demo
 
-A short screen recording that shows what SysScope does. `scripts/demo.sh`
+A short screen recording that shows what Candor does. `scripts/demo.sh`
 stages everything, so the recording needs only clicks. Everything it runs is a
 harmless simulator from `testkit/sim/`, and it removes what it created when
 it ends.
@@ -8,8 +8,8 @@ it ends.
 ## Before recording
 
 ```text
-sudo systemctl start sysscoped
-sysscope-gui &
+sudo systemctl start candord
+candor-gui &
 scripts/demo.sh
 ```
 

@@ -12,7 +12,7 @@ in the workspace `Cargo.toml`.
 The first build to have packages. This is a pre-release.
 
 ### Added
-- **sysscoped**, a root daemon that watches processes with CO-RE eBPF:
+- **candord**, a root daemon that watches processes with CO-RE eBPF:
   - programs started, forks and exits;
   - files opened, renamed and deleted;
   - outbound connections and listening sockets;
@@ -21,14 +21,14 @@ The first build to have packages. This is a pre-release.
 - **Detection rules R001–R009, R011 and R012**, each finding explained in plain language with
   the events that prove it, plus **R100**, an experimental baseline rule that
   is off by default.
-- **sysscope-gui**, a desktop app, and **sysscope**, a CLI. Both are
+- **candor-gui**, a desktop app, and **candor**, a CLI. Both are
   unprivileged and talk to the daemon over a Unix socket. The CLI can export,
   replay recordings and run Glasshouse.
 - **Glasshouse**, a bubblewrap sandbox that runs a program against decoy
   files and reports what it read, changed, deleted and connected to. It is
   not a malware containment system; see the README.
 - **Act mode**, experimental and off by default: pause, resume or kill a
-  process. It needs the `sysscope-act` group.
+  process. It needs the `candor-act` group.
 - Lost events are accounted for: kernel budget, ring buffer, scratch,
   undecodable records, a full process table, and probe runs the kernel
   skipped.
@@ -37,8 +37,8 @@ The first build to have packages. This is a pre-release.
   installed but not enabled.
 - A hardened systemd unit with five capabilities; see
   `docs/THREAT_MODEL.md`.
-- `sysscope --version` prints the version, the git commit and the protocol
+- `candor --version` prints the version, the git commit and the protocol
   version.
 
-[Unreleased]: https://github.com/lu7h9a/sysscope/compare/v0.0.1...HEAD
-[0.0.1]: https://github.com/lu7h9a/sysscope/releases/tag/v0.0.1
+[Unreleased]: https://github.com/lu7h9a/candor/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/lu7h9a/candor/releases/tag/v0.0.1

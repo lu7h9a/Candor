@@ -2,8 +2,8 @@
 //! parses can be fed to the engine without a panic.
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use sysscope_core::Engine;
-use sysscope_core::replay::{parse, replay_engine};
+use candor_core::Engine;
+use candor_core::replay::{parse, replay_engine};
 
 fuzz_target!(|data: &[u8]| {
     let Ok(s) = std::str::from_utf8(data) else {

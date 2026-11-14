@@ -57,18 +57,18 @@ record() { # where bin_dir workload-name [run-as-root]
     "$here/testkit/benign/$w.sh" setup "$wd" > /dev/null
     local rec="$out/$w.events.jsonl"
     rm -f "$rec"
-    $SUDO "$bin/sysscoped" --dev --record "$rec" > /dev/null 2> "$out/$w.daemon.log" &
+    $SUDO "$bin/candord" --dev --record "$rec" > /dev/null 2> "$out/$w.daemon.log" &
     local dpid=$!
     for _ in $(seq 1 100); do grep -q serving "$out/$w.daemon.log" && break; sleep 0.1; done
     sleep 2
     if [ -n "$asroot" ]; then $SUDO "$here/testkit/benign/$w.sh" run "$wd" || echo "$w: workload failed"
     else "$here/testkit/benign/$w.sh" run "$wd" || echo "$w: workload failed"; fi
     sleep 3
-    $SUDO kill -INT "$(pgrep -f "sysscoped --dev --record $rec" | head -1)" 2>/dev/null || true
+    $SUDO kill -INT "$(pgrep -f "candord --dev --record $rec" | head -1)" 2>/dev/null || true
     wait "$dpid" 2>/dev/null || true
     $SUDO chmod 0644 "$rec"
     rm -rf "$wd"
-    summarise "$rec" "$bin/sysscope" > "$out/$w.summary.json"
+    summarise "$rec" "$bin/candor" > "$out/$w.summary.json"
     python3 -c "import json,sys;s=json.load(open(sys.argv[1]));print('%-14s %7.1fs %8d events  findings: %s' % (sys.argv[2], s['seconds'], s['events'], [(f['rule'], f['band'], f['exe'].split('/')[-1]) for f in s['findings']]))" "$out/$w.summary.json" "$w"
 }
 
@@ -83,11 +83,11 @@ host)
     ;;
 vm-guest)
     SUDO=""; WORK=/root/benign-work
-    [ -f /etc/sysscope-test-vm ] || { echo "vm-guest mode runs only in a test VM"; exit 1; }
+    [ -f /etc/candor-test-vm ] || { echo "vm-guest mode runs only in a test VM"; exit 1; }
     for w in git_build tar_zip rsync_tree editor_save pip_venv curl_local ssh_localhost; do
-        record vm /opt/sysscope/bin "$w"
+        record vm /opt/candor/bin "$w"
     done
-    record vm /opt/sysscope/bin apt root
+    record vm /opt/candor/bin apt root
     ;;
 report)
     python3 - "$here" <<'PY'

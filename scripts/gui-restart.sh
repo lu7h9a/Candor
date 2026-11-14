@@ -9,7 +9,7 @@ SOCK=target/shots/fake.sock
 mkdir -p target/shots
 python3 scripts/fake_daemon.py "$SOCK" fixtures/gui/demo.frames.jsonl & fake=$!
 sleep 1
-LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1400x900x24" target/debug/sysscope-gui --socket "$SOCK" \
+LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1400x900x24" target/debug/candor-gui --socket "$SOCK" \
     --shot-at 3:target/shots/restart-1-connected.png --shot-at 8:target/shots/restart-2-down.png \
     --shot-at 15:target/shots/restart-3-recovered.png 2>/dev/null & gui=$!
 sleep 5; kill "$fake"; wait "$fake" 2>/dev/null || true; rm -f "$SOCK"

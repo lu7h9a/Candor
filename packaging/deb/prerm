@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
 if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ]; then
-    systemctl disable --now sysscoped.service >/dev/null 2>&1 || true
+    systemctl disable --now candord.service >/dev/null 2>&1 || true
 fi
 exit 0

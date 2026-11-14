@@ -20,7 +20,7 @@ out = [
     {"t": "GhStatus", "state": "running", "run_id": rid, "message": "sample started", "decoys": live},
     {"t": "GhReport", "report": report},
     {"t": "GhStatus", "state": "finished", "run_id": rid,
-     "message": "report saved to /var/lib/sysscope/reports/%s.json" % rid, "decoys": []},
+     "message": "report saved to /var/lib/candor/reports/%s.json" % rid, "decoys": []},
 ]
 with open("fixtures/gui/glasshouse.frames.jsonl", "w") as f:
     for m in out:

@@ -346,6 +346,102 @@ dependencies = [
 ]
 
 [[package]]
+name = "candor-cli"
+version = "0.0.1"
+dependencies = [
+ "candor-core",
+ "candor-proto",
+ "rustix 1.1.6",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "candor-core"
+version = "0.0.1"
+dependencies = [
+ "candor-proto",
+ "flate2",
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+ "toml",
+]
+
+[[package]]
+name = "candor-glasshouse"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "candor-core",
+ "candor-proto",
+ "libc",
+ "rustix 1.1.6",
+ "seccompiler",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "candor-gui"
+version = "0.0.1"
+dependencies = [
+ "candor-core",
+ "candor-proto",
+ "crossbeam-channel",
+ "eframe",
+ "egui",
+ "egui_extras",
+ "egui_kittest",
+ "egui_plot",
+ "png",
+ "serde_json",
+]
+
+[[package]]
+name = "candor-itest"
+version = "0.0.1"
+dependencies = [
+ "candor-core",
+ "candor-proto",
+ "serde_json",
+]
+
+[[package]]
+name = "candor-proto"
+version = "0.0.1"
+dependencies = [
+ "proptest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.21",
+]
+
+[[package]]
+name = "candord"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "candor-core",
+ "candor-proto",
+ "cc",
+ "crossbeam-channel",
+ "libbpf-cargo",
+ "libbpf-rs",
+ "procfs",
+ "rustix 1.1.6",
+ "serde",
+ "serde_json",
+ "signal-hook",
+ "thiserror 2.0.21",
+ "toml",
+]
+
+[[package]]
 name = "cargo-platform"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2828,102 +2924,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "sysscope-cli"
-version = "0.0.1"
-dependencies = [
- "rustix 1.1.6",
- "serde",
- "serde_json",
- "sysscope-core",
- "sysscope-proto",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "sysscope-core"
-version = "0.0.1"
-dependencies = [
- "flate2",
- "proptest",
- "serde",
- "serde_json",
- "sysscope-proto",
- "thiserror 2.0.21",
- "toml",
-]
-
-[[package]]
-name = "sysscope-glasshouse"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "libc",
- "rustix 1.1.6",
- "seccompiler",
- "serde",
- "serde_json",
- "sha2",
- "sysscope-core",
- "sysscope-proto",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "sysscope-gui"
-version = "0.0.1"
-dependencies = [
- "crossbeam-channel",
- "eframe",
- "egui",
- "egui_extras",
- "egui_kittest",
- "egui_plot",
- "png",
- "serde_json",
- "sysscope-core",
- "sysscope-proto",
-]
-
-[[package]]
-name = "sysscope-itest"
-version = "0.0.1"
-dependencies = [
- "serde_json",
- "sysscope-core",
- "sysscope-proto",
-]
-
-[[package]]
-name = "sysscope-proto"
-version = "0.0.1"
-dependencies = [
- "proptest",
- "serde",
- "serde_json",
- "thiserror 2.0.21",
-]
-
-[[package]]
-name = "sysscoped"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "cc",
- "crossbeam-channel",
- "libbpf-cargo",
- "libbpf-rs",
- "procfs",
- "rustix 1.1.6",
- "serde",
- "serde_json",
- "signal-hook",
- "sysscope-core",
- "sysscope-proto",
- "thiserror 2.0.21",
- "toml",
 ]
 
 [[package]]

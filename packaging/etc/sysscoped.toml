@@ -1,3 +1,0 @@
-# /etc/sysscope/sysscoped.toml - daemon settings.
-#
-# syscalls = "count"   # per-process syscall counts; "off" saves CPU

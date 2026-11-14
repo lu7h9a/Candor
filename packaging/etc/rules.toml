@@ -1,7 +1,7 @@
-# /etc/sysscope/rules.toml - local overrides of SysScope's detection rules.
-# The defaults are built into sysscoped and are updated with the package;
+# /etc/candor/rules.toml - local overrides of Candor's detection rules.
+# The defaults are built into candord and are updated with the package;
 # anything set here is merged on top of them, key by key. Restart the
-# daemon after a change: sudo systemctl restart sysscoped
+# daemon after a change: sudo systemctl restart candord
 #
 # Example: switch off a rule, or change one threshold.
 # [rules.R006]

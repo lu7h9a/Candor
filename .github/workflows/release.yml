@@ -44,9 +44,9 @@ jobs:
         run: make test
       - name: Build packages
         env:
-          SYSSCOPE_SRC: ${{ github.workspace }}
-          SYSSCOPE_OUT: ${{ github.workspace }}/dist
-          SYSSCOPE_SKIP_SETUP: "1"
+          CANDOR_SRC: ${{ github.workspace }}
+          CANDOR_OUT: ${{ github.workspace }}/dist
+          CANDOR_SKIP_SETUP: "1"
         run: packaging/build.sh "${{ steps.ver.outputs.version }}"
       - name: Verify checksums
         working-directory: dist
@@ -59,6 +59,6 @@ jobs:
             '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md)
           [ -n "$notes" ] || notes="See CHANGELOG.md."
           gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
-            --title "SysScope $GITHUB_REF_NAME" --notes "$notes" \
-            dist/*.deb dist/*.rpm dist/*.tar.gz dist/PKGBUILD dist/sysscope.install \
+            --title "Candor $GITHUB_REF_NAME" --notes "$notes" \
+            dist/*.deb dist/*.rpm dist/*.tar.gz dist/PKGBUILD dist/candor.install \
             dist/SHA256SUMS dist/lintian.txt dist/rpmlint.txt

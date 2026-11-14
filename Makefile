@@ -1,4 +1,4 @@
-# SysScope Makefile. Target names are fixed by .claude/skills/sysscope/SKILL.md section 6.
+# Candor Makefile. Target names are fixed by .claude/skills/candor/SKILL.md section 6.
 # Rules: never run cargo/rustup/git under sudo. Root tests build as the user and run
 # the test binaries through a "sudo -E" runner.
 
@@ -16,7 +16,7 @@ export LIBBPF_SYS_EXTRA_CFLAGS := -I$(SYSROOT)/usr/include
 export LIBBPF_SYS_LIBRARY_PATH := $(SYSROOT)/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu
 endif
 DISTRO ?= debian12
-BPF_DIR := crates/sysscoped/bpf
+BPF_DIR := crates/candord/bpf
 CLANG_FORMAT := $(or $(shell command -v clang-format),$(wildcard $(SYSROOT)/usr/lib/llvm-21/bin/clang-format))
 # Packages from docs/MASTER_PLAN.md section 2 (official Kali repos only).
 APT_PKGS := build-essential clang llvm lld libelf-dev zlib1g-dev libzstd-dev pkg-config bpftool \
@@ -52,31 +52,31 @@ release: sysroot
 wl:
 	mkdir -p target/testkit target/release
 	gcc -static -O2 -Wall -Wextra -Werror -pthread -o target/testkit/wl testkit/wl/wl.c
-	cp target/testkit/wl target/release/sysscope-wl
+	cp target/testkit/wl target/release/candor-wl
 
 # Root integration test binaries copied next to the daemon as
-# target/release/sysscope-itest-<name>, so vm/run.sh ships them to guests.
+# target/release/candor-itest-<name>, so vm/run.sh ships them to guests.
 itest-bin: release wl
-	$(CARGO) test -p sysscope-itest --release --no-run --message-format=json 2>/dev/null | \
+	$(CARGO) test -p candor-itest --release --no-run --message-format=json 2>/dev/null | \
 		python3 -c 'import json,sys,shutil,os; \
-[shutil.copy(m["executable"], "target/release/sysscope-itest-" + m["target"]["name"]) \
+[shutil.copy(m["executable"], "target/release/candor-itest-" + m["target"]["name"]) \
  for m in map(json.loads, sys.stdin) \
  if m.get("reason") == "compiler-artifact" and m.get("executable") and m["target"]["kind"] == ["test"]]'
-	ls target/release/sysscope-itest-*
+	ls target/release/candor-itest-*
 
-# Unprivileged tests only. The root integration tests live in sysscope-itest and
+# Unprivileged tests only. The root integration tests live in candor-itest and
 # run through `make test-root`; they are excluded here, not ignored.
 test: integrity sysroot
-	$(CARGO) test --workspace --exclude sysscope-itest -- --skip no_frame_over_50ms_with_2000_processes
+	$(CARGO) test --workspace --exclude candor-itest -- --skip no_frame_over_50ms_with_2000_processes
 	@# The GUI frame-time budget (50 ms) is measured on the optimised build
 	@# users run, not the debug build (owner's choice H, WP32: on 2-CPU CI
 	@# runners the debug build drew a 56 ms frame).
-	$(CARGO) test --release -p sysscope-gui --test stress
+	$(CARGO) test --release -p candor-gui --test stress
 
 test-root: release wl
 	@sudo -n true 2>/dev/null || { echo "make test-root: needs passwordless sudo"; exit 1; }
 	CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER="sudo -E" \
-		$(CARGO) test -p sysscope-itest --release -- --test-threads=1
+		$(CARGO) test -p candor-itest --release -- --test-threads=1
 
 lint: sysroot
 	$(CARGO) fmt --all -- --check
@@ -109,7 +109,7 @@ vm-matrix:
 	python3 scripts/compat.py
 
 gui-shot: sysroot
-	$(CARGO) build -p sysscope-gui -p sysscope-cli
+	$(CARGO) build -p candor-gui -p candor-cli
 	scripts/gui-shots.sh
 
 # Plan WP29 (b): every target for FUZZ_SECONDS (default 600), zero crashes.
@@ -136,13 +136,13 @@ vm-hostile: release
 fp-eval: release
 	scripts/fp-eval.sh host
 	vm/run.sh debian12 "$$(cat vm/tests/wp00_tools.sh)" > /dev/null
-	vm/run.sh debian12 "mkdir -p /opt/sysscope/repo/scripts /opt/sysscope/repo/testkit/benign
-	$$(vm/embed.sh scripts/fp-eval.sh:/opt/sysscope/repo/scripts/fp-eval.sh $$(for f in testkit/benign/*.sh; do printf '%s:/opt/sysscope/repo/%s ' $$f $$f; done))
+	vm/run.sh debian12 "mkdir -p /opt/candor/repo/scripts /opt/candor/repo/testkit/benign
+	$$(vm/embed.sh scripts/fp-eval.sh:/opt/candor/repo/scripts/fp-eval.sh $$(for f in testkit/benign/*.sh; do printf '%s:/opt/candor/repo/%s ' $$f $$f; done))
 	apt-get -qq install -y rsync zip unzip curl git make gcc python3-venv > /dev/null 2>&1
-	bash /opt/sysscope/repo/scripts/fp-eval.sh vm-guest"
+	bash /opt/candor/repo/scripts/fp-eval.sh vm-guest"
 	mkdir -p target/fp/vm; for w in git_build tar_zip rsync_tree editor_save pip_venv curl_local ssh_localhost apt; do \
-		vm/run.sh debian12 "cat /opt/sysscope/repo/target/fp/vm/$$w.summary.json" > target/fp/vm/$$w.summary.json; \
-		vm/run.sh debian12 "cat /opt/sysscope/repo/target/fp/vm/$$w.events.jsonl" > target/fp/vm/$$w.events.jsonl; done
+		vm/run.sh debian12 "cat /opt/candor/repo/target/fp/vm/$$w.summary.json" > target/fp/vm/$$w.summary.json; \
+		vm/run.sh debian12 "cat /opt/candor/repo/target/fp/vm/$$w.events.jsonl" > target/fp/vm/$$w.events.jsonl; done
 	vm/down.sh debian12
 	scripts/fp-eval.sh report
 

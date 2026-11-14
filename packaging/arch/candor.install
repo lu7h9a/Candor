@@ -1,0 +1,14 @@
+post_install() {
+    systemd-sysusers /usr/lib/sysusers.d/candor.conf || true
+    cat /usr/share/doc/candor/postinstall-message.txt
+}
+post_upgrade() {
+    systemd-sysusers /usr/lib/sysusers.d/candor.conf || true
+}
+pre_remove() {
+    systemctl disable --now candord.service >/dev/null 2>&1 || true
+}
+post_remove() {
+    rm -rf /run/candor /var/lib/candor
+    systemctl daemon-reload >/dev/null 2>&1 || true
+}

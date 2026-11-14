@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
 # WP24 Verify (VM only, root). The demo sample testkit/sim/fake_malware.py is
-# shipped to /opt/sysscope/sim by vm/run.sh.
+# shipped to /opt/candor/sim by vm/run.sh.
 # 1. demo run through daemon + CLI -> exact report counts;
 # 2. calibration: the same sample under strace -f -c (run-local
 #    --calibrate, seccomp off) -> opens counted independently of BPF;
 # 3. the same run while following an unrelated process (followed_cgroup).
 set -u
-BIN=/opt/sysscope/bin
-SAMPLE=/opt/sysscope/sim/fake_malware.py
-mkdir -p /usr/lib/sysusers.d && printf 'g sysscope -\ng sysscope-act -\nu sysscope-box - "SysScope Glasshouse sandbox" / /usr/sbin/nologin\n' > /usr/lib/sysusers.d/sysscope.conf
-systemd-sysusers /usr/lib/sysusers.d/sysscope.conf
-rm -rf /var/lib/sysscope/reports
-"$BIN/sysscoped" --dev > /tmp/d.out 2> /tmp/d.err &
+BIN=/opt/candor/bin
+SAMPLE=/opt/candor/sim/fake_malware.py
+mkdir -p /usr/lib/sysusers.d && printf 'g candor -\ng candor-act -\nu candor-box - "Candor Glasshouse sandbox" / /usr/sbin/nologin\n' > /usr/lib/sysusers.d/candor.conf
+systemd-sysusers /usr/lib/sysusers.d/candor.conf
+rm -rf /var/lib/candor/reports
+"$BIN/candord" --dev > /tmp/d.out 2> /tmp/d.err &
 dpid=$!
-for _ in $(seq 1 100); do [ -S /run/sysscope-dev/sysscope.sock ] && break; sleep 0.1; done
+for _ in $(seq 1 100); do [ -S /run/candor-dev/candor.sock ] && break; sleep 0.1; done
 sleep 1
 fail=0
-if ! "$BIN/sysscope-glasshouse" availability; then
+if ! "$BIN/candor-glasshouse" availability; then
     # Correct outcome here: the daemon must not offer Glasshouse and the CLI
     # must say so cleanly.
-    "$BIN/sysscope" glasshouse run "$SAMPLE" > /tmp/u.out 2> /tmp/u.err; rc=$?
+    "$BIN/candor" glasshouse run "$SAMPLE" > /tmp/u.out 2> /tmp/u.err; rc=$?
     cat /tmp/u.err
     kill -INT $dpid; wait $dpid
     if [ $rc -ne 0 ] && grep -q "Glasshouse is not available on this system" /tmp/u.err; then
@@ -27,10 +27,10 @@ if ! "$BIN/sysscope-glasshouse" availability; then
     fi
     echo "WP24 UNAVAILABLE FAIL"; exit 1
 fi
-"$BIN/sysscope" --json status | grep -q '"glasshouse"' && echo "OK   daemon offers glasshouse" || { echo "FAIL feature flag"; fail=1; }
+"$BIN/candor" --json status | grep -q '"glasshouse"' && echo "OK   daemon offers glasshouse" || { echo "FAIL feature flag"; fail=1; }
 
 run_demo() { # $1 = output prefix
-    "$BIN/sysscope" --json glasshouse run "$SAMPLE" > "$1.json" 2> "$1.err"
+    "$BIN/candor" --json glasshouse run "$SAMPLE" > "$1.json" 2> "$1.err"
     echo "glasshouse run rc=$?"
 }
 check_report() { # $1 = report json; prints counts, exit 1 on mismatch
@@ -76,11 +76,11 @@ run_demo /tmp/r1
 grep -v '^Glasshouse is a behaviour' /tmp/r1.err | head -20
 check_report /tmp/r1.json > /tmp/r1.check; c1=$?; cat /tmp/r1.check
 [ $c1 -eq 0 ] || fail=1
-"$BIN/sysscope" glasshouse run "$SAMPLE" 2>/dev/null > /tmp/r1.txt
+"$BIN/candor" glasshouse run "$SAMPLE" 2>/dev/null > /tmp/r1.txt
 sed -n '1,40p' /tmp/r1.txt
 
 echo "== 2. calibration (strace -f, successful opens only, seccomp off, run-local)"
-"$BIN/sysscope-glasshouse" run-local --calibrate "$SAMPLE" > /tmp/cal.out 2> /tmp/cal.err
+"$BIN/candor-glasshouse" run-local --calibrate "$SAMPLE" > /tmp/cal.out 2> /tmp/cal.err
 echo "run-local --calibrate rc=$?"
 sed -n '/--- strace ---/,$p' /tmp/cal.out > /tmp/strace.txt
 all_ok=$(grep -cE '(open|openat|openat2|creat)\(' /tmp/strace.txt)
@@ -94,18 +94,18 @@ grep -E 'O_PATH' /tmp/strace.txt | sed -E 's/^[0-9]+ +//' | cut -c1-90 | sort | 
 
 echo "== 3. demo run while following an unrelated process"
 sleep 600 & spid=$!
-"$BIN/sysscope" follow $spid
+"$BIN/candor" follow $spid
 run_demo /tmp/r3
 check_report /tmp/r3.json > /tmp/r3.check; c3=$?; tail -3 /tmp/r3.check
 [ $c3 -eq 0 ] || fail=1
-"$BIN/sysscope" unfollow; kill $spid
+"$BIN/candor" unfollow; kill $spid
 
 echo "== cleanup and storage"
-mount | grep -q /var/lib/sysscope/glasshouse && { echo "FAIL run dir still mounted"; fail=1; }
-left=$(ls -A /var/lib/sysscope/glasshouse 2>/dev/null | wc -l)
-echo "leftover entries in /var/lib/sysscope/glasshouse: $left"; [ "$left" -eq 0 ] || fail=1
-ls -l /var/lib/sysscope/reports | tail -n +2 | awk '{print $1, $3, $4}' | sort | uniq -c
-systemctl list-units --all 'sysscope-gh*' --no-legend | head
+mount | grep -q /var/lib/candor/glasshouse && { echo "FAIL run dir still mounted"; fail=1; }
+left=$(ls -A /var/lib/candor/glasshouse 2>/dev/null | wc -l)
+echo "leftover entries in /var/lib/candor/glasshouse: $left"; [ "$left" -eq 0 ] || fail=1
+ls -l /var/lib/candor/reports | tail -n +2 | awk '{print $1, $3, $4}' | sort | uniq -c
+systemctl list-units --all 'candor-gh*' --no-legend | head
 kill -INT $dpid; wait $dpid
 grep -iE 'panic|error' /tmp/d.err | head -5
 [ $fail -eq 0 ] && echo "WP24 GLASSHOUSE PASS" || { echo "WP24 GLASSHOUSE FAIL"; exit 1; }

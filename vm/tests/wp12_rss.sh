@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # WP12: daemon RSS after 10 minutes of process/file/network churn (< 300 MiB).
 set -eu
-BIN=/opt/sysscope/bin
-"$BIN/sysscoped" --dev 2>/tmp/sysscoped.err &
+BIN=/opt/candor/bin
+"$BIN/candord" --dev 2>/tmp/candord.err &
 sleep 3
-pid=$(grep -o 'pid [0-9]*' /tmp/sysscoped.err | head -1 | cut -d' ' -f2)
-[ -n "$pid" ] || { cat /tmp/sysscoped.err; exit 1; }
+pid=$(grep -o 'pid [0-9]*' /tmp/candord.err | head -1 | cut -d' ' -f2)
+[ -n "$pid" ] || { cat /tmp/candord.err; exit 1; }
 end=$((SECONDS + 600))
 rounds=0
 while [ $SECONDS -lt $end ]; do
-    "$BIN/sysscope-wl" --dir /tmp/churn exec 50 fork 50 open-write 200 rename 50 unlink 50 connect-tcp 20 >/dev/null
+    "$BIN/candor-wl" --dir /tmp/churn exec 50 fork 50 open-write 200 rename 50 unlink 50 connect-tcp 20 >/dev/null
     rm -rf /tmp/churn
     rounds=$((rounds + 1))
 done

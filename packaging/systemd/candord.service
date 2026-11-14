@@ -1,0 +1,54 @@
+# Candor daemon (plan WP29). Every root itest passes with the daemon
+# started under these settings (scripts/unit-wrap.sh). The capability set
+# was found by removing one capability at a time; docs/THREAT_MODEL.md says
+# why each one is needed. CAP_DAC_READ_SEARCH and CAP_SYS_RESOURCE were
+# expected by the plan but are not needed (all tests pass without them).
+# The Glasshouse helper is NOT limited by this unit: the daemon starts it as
+# its own transient unit through systemd-run (plan 6.1), so the daemon's
+# own capability set stays small.
+[Unit]
+Description=Candor process monitor (eBPF)
+Documentation=file:///usr/share/doc/candor/README.md
+After=local-fs.target systemd-sysusers.service
+
+[Service]
+Type=notify
+NotifyAccess=main
+ExecStart=/usr/bin/candord
+Restart=on-failure
+RestartSec=2s
+# /run/candor (socket) and /var/lib/candor (Glasshouse runs, reports,
+# R100 baselines) are the only places the daemon writes.
+RuntimeDirectory=candor
+RuntimeDirectoryMode=0750
+StateDirectory=candor
+StateDirectoryMode=0750
+CapabilityBoundingSet=CAP_BPF CAP_PERFMON CAP_SYS_PTRACE CAP_KILL CAP_CHOWN
+NoNewPrivileges=yes
+ProtectSystem=strict
+ReadWritePaths=/run/candor /var/lib/candor
+ProtectHome=read-only
+PrivateTmp=yes
+RestrictAddressFamilies=AF_UNIX AF_NETLINK
+IPAddressDeny=any
+MemoryMax=512M
+SystemCallArchitectures=native
+LockPersonality=yes
+RestrictSUIDSGID=yes
+# Beyond the plan's list (systemd-analyze security 5.9 -> see THREAT_MODEL).
+PrivateNetwork=yes
+PrivateDevices=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+MemoryDenyWriteExecute=yes
+UMask=0027
+SystemCallFilter=~@clock @cpu-emulation @module @obsolete @raw-io @reboot @swap
+
+[Install]
+WantedBy=multi-user.target

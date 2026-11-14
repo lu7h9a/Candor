@@ -5,7 +5,7 @@
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 export PATH="$HOME/.cargo/bin:$PATH"
-cargo build -q --release -p sysscope-gui
+cargo build -q --release -p candor-gui
 FR=target/stress.frames.jsonl
 python3 - "$FR" <<'PY'
 import json, sys
@@ -23,9 +23,9 @@ with open(sys.argv[1], "w") as f:
                             "procs": procs, "loss": {"ringbuf": 0, "budget": 0, "scratch": 0, "since_ts_ns": 0}}) + "\n")
 PY
 export LIBGL_ALWAYS_SOFTWARE=1
-xvfb-run -a -s "-screen 0 1400x900x24" target/release/sysscope-gui --replay "$FR" --pace 500 2>/dev/null &
+xvfb-run -a -s "-screen 0 1400x900x24" target/release/candor-gui --replay "$FR" --pace 500 2>/dev/null &
 sleep 2
-pid=$(pgrep -n -f "target/release/sysscope-gui --replay $FR")
+pid=$(pgrep -n -f "target/release/candor-gui --replay $FR")
 ticks() { awk '{print $14 + $15}' /proc/$pid/stat; }
 # CPU of the GUI's own threads, excluding Mesa's llvmpipe software-render
 # threads (on real hardware the GPU does that work).

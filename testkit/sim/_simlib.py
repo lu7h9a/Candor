@@ -1,13 +1,13 @@
-"""Shared guard for SysScope behaviour simulators (plan 5.7(2)).
+"""Shared guard for Candor behaviour simulators (plan 5.7(2)).
 
 Every simulator is harmless: it acts only inside the directory it is given,
-and only if that directory contains the marker file `.sysscope-sim-ok`.
+and only if that directory contains the marker file `.candor-sim-ok`.
 Network simulators talk only to 127.0.0.0/8 and a listener they start.
 """
 import os
 import sys
 
-MARKER = ".sysscope-sim-ok"
+MARKER = ".candor-sim-ok"
 
 
 def sim_dir():

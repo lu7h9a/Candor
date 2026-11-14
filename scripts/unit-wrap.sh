@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# unit-wrap.sh sysscoped ARGS... - runs the daemon as a transient systemd
-# service with the [Service] hardening of packaging/systemd/sysscoped.service
-# (plan WP29 a). The root itests use it when SYSSCOPE_ITEST_WRAP points here.
+# unit-wrap.sh candord ARGS... - runs the daemon as a transient systemd
+# service with the [Service] hardening of packaging/systemd/candord.service
+# (plan WP29 a). The root itests use it when CANDOR_ITEST_WRAP points here.
 # CAPS="CAP_A CAP_B" overrides CapabilityBoundingSet (capability probing).
 # Stop it with SIGTERM (forwarded to the unit). SIGINT is forwarded too,
 # but a background job of a non-interactive shell starts with SIGINT
@@ -10,7 +10,7 @@
 # are writable, because `--dev` and the tests use them.
 set -euo pipefail
 here="$(cd "$(dirname "$0")/.." && pwd)"
-unit_file="$here/packaging/systemd/sysscoped.service"
+unit_file="$here/packaging/systemd/candord.service"
 props=()
 while IFS= read -r line; do
     case "$line" in
@@ -25,10 +25,10 @@ while IFS= read -r line; do
     esac
     props+=(-p "$line")
 done < <(sed -n '/^\[Service\]/,/^\[/p' "$unit_file")
-mkdir -p /run/sysscope-dev /run/sysscope /var/lib/sysscope
-extra_rw=(/run/sysscope-dev)
+mkdir -p /run/candor-dev /run/candor /var/lib/candor
+extra_rw=(/run/candor-dev)
 [ -n "${TMPDIR:-}" ] && extra_rw+=("$TMPDIR")
-unit="sysscope-probe-$$"
+unit="candor-probe-$$"
 systemd-run --unit="$unit" --pipe --wait --collect --quiet \
     "${props[@]}" -p "ReadWritePaths=${extra_rw[*]}" \
     ${SUDO_GID:+--setenv=SUDO_GID=$SUDO_GID} -- "$@" &

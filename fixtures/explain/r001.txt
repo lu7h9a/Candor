@@ -6,4 +6,4 @@ Why it is flagged:
   - the program is not on the allowlist for ssh_keys
 Could be harmless if: you ran a backup, sync or key-management tool yourself.
 Evidence (2 events): #18812 Open /home/u/.ssh/id_ed25519 (read), #18815 Open /home/u/.ssh/id_ed25519\x1B[2J (read)
-To silence: add to /etc/sysscope/allow.toml -> { rule = "R001", exe = "/tmp/x", subject = "ssh_keys", reason = "..." }
+To silence: add to /etc/candor/allow.toml -> { rule = "R001", exe = "/tmp/x", subject = "ssh_keys", reason = "..." }

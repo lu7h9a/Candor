@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# lib.sh - shared helpers for the SysScope dev VM harness (plan WP03).
+# lib.sh - shared helpers for the Candor dev VM harness (plan WP03).
 # Sourced by up.sh, run.sh and down.sh. Everything the harness writes goes to
-# ~/.cache/sysscope-vm (SKILL.md section 2 write allowlist).
+# ~/.cache/sysscope-vm (SKILL.md section 2 write allowlist; the name predates the rename).
 set -euo pipefail
 
-VM_CACHE="${HOME}/.cache/sysscope-vm"
+VM_CACHE="${HOME}/.cache/sysscope-vm"  # kept: the owner's allowed cache path and existing images
 VM_IMAGES="${VM_CACHE}/images"
 VM_STATE="${VM_CACHE}/state"
 VM_MEM_MB="${VM_MEM_MB:-2048}"
 VM_CPUS="${VM_CPUS:-2}"
 VM_DISK_GB="${VM_DISK_GB:-12}"
-VM_USER=sysscope
+VM_USER=candor
 
 die() { echo "vm: $*" >&2; exit 1; }
 

@@ -1,13 +1,13 @@
 [workspace]
 resolver = "3"
 members = [
-    "crates/sysscope-proto",
-    "crates/sysscope-core",
-    "crates/sysscoped",
-    "crates/sysscope-cli",
-    "crates/sysscope-gui",
-    "crates/sysscope-glasshouse",
-    "crates/sysscope-itest",
+    "crates/candor-proto",
+    "crates/candor-core",
+    "crates/candord",
+    "crates/candor-cli",
+    "crates/candor-gui",
+    "crates/candor-glasshouse",
+    "crates/candor-itest",
 ]
 # cargo-fuzz targets build with nightly in their own workspace (WP29).
 exclude = ["fuzz"]
@@ -16,7 +16,7 @@ exclude = ["fuzz"]
 version = "0.0.1"
 edition = "2024"
 license = "MIT"
-repository = "https://github.com/lu7h9a/sysscope"
+repository = "https://github.com/lu7h9a/candor"
 publish = false
 
 [workspace.lints.rust]

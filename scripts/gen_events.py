@@ -11,7 +11,7 @@ n, out = int(sys.argv[1]), sys.argv[2]
 rnd = random.Random(1)
 ns = 1_000_000_000
 with open(out, "w") as f:
-    f.write(json.dumps({"sysscope_record": 1, "proto": 1, "daemon_version": "gen",
+    f.write(json.dumps({"candor_record": 1, "proto": 1, "daemon_version": "gen",
                         "kernel": "gen", "boot_to_wall_ns": 0, "features": [],
                         "act_enabled": False}) + "\n")
     live = [(100, 1)]

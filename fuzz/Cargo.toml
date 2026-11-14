@@ -1,7 +1,7 @@
 # Fuzz targets (plan WP29 b). Built with `cargo +nightly fuzz run <target>`;
 # a separate workspace so the main build never needs nightly.
 [package]
-name = "sysscope-fuzz"
+name = "candor-fuzz"
 version = "0.0.0"
 edition = "2024"
 publish = false
@@ -14,8 +14,8 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4"
 serde_json = "1"
 thiserror = "2"
-sysscope-proto = { path = "../crates/sysscope-proto" }
-sysscope-core = { path = "../crates/sysscope-core" }
+candor-proto = { path = "../crates/candor-proto" }
+candor-core = { path = "../crates/candor-core" }
 
 [workspace]
 members = ["."]

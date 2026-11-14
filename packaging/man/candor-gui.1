@@ -1,0 +1,21 @@
+.TH CANDOR-GUI 1 "2026-11-15" "candor 0.0.1" "User Commands"
+.SH NAME
+candor-gui \- desktop client for the Candor process monitor
+.SH SYNOPSIS
+.B candor-gui
+[\fB\-\-replay\fR \fIFILE.frames.jsonl\fR]
+.SH DESCRIPTION
+The Candor desktop app: the live process table and tree, per-process files,
+network, syscalls, children and memory maps, findings with their evidence,
+follow mode, and the Glasshouse sandbox page. It talks to
+.BR candord (8)
+over its socket and needs membership in the \fBcandor\fR group. It refuses
+to run as root.
+.SH OPTIONS
+.TP
+.BI \-\-replay " FILE"
+Show a saved recording (made with \fBcandor replay \-\-frames\fR) instead of
+the live daemon.
+.SH SEE ALSO
+.BR candor (1),
+.BR candord (8)

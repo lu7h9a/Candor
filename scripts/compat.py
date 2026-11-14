@@ -3,7 +3,7 @@
 
 A feature is "pass" when every test of it passed, "degraded" when it is
 missing for a reason the daemon reports ("not available ..." in
-`sysscope status`, or Glasshouse refusing correctly), "fail" otherwise.
+`candor status`, or Glasshouse refusing correctly), "fail" otherwise.
 Every "fail" needs an entry in docs/UNVERIFIED.md (checked here)."""
 import glob, json, os, re, sys
 
@@ -65,7 +65,7 @@ o = ["# Compatibility (plan WP31)", "",
      "`make package` (built on ubuntu2204, glibc 2.35) is installed in a fresh guest of each",
      "distribution, and the root itest subset, one simulator per rule, the CLI export and",
      "the Glasshouse demo run against the installed binaries.",
-     "\"degraded\" = not available there, with the reason SysScope itself reports.", ""]
+     "\"degraded\" = not available there, with the reason Candor itself reports.", ""]
 o.append("| feature | " + " | ".join(dists) + " |")
 o.append("|---|" + "---|" * len(dists))
 o.append("| system | " + " | ".join(runs[d]["pretty"] for d in dists) + " |")

@@ -2,7 +2,7 @@
 //! frame, an error or EOF, never a panic or an allocation over the cap.
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use sysscope_proto::{
+use candor_proto::{
     MAX_CLIENT_FRAME, MAX_DAEMON_FRAME, decode_client, decode_daemon, read_frame,
 };
 

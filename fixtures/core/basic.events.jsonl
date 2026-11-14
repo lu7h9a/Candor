@@ -1,4 +1,4 @@
-{"sysscope_record":1,"proto":1,"daemon_version":"0.0.1","kernel":"fixture","boot_to_wall_ns":0,"features":[],"act_enabled":false}
+{"candor_record":1,"proto":1,"daemon_version":"0.0.1","kernel":"fixture","boot_to_wall_ns":0,"features":[],"act_enabled":false}
 {"t":"Samples","ts_ns":1000000000,"samples":[{"key":{"tgid":1,"start":1},"ppid":0,"exe":"/usr/lib/systemd/systemd","comm":"systemd","uid":0,"kthread":false,"cpu_ticks":100,"rss":12000000,"threads":1,"io_r":0,"io_w":0},{"key":{"tgid":100,"start":500},"ppid":1,"exe":"/usr/bin/bash","comm":"bash","uid":1000,"kthread":false,"cpu_ticks":10,"rss":5000000,"threads":1,"io_r":0,"io_w":0}]}
 {"t":"RawEvent","event":{"id":1,"ts_ns":1100000000,"proc":{"tgid":100,"start":500},"tid":100,"uid":1000,"kind":{"k":"Fork","child":{"tgid":200,"start":110}}}}
 {"t":"RawEvent","event":{"id":2,"ts_ns":1110000000,"proc":{"tgid":200,"start":110},"tid":200,"uid":1000,"kind":{"k":"Exec","exe":"/usr/bin/curl","argv":"curl\\x00http://127.0.0.1:8080/\\x00","argv_trunc":false,"fileless":false,"dev":2050,"ino":4242}}}

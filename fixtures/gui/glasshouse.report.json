@@ -580,7 +580,7 @@
       "path": "/home/victim/README_RESTORE.txt",
       "size": 79,
       "entropy": 4.49,
-      "preview": "Your files are locked. This is a SysScope Glasshouse DEMO; nothing was harmed.\\x0A",
+      "preview": "Your files are locked. This is a Candor Glasshouse DEMO; nothing was harmed.\\x0A",
       "kind": "file"
     }
   ],
@@ -596,7 +596,7 @@
       "uid": 993,
       "kind": {
         "k": "Open",
-        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-0.bpf",
+        "path": "/var/lib/candor/glasshouse/1794547283-1/seccomp-0.bpf",
         "dev": 46,
         "ino": 478,
         "read": true,
@@ -617,7 +617,7 @@
       "uid": 993,
       "kind": {
         "k": "Open",
-        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-1.bpf",
+        "path": "/var/lib/candor/glasshouse/1794547283-1/seccomp-1.bpf",
         "dev": 46,
         "ino": 479,
         "read": true,
@@ -638,7 +638,7 @@
       "uid": 993,
       "kind": {
         "k": "Open",
-        "path": "/var/lib/sysscope/glasshouse/1794547283-1/seccomp-2.bpf",
+        "path": "/var/lib/candor/glasshouse/1794547283-1/seccomp-2.bpf",
         "dev": 46,
         "ino": 480,
         "read": true,

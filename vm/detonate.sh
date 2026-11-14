@@ -6,7 +6,7 @@
 #     no extra devices); no shared folders; serial port 2 -> a host file;
 #   - QEMU is killed at timeout + 60 s regardless;
 #   - the report is read from the serial file as untrusted text: at most
-#     64 MiB, strict JSON, shown escaped by `sysscope glasshouse report`.
+#     64 MiB, strict JSON, shown escaped by `candor glasshouse report`.
 # Refuses if QEMU cannot use KVM, if a VirtualBox VM is running, or if its
 # own QEMU command line holds any -nic/-netdev/-net other than "-nic none"
 # (DETONATE_QEMU_EXTRA adds options and exists only so this refusal can be
@@ -24,9 +24,9 @@ run="${VM_CACHE}/detonate/${stamp}"; mkdir -p "$run/iso"; chmod 700 "${VM_CACHE}
 cp "$archive" "$run/iso/sample.zip"
 printf '%s\n' "$password" > "$run/iso/password"
 printf '%s\n' "$timeout_s" > "$run/iso/timeout"
-genisoimage -quiet -output "$run/sample.iso" -volid SYSSCOPESAMPLE -rock "$run/iso"
+genisoimage -quiet -output "$run/sample.iso" -volid CANDORSAMPLE -rock "$run/iso"
 rm -rf "$run/iso"
-args=(qemu-system-x86_64 -name sysscope-detonation -nodefaults -no-user-config
+args=(qemu-system-x86_64 -name candor-detonation -nodefaults -no-user-config
       -machine q35,accel=kvm -enable-kvm -cpu host -m 2048 -smp 2
       -drive "file=${img},if=virtio,format=qcow2" -snapshot
       -drive "file=${run}/sample.iso,media=cdrom,readonly=on"
@@ -48,7 +48,7 @@ for a in "${args[@]}"; do case "$a" in *virtio-net*|*e1000*|*rtl8139*|*usb*) die
 [ "$nets" -eq 1 ] || die "refusing: expected exactly one '-nic none'"
 printf '%q ' "${args[@]}" > "$run/qemu-cmdline.txt"
 {
-    echo "SysScope detonation report header"
+    echo "Candor detonation report header"
     echo "date: $(date -Is)"
     echo "archive: $(basename "$archive") sha256 $(sha256sum "$archive" | cut -d' ' -f1)"
     echo "timeout: ${timeout_s}s (QEMU killed at $((timeout_s + 60))s)"
@@ -67,10 +67,10 @@ import json, sys
 # A serial tty may turn "\n" into "\r\n"; raw newlines cannot occur inside
 # JSON strings, so this changes only whitespace.
 data = open(sys.argv[1], "rb").read().replace(b"\r\n", b"\n")
-b, e = data.find(b"SYSSCOPE-REPORT-BEGIN\n"), data.rfind(b"\nSYSSCOPE-REPORT-END")
+b, e = data.find(b"CANDOR-REPORT-BEGIN\n"), data.rfind(b"\nCANDOR-REPORT-END")
 if b < 0 or e < b:
     sys.exit("detonate: no complete report on the serial port")
-body = data[b + len(b"SYSSCOPE-REPORT-BEGIN\n"):e].strip()
+body = data[b + len(b"CANDOR-REPORT-BEGIN\n"):e].strip()
 obj = json.loads(body)
 if "error" in obj:
     sys.exit("detonate: the guest reported an error: %s" % json.dumps(obj)[:2000])
@@ -80,6 +80,6 @@ PY
 rm -f "$run/report.capped" "$run/sample.iso"
 cat "$run/report-header.txt"
 echo
-"$repo/target/release/sysscope" glasshouse report "$run/report.json"
+"$repo/target/release/candor" glasshouse report "$run/report.json"
 echo
 echo "detonate: report files: $run/report-header.txt and $run/report.json"

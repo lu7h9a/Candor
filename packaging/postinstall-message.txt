@@ -1,12 +1,12 @@
-SysScope is installed but not running (it is never enabled by default).
+Candor is installed but not running (it is never enabled by default).
 
-SysScope's daemon watches the processes of EVERY user on this computer:
+Candor's daemon watches the processes of EVERY user on this computer:
 the programs they start, files they open and connections they make.
 
-  Start it now and at every boot:   sudo systemctl enable --now sysscoped
-  Let your user use the GUI/CLI:    sudo usermod -aG sysscope "$USER"
-  Also allow follow mode and act:   sudo usermod -aG sysscope-act "$USER"
+  Start it now and at every boot:   sudo systemctl enable --now candord
+  Let your user use the GUI/CLI:    sudo usermod -aG candor "$USER"
+  Also allow follow mode and act:   sudo usermod -aG candor-act "$USER"
   (log out and back in after usermod)
 
-Then run `sysscope-gui` or `sysscope status`.
-Documentation: /usr/share/doc/sysscope/README.md
+Then run `candor-gui` or `candor status`.
+Documentation: /usr/share/doc/candor/README.md

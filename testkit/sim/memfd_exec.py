@@ -5,11 +5,11 @@ import os
 from _simlib import sim_dir
 
 sim_dir()
-fd = os.memfd_create("sysscope-sim", 0)
+fd = os.memfd_create("candor-sim", 0)
 with open("/bin/true", "rb") as src:
     os.write(fd, src.read())
 pid = os.fork()
 if pid == 0:
-    os.execve(fd, ["sysscope-sim"], {})
+    os.execve(fd, ["candor-sim"], {})
 _, status = os.waitpid(pid, 0)
 print("memfd_exec: child exited with", os.waitstatus_to_exitcode(status))

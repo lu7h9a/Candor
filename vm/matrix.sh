@@ -13,7 +13,7 @@ d=${1:?distro}; pk="$repo/target/packages"
 "$here/up.sh" "$d" >&2
 tar -C "$pk" -cf - . | vm_ssh "$d" 'rm -rf ~/pkgs && mkdir ~/pkgs && tar -C ~/pkgs -xf -'
 tar -C "$repo/testkit" -cf - --exclude=__pycache__ sim |
-    vm_ssh "$d" 'sudo rm -rf /opt/sysscope && sudo mkdir -p /opt/sysscope && sudo tar --no-same-owner -C /opt/sysscope -xf -'
+    vm_ssh "$d" 'sudo rm -rf /opt/candor && sudo mkdir -p /opt/candor && sudo tar --no-same-owner -C /opt/candor -xf -'
 vm_ssh "$d" 'sudo tee /tmp/wp24.sh >/dev/null' < "$here/tests/wp24_glasshouse.sh"
 mkdir -p "$repo/target/matrix"
 vm_ssh "$d" "sudo bash -s $d" > "$repo/target/matrix/$d.json" <<'GUEST'
@@ -21,30 +21,30 @@ set -uo pipefail
 d=$1; cd "$(getent passwd "${SUDO_USER:-root}" | cut -d: -f6)/pkgs"
 log=/root/matrix.log; : > $log
 case "$d" in
-debian12|ubuntu*) apt-get update -qq >>$log 2>&1; DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ./sysscope_*_amd64.deb strace python3 >>$log 2>&1 ;;
-fedora) dnf install -y -q ./sysscope-*.x86_64.rpm strace python3 >>$log 2>&1 ;;
+debian12|ubuntu*) apt-get update -qq >>$log 2>&1; DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ./candor_*_amd64.deb strace python3 >>$log 2>&1 ;;
+fedora) dnf install -y -q ./candor-*.x86_64.rpm strace python3 >>$log 2>&1 ;;
 arch)
     pacman -Syu --noconfirm --needed base-devel strace python bubblewrap >>$log 2>&1
     id builder >/dev/null 2>&1 || useradd -m builder
-    rm -rf /home/builder/pkg && mkdir /home/builder/pkg && cp PKGBUILD sysscope.install sysscope-*.tar.gz /home/builder/pkg/
+    rm -rf /home/builder/pkg && mkdir /home/builder/pkg && cp PKGBUILD candor.install candor-*.tar.gz /home/builder/pkg/
     chown -R builder /home/builder/pkg
     su builder -c 'cd /home/builder/pkg && makepkg -f --nodeps' >>$log 2>&1
-    pacman -U --noconfirm /home/builder/pkg/sysscope-*.pkg.tar.* >>$log 2>&1 ;;
+    pacman -U --noconfirm /home/builder/pkg/candor-*.pkg.tar.* >>$log 2>&1 ;;
 esac
-installed=$([ -x /usr/bin/sysscoped ] && echo true || echo false)
+installed=$([ -x /usr/bin/candord ] && echo true || echo false)
 # The tests run the installed binaries (symlinks; the daemon resolves its
 # own path to /usr/bin and runs the installed, root-owned helper).
-mkdir -p /opt/sysscope/bin
-for b in sysscoped sysscope sysscope-glasshouse; do ln -sf /usr/bin/$b /opt/sysscope/bin/$b; done
-cp itest/* /opt/sysscope/bin/ && chown -R root:root /opt/sysscope && chmod -R go-w /opt/sysscope
-touch /etc/sysscope-test-vm
-export SYSSCOPE_BIN_DIR=/opt/sysscope/bin SYSSCOPE_SIM_DIR=/opt/sysscope/sim
+mkdir -p /opt/candor/bin
+for b in candord candor candor-glasshouse; do ln -sf /usr/bin/$b /opt/candor/bin/$b; done
+cp itest/* /opt/candor/bin/ && chown -R root:root /opt/candor && chmod -R go-w /opt/candor
+touch /etc/candor-test-vm
+export CANDOR_BIN_DIR=/opt/candor/bin CANDOR_SIM_DIR=/opt/candor/sim
 dmesg_before=$(dmesg --level=err,warn | wc -l)
 tests=/root/tests.txt; : > $tests
 # Every test of a suite (from --list); a test is FAILED if the summary
 # lists it, or if the binary ended without a summary (crash).
 for s in lifecycle files network follow rules_e2e cli; do
-    b=/opt/sysscope/bin/sysscope-itest-$s
+    b=/opt/candor/bin/candor-itest-$s
     out=$("$b" --test-threads=1 2>&1); echo "$out" >> $log
     failed=$(echo "$out" | awk '/^failures:$/{n++; next} n==2 && /^    /{print $1} n==2 && /^test result/{exit}')
     summary=$(echo "$out" | grep -c '^test result:' || true)
@@ -57,9 +57,9 @@ done
 bash /tmp/wp24.sh > /root/wp24.log 2>&1
 gh=$(grep -oE 'WP24 (GLASSHOUSE PASS|GLASSHOUSE FAIL|UNAVAILABLE-CORRECTLY PASS|UNAVAILABLE FAIL)' /root/wp24.log | tail -1)
 # Feature notes as users see them.
-/usr/bin/sysscoped --dev > /dev/null 2> /root/d.err &
+/usr/bin/candord --dev > /dev/null 2> /root/d.err &
 dp=$!; for _ in $(seq 1 100); do grep -q serving /root/d.err && break; sleep 0.1; done
-/usr/bin/sysscope status > /root/status.txt 2>&1
+/usr/bin/candor status > /root/status.txt 2>&1
 kill -TERM $dp; wait $dp 2>/dev/null
 dmesg_new=$(dmesg --level=err,warn | tail -n +$((dmesg_before + 1)) | grep -Eic 'bpf|BUG|WARNING|RCU' || true)
 python3 - "$d" "$installed" "$gh" "$dmesg_new" <<'PY'

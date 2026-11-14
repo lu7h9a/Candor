@@ -2,14 +2,14 @@
 # WP23 Verify (VM only, root): run a harmless probe script through the full
 # Glasshouse launcher and check the isolation properties of plan 6.2.
 set -u
-BIN=/opt/sysscope/bin
-mkdir -p /usr/lib/sysusers.d && cp /dev/stdin /usr/lib/sysusers.d/sysscope.conf <<'CONF'
-g sysscope -
-g sysscope-act -
-u sysscope-box - "SysScope Glasshouse sandbox" / /usr/sbin/nologin
+BIN=/opt/candor/bin
+mkdir -p /usr/lib/sysusers.d && cp /dev/stdin /usr/lib/sysusers.d/candor.conf <<'CONF'
+g candor -
+g candor-act -
+u candor-box - "Candor Glasshouse sandbox" / /usr/sbin/nologin
 CONF
-systemd-sysusers /usr/lib/sysusers.d/sysscope.conf
-id sysscope-box
+systemd-sysusers /usr/lib/sysusers.d/candor.conf
+id candor-box
 cat > /tmp/box-probe.sh <<'PROBE'
 #!/bin/sh
 echo "ID: $(id)"
@@ -23,7 +23,7 @@ echo "HOME: $(ls -a /home/victim | tr '\n' ' ')"
 echo "SYS: $(ls /sys 2>&1 | head -1)"
 PROBE
 chmod +x /tmp/box-probe.sh
-"$BIN/sysscope-glasshouse" run-local /tmp/box-probe.sh > /tmp/gh.out 2> /tmp/gh.err
+"$BIN/candor-glasshouse" run-local /tmp/box-probe.sh > /tmp/gh.out 2> /tmp/gh.err
 rc=$?
 cat /tmp/gh.err; cat /tmp/gh.out
 fail=0
@@ -49,6 +49,6 @@ n=$(sed -n '/^PS:/,/^CapInh/p' /tmp/gh.out | grep -cE '^victim ')
 grep -qE '^2: ' /tmp/gh.out && { echo "FAIL a second network interface is visible"; fail=1; }
 # fds: 0 1 2 plus ls's own directory fd (3).
 grep -qE '^FDS: 0 1 2 3 $' /tmp/gh.out && echo "OK   fds 0-2 only (3 = ls itself)" || { echo "FAIL fds"; grep FDS /tmp/gh.out; fail=1; }
-mount | grep -q /var/lib/sysscope/glasshouse && { echo "FAIL run dir still mounted"; fail=1; }
+mount | grep -q /var/lib/candor/glasshouse && { echo "FAIL run dir still mounted"; fail=1; }
 echo "run-local rc=$rc"
 [ $fail -eq 0 ] && [ $rc -eq 0 ] && echo "WP23 GLASSHOUSE PASS" || { echo "WP23 GLASSHOUSE FAIL"; exit 1; }

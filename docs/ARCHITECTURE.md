@@ -1,26 +1,26 @@
 # Architecture
 
-How SysScope is put together, as the code is now. The constants quoted here
-live in `crates/sysscoped/bpf/sysscope.h`, `crates/sysscope-core/src/limits.rs`
-and `crates/sysscoped/src/server.rs`.
+How Candor is put together, as the code is now. The constants quoted here
+live in `crates/candord/bpf/candor.h`, `crates/candor-core/src/limits.rs`
+and `crates/candord/src/server.rs`.
 
 ## Parts
 
 ```text
-crates/sysscope-proto/       message types, framing, byte-string escaping (no I/O of its own)
-crates/sysscope-core/        pure logic: process table, history, rules, scoring, replay
-crates/sysscoped/            the daemon; bpf/ holds the eBPF C programs, abi.rs the only unsafe Rust
-crates/sysscope-cli/         `sysscope`, the command-line client
-crates/sysscope-gui/         `sysscope-gui`, the egui desktop client
-crates/sysscope-glasshouse/  `sysscope-glasshouse`: sandbox helper, decoys, differ, report
-crates/sysscope-itest/       root integration tests
+crates/candor-proto/       message types, framing, byte-string escaping (no I/O of its own)
+crates/candor-core/        pure logic: process table, history, rules, scoring, replay
+crates/candord/            the daemon; bpf/ holds the eBPF C programs, abi.rs the only unsafe Rust
+crates/candor-cli/         `candor`, the command-line client
+crates/candor-gui/         `candor-gui`, the egui desktop client
+crates/candor-glasshouse/  `candor-glasshouse`: sandbox helper, decoys, differ, report
+crates/candor-itest/       root integration tests
 testkit/                     workload generator (wl), harmless rule simulators, VM-only hostile probes
 fuzz/                        cargo-fuzz targets
 vm/, packaging/              test VMs, distro matrix; packages, systemd unit, sysusers
 ```
 
 Two privilege domains (invariant I1):
-- `sysscoped` runs as root, with a bounded set of capabilities, and is the
+- `candord` runs as root, with a bounded set of capabilities, and is the
   only process that loads eBPF or reads other users' `/proc`.
 - The GUI and the CLI run as the user and talk only to the daemon's socket.
   The GUI refuses to run as root.
@@ -75,7 +75,7 @@ clients <-- writer thread <-- per-client queues <-- [core] <-- commands (channel
                                                     [core] <--> Glasshouse helper threads (one run at a time)
 ```
 
-- **The core thread** owns all state (`sysscope-core::State` and the rule
+- **The core thread** owns all state (`candor-core::State` and the rule
   engine). There are no locks around state; other threads send messages.
 - **The poller** decodes ring-buffer records. When the core falls behind, the
   poller blocks, the ring buffer fills, and the kernel counts the drops: there
@@ -90,7 +90,7 @@ clients <-- writer thread <-- per-client queues <-- [core] <-- commands (channel
 
 ## Socket and clients
 
-- `/run/sysscope/sysscope.sock`, mode `0660 root:sysscope`, peer identity
+- `/run/candor/candor.sock`, mode `0660 root:candor`, peer identity
   from `SO_PEERCRED`.
 - Frames: a 4-byte length, then JSON. A client frame is at most 1 MiB, a
   daemon frame at most 16 MiB.
@@ -108,13 +108,13 @@ clients <-- writer thread <-- per-client queues <-- [core] <-- commands (channel
 
 ## Detection
 
-`sysscope-core` is pure: no I/O, no clock, no threads (I7). Time comes only
+`candor-core` is pure: no I/O, no clock, no threads (I7). Time comes only
 from event timestamps, so a recording replays to the same findings
-(`sysscope replay`).
+(`candor replay`).
 
 - Rules are Rust functions over the state. Their thresholds, path classes and
   texts live in `rules.toml`, and the allowlist in `allow.toml`; both are
-  built in and can be overridden from `/etc/sysscope/`.
+  built in and can be overridden from `/etc/candor/`.
 - Each finding carries the ids of the events that justify it (I9).
 - A process's score combines its findings with a noisy-OR (0–100) and
   halves every 10 minutes. Bands: suspicious from 30, high from 60.
@@ -125,12 +125,12 @@ from event timestamps, so a recording replays to the same findings
 ## Glasshouse
 
 ```text
-client --sample bytes--> sysscoped --systemd-run--> helper unit (root)
+client --sample bytes--> candord --systemd-run--> helper unit (root)
    helper: prepares a tmpfs run dir: decoy home, synthetic /etc, baseline, seccomp filters
-   helper --systemd-run--> sandbox unit (user sysscope-box, cgroup traced by the daemon)
+   helper --systemd-run--> sandbox unit (user candor-box, cgroup traced by the daemon)
           bubblewrap: new namespaces, /usr read-only, no network but loopback,
           three seccomp filters, no capabilities, NoNewPrivileges, resource limits
-   sample exits or times out --> differ (as sysscope-box): before/after of every decoy
+   sample exits or times out --> differ (as candor-box): before/after of every decoy
    --> report: decoys read/modified/renamed/deleted, new files, connection attempts, findings
 ```
 

@@ -5,8 +5,8 @@
 # Output: target/shots/*.png (plan WP20, `make gui-shot`).
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-GUI=target/debug/sysscope-gui
-CLI=target/debug/sysscope
+GUI=target/debug/candor-gui
+CLI=target/debug/candor
 OUT=target/shots
 mkdir -p "$OUT"
 FRAMES=fixtures/gui/demo.frames.jsonl
@@ -36,7 +36,7 @@ shot system-wide --replay "$FRAMES" --pace max
 shot detail-files --replay "$FRAMES" --pace max --select 1100 --tab files
 shot detail-findings --replay "$FRAMES" --pace max --select 1600 --tab findings
 shot following --replay "$OUT/follow.frames.jsonl" --pace max --select 1600
-shot daemon-down --socket /run/sysscope-none/sysscope.sock
+shot daemon-down --socket /run/candor-none/candor.sock
 shot paused --replay "$FRAMES" --pace 200 --paused
 python3 scripts/gen_gh_fixture.py >/dev/null
 shot glasshouse-report --replay fixtures/gui/glasshouse.frames.jsonl --pace max --page glasshouse

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SysScope Glasshouse adversarial probes (plan 6.5, WP25). VM ONLY.
+"""Candor Glasshouse adversarial probes (plan 6.5, WP25). VM ONLY.
 
 usage: hostile.py PROBE      (run inside a Glasshouse box by run_all.sh)
 
@@ -11,7 +11,7 @@ own walls, and the bombs are bounded by the box's limits and the timeout.
 
 Guard: refuses (exit 3) unless it is inside a Glasshouse box (hostname
 "glasshouse", HOME=/home/victim, uid 1000) on a virtual machine (the CPU
-reports the "hypervisor" flag). The marker file /etc/sysscope-test-vm and
+reports the "hypervisor" flag). The marker file /etc/candor-test-vm and
 DMI are not visible inside the box; run_all.sh checks those before it
 starts any probe.
 """
@@ -179,14 +179,14 @@ def probe_hostfiles():
     extra = [d for d in top if d not in allowed]
     if extra:
         v.escaped("unexpected top-level entries: %s" % extra)
-    for p in ["/root", "/boot", "/sys", "/var/lib/sysscope", "/run/sysscope", "/run/sysscope-dev",
-              "/etc/sysscope-test-vm", "/etc/ssh", "/etc/sudoers", "/home/debian", "/home/ubuntu"]:
+    for p in ["/root", "/boot", "/sys", "/var/lib/candor", "/run/candor", "/run/candor-dev",
+              "/etc/candor-test-vm", "/etc/ssh", "/etc/sudoers", "/home/debian", "/home/ubuntu"]:
         if os.path.lexists(p):
             v.escaped("host path visible: %s" % p)
     if sorted(os.listdir("/home")) != ["victim"]:
         v.escaped("/home lists %s" % os.listdir("/home"))
     passwd = open("/etc/passwd").read()
-    if "sysscope" in passwd or len(passwd.splitlines()) != 2:
+    if "candor" in passwd or len(passwd.splitlines()) != 2:
         v.escaped("/etc/passwd is not the synthetic one")
     for p in ["/proc/1/root/etc/hostname", "/proc/1/cwd/etc/passwd"]:
         try:
@@ -253,9 +253,9 @@ def probe_network():
 def probe_sockets():
     v = Verdict("sockets")
     paths = ["/tmp/.X11-unix/X0", "/run/dbus/system_bus_socket", "/run/user/1000/bus",
-             "/run/sysscope/sysscope.sock", "/run/sysscope-dev/sysscope.sock",
+             "/run/candor/candor.sock", "/run/candor-dev/candor.sock",
              "/run/systemd/private", "/run/systemd/journal/socket"]
-    abstract = ["\0sysscope-hostile-abstract", "\0/tmp/.X11-unix/X0", "\0/org/freedesktop/systemd1/private"]
+    abstract = ["\0candor-hostile-abstract", "\0/tmp/.X11-unix/X0", "\0/org/freedesktop/systemd1/private"]
     for p in paths + abstract:
         s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         s.settimeout(2)
@@ -266,7 +266,7 @@ def probe_sockets():
             pass
         finally:
             s.close()
-    v.note("run_all.sh listens on @sysscope-hostile-abstract outside the box")
+    v.note("run_all.sh listens on @candor-hostile-abstract outside the box")
     v.done()
 
 
@@ -479,7 +479,7 @@ def probe_tamper():
             pass
     for pid in sorted(int(x) for x in os.listdir("/proc") if x.isdigit()):
         try:
-            if "sysscoped" in open("/proc/%d/comm" % pid).read():
+            if "candord" in open("/proc/%d/comm" % pid).read():
                 v.escaped("daemon visible as pid %d" % pid)
         except OSError:
             pass

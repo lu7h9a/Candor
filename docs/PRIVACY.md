@@ -1,6 +1,6 @@
 # Privacy
 
-SysScope watches what every program on the computer does, so it handles
+Candor watches what every program on the computer does, so it handles
 information about every user. This page says exactly what it collects, where
 that information goes, and who can see it.
 
@@ -32,8 +32,8 @@ writes, environment variables, keystrokes, passwords typed into programs, or
 network traffic.
 
 Command lines can contain secrets, such as a password passed as
-`--password=...`. SysScope records them as they appear (truncated to 256
-bytes), so whoever can see SysScope can see those. Exports hide the common
+`--password=...`. Candor records them as they appear (truncated to 256
+bytes), so whoever can see Candor can see those. Exports hide the common
 cases (see below).
 
 ## Where it is kept, and for how long
@@ -45,34 +45,34 @@ cases (see below).
   
   It is all gone when the daemon stops.
 - **On disk, only in these cases:**
-  - **Glasshouse reports** in `/var/lib/sysscope/reports` (readable by root
-    and the `sysscope` group, the newest 200 kept). They describe the sandbox
+  - **Glasshouse reports** in `/var/lib/candor/reports` (readable by root
+    and the `candor` group, the newest 200 kept). They describe the sandbox
     run, not your real files.
   - **Learned baselines**, only if you enable the experimental rule R100:
-    `/var/lib/sysscope/baselines.json` holds program paths and per-program
+    `/var/lib/candor/baselines.json` holds program paths and per-program
     behaviour statistics.
   - **Recordings**, only if the daemon is started with `--record FILE`
     (meant for development and fixtures): every event, to that file.
-  - **Exports**, when you run `sysscope export` and save the output yourself.
+  - **Exports**, when you run `candor export` and save the output yourself.
 - The daemon's log (the systemd journal) records who connected, and who used
   follow or act mode (user id and process id). It does not record events.
 
-Uninstalling deletes `/run/sysscope` and `/var/lib/sysscope`.
+Uninstalling deletes `/run/candor` and `/var/lib/candor`.
 
 ## Who can see it
 
 | Who | Sees |
 |---|---|
 | root | everything |
-| members of the `sysscope` group | every process of every user: command lines, files, connections, findings. Memory maps only of their own processes. Membership is close to root-level read access to process activity, so grant it carefully. |
-| members of `sysscope-act` | the same, plus pausing or killing their own processes and switching on follow mode |
+| members of the `candor` group | every process of every user: command lines, files, connections, findings. Memory maps only of their own processes. Membership is close to root-level read access to process activity, so grant it carefully. |
+| members of `candor-act` | the same, plus pausing or killing their own processes and switching on follow mode |
 | other users | nothing: they cannot connect to the daemon |
 
 The installed package adds nobody to these groups; you choose who to add.
 
 ## Exports and sharing
 
-`sysscope export` and saved reports are **redacted by default**:
+`candor export` and saved reports are **redacted by default**:
 - your home folder becomes `~`, other users' homes `~user1`, `~user2`…;
 - your username and hostname become `<user>` and `<host>`;
 - values of secret-looking options (`--password`, `--token`, `--secret`,

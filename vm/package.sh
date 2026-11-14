@@ -16,7 +16,7 @@ ver=$(sed -n 's/^version = "\(.*\)"/\1/p' "$repo/Cargo.toml" | head -1)
     tar --owner=0 --group=0 -cf - -T -) |
     vm_ssh "$d" 'sudo rm -rf /root/src && sudo mkdir -p /root/src && sudo tar -C /root/src -xf -'
 commit=$(git -C "$repo" rev-parse --short=12 HEAD)
-vm_ssh "$d" "sudo bash -c 'cd /root/src && SYSSCOPE_ITEST=1 SYSSCOPE_GIT_COMMIT=$commit packaging/build.sh $ver'"
+vm_ssh "$d" "sudo bash -c 'cd /root/src && CANDOR_ITEST=1 CANDOR_GIT_COMMIT=$commit packaging/build.sh $ver'"
 rm -rf "$repo/target/packages"; mkdir -p "$repo/target/packages"
 vm_ssh "$d" 'sudo tar -C /root/out -cf - .' | tar -C "$repo/target/packages" -xf -
 "$here/down.sh" "$d" >/dev/null

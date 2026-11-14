@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Candor
+GenericName=Process Monitor
+Comment=See what programs on this computer are doing, with explanations
+Exec=candor-gui
+Icon=candor
+Terminal=false
+Categories=System;Monitor;Security;
+Keywords=process;monitor;security;ebpf;

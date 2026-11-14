@@ -2,7 +2,7 @@
 //! an error, never a panic.
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use sysscope_core::config::{Rules, load_allow};
+use candor_core::config::{Rules, load_allow};
 
 fuzz_target!(|data: &[u8]| {
     let Ok(s) = std::str::from_utf8(data) else {

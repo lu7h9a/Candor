@@ -1,6 +1,8 @@
-# SysScope
+# Candor
 
-SysScope shows what programs on your Linux machine are doing and explains why
+**See what the programs on your Linux machine are really doing.**
+
+Candor shows what programs on your Linux machine are doing and explains why
 some behaviour looks suspicious. It is a visibility tool with explainable
 heuristics, not an antivirus, and it cannot be relied on to stop or contain
 malware.
@@ -16,7 +18,7 @@ malware.
 | **Explained findings** | Eleven rules for behaviour worth a second look: reading SSH keys or browser passwords, running from a temp folder, running with no file on disk, writing startup files, mass file rewrites (ransomware), regular beaconing to the internet, port scans, event floods, a document viewer starting a shell, attempts to inject into another process, and touching a Glasshouse decoy. An experimental twelfth, "unlike its usual self", is off by default. Each finding says what happened, why it is flagged, what harmless explanation might fit, and lists the exact events behind it. |
 | **Follow mode** | Watch one program and everything it starts, with extra detail such as system-call timing, while the rest of the system is ignored. |
 | **Glasshouse** | Run a program in a sandbox full of decoy files (fake SSH keys, documents, photos) and get a before/after report of what it read, changed, deleted and tried to connect to. |
-| **Honest about gaps** | Events SysScope could not record are counted and shown, never silently dropped. |
+| **Honest about gaps** | Events Candor could not record are counted and shown, never silently dropped. |
 | **Private** | Everything stays on the machine. The daemon makes no network connections at all, and exports hide personal details by default. |
 
 ![A finding with its explanation and evidence](docs/img/detail-findings.png)
@@ -24,31 +26,31 @@ malware.
 ## Quickstart (60 seconds)
 
 Download the package for your system from the
-[Releases](https://github.com/lu7h9a/sysscope/releases) page. On Debian or
+[Releases](https://github.com/lu7h9a/candor/releases) page. On Debian or
 Ubuntu:
 
 ```bash
-sudo apt-get install -y ./sysscope_0.0.1-1_amd64.deb
-sudo systemctl enable --now sysscoped
-sudo usermod -aG sysscope,sysscope-act "$USER"
-sysscope --version
-sudo sysscope status
-sudo sysscope top --sort score -n 10
+sudo apt-get install -y ./candor_0.0.1-1_amd64.deb
+sudo systemctl enable --now candord
+sudo usermod -aG candor,candor-act "$USER"
+candor --version
+sudo candor status
+sudo candor top --sort score -n 10
 ```
 
 After you log out and back in, you can drop the `sudo` and open the desktop app
-with `sysscope-gui`.
+with `candor-gui`.
 
 The package installs the service but never starts it by itself. **The daemon
 sees the processes of every user on the computer**, and so does anyone in the
-`sysscope` group. Add only people you would show that to.
+`candor` group. Add only people you would show that to.
 
 Other systems:
 
 ```text
-sudo dnf install ./sysscope-0.0.1-1.x86_64.rpm            # Fedora
+sudo dnf install ./candor-0.0.1-1.x86_64.rpm            # Fedora
 makepkg -si                                               # Arch, with the PKGBUILD from the release
-tar xf sysscope-0.0.1-x86_64.tar.gz && sudo ./sysscope-0.0.1-x86_64/install.sh   # anything else
+tar xf candor-0.0.1-x86_64.tar.gz && sudo ./candor-0.0.1-x86_64/install.sh   # anything else
 ```
 
 ## Try it
@@ -57,26 +59,26 @@ See what a program does in the Glasshouse sandbox:
 
 ```bash
 printf '#!/bin/sh\ncat ~/.ssh/id_ed25519 > /dev/null\necho hi > ~/Documents/note.txt\n' > try.sh
-sudo sysscope glasshouse run try.sh
+sudo candor glasshouse run try.sh
 ```
 
 Read the findings so far, each with its explanation:
 
 ```bash
-sudo sysscope findings
+sudo candor findings
 ```
 
 Other commands:
 
 ```text
-sysscope detail PID          files, connections, syscalls and findings of one process
-sysscope follow PID          watch only PID and what it starts; sysscope unfollow to stop
-sysscope tail                live events
-sysscope export --format json > snapshot.json    personal details redacted by default
+candor detail PID          files, connections, syscalls and findings of one process
+candor follow PID          watch only PID and what it starts; candor unfollow to stop
+candor tail                live events
+candor export --format json > snapshot.json    personal details redacted by default
 ```
 
-Following needs root or the `sysscope-act` group, because while it is on,
-SysScope ignores every other process for everyone.
+Following needs root or the `candor-act` group, because while it is on,
+Candor ignores every other process for everyone.
 
 ## Glasshouse
 
@@ -85,17 +87,17 @@ SysScope ignores every other process for everyone.
 Glasshouse is a behaviour-demonstration sandbox, not a malware containment system. The program you run shares this computer's kernel. A kernel or sandbox vulnerability, a CPU side-channel, or a mistake in configuration could let it read your data or take over your account or the machine. Glasshouse does not hide that it is a sandbox, so a program may behave differently inside it. Run only programs you would accept losing this machine to, such as your own test scripts. For real or suspected malware use a dedicated virtual machine or a separate computer with no network, following docs/REAL_SAMPLES.md.
 
 Glasshouse needs bubblewrap. On Ubuntu 24.04 the default AppArmor policy
-blocks the user namespaces it uses, so SysScope reports it as unavailable
-there and says why. SysScope does not change that setting.
+blocks the user namespaces it uses, so Candor reports it as unavailable
+there and says why. Candor does not change that setting.
 
 ## How it works
 
 ```text
             your desktop                                   root
   +-------------------------+                 +--------------------------------+
-  | sysscope-gui / sysscope |  Unix socket    | sysscoped                      |
-  | (unprivileged)          | <-------------> |  rules + scoring (sysscope-core)|
-  +-------------------------+  group sysscope |  process table, history        |
+  | candor-gui / candor |  Unix socket    | candord                      |
+  | (unprivileged)          | <-------------> |  rules + scoring (candor-core)|
+  +-------------------------+  group candor |  process table, history        |
                                               |  /proc sampler (1 Hz)          |
                                               +---------------^----------------+
                                                               | ring buffer
@@ -105,7 +107,7 @@ there and says why. SysScope does not change that setting.
                                               |  rename, unlink, connect,      |
                                               |  listen, ptrace, syscall counts|
                                               +--------------------------------+
-  Glasshouse: sysscoped -> systemd transient unit -> bubblewrap sandbox
+  Glasshouse: candord -> systemd transient unit -> bubblewrap sandbox
               (decoy home, no network, seccomp) -> differ -> report
 ```
 
@@ -124,7 +126,7 @@ the socket. More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Limitations
 
-SysScope is a visibility tool. It does not block anything, and a determined
+Candor is a visibility tool. It does not block anything, and a determined
 attacker with root can hide from it. It does not see inbound connections or
 attempts the kernel refused, and its rules are heuristics that will sometimes
 flag harmless programs and miss harmful ones. The full list is in
@@ -137,7 +139,7 @@ flag harmless programs and miss harmful ones. The full list is in
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the parts fit together |
 | [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | What is protected, who can do what, remaining risks |
 | [docs/PRIVACY.md](docs/PRIVACY.md) | What is collected, where it goes, who can see it |
-| [docs/LIMITATIONS.md](docs/LIMITATIONS.md) | What SysScope cannot see or do |
+| [docs/LIMITATIONS.md](docs/LIMITATIONS.md) | What Candor cannot see or do |
 | [docs/REAL_SAMPLES.md](docs/REAL_SAMPLES.md) | Studying real malware safely, in a separate VM |
 | [docs/DEMO.md](docs/DEMO.md) | A 60-second demo |
 | [docs/COMPAT.md](docs/COMPAT.md), [docs/BENCH.md](docs/BENCH.md), [docs/FP_REPORT.md](docs/FP_REPORT.md) | Test results: distributions, overhead, false positives |
@@ -147,23 +149,23 @@ flag harmless programs and miss harmful ones. The full list is in
 ## Configuration
 
 The rules and the allowlist are built in. To change them, edit the files in
-`/etc/sysscope/`; each one explains its format. Then restart the daemon with
-`sudo systemctl restart sysscoped`. Clients cannot change the rules.
+`/etc/candor/`; each one explains its format. Then restart the daemon with
+`sudo systemctl restart candord`. Clients cannot change the rules.
 
 ## Remove
 
 ```bash
-sudo apt-get purge -y sysscope
+sudo apt-get purge -y candor
 ```
 
-`remove` keeps `/etc/sysscope`; `purge` deletes it too. For the tarball, run
-`sudo ./uninstall.sh` (add `--purge` to remove `/etc/sysscope` as well).
+`remove` keeps `/etc/candor`; `purge` deletes it too. For the tarball, run
+`sudo ./uninstall.sh` (add `--purge` to remove `/etc/candor` as well).
 
 ## Building from source
 
 ```text
 make setup        # build dependencies (Debian/Ubuntu/Kali)
-make release      # target/release/{sysscoped,sysscope,sysscope-gui,sysscope-glasshouse}
+make release      # target/release/{candord,candor,candor-gui,candor-glasshouse}
 make test         # unprivileged tests
 make test-root    # kernel tests (needs root; best inside a VM)
 make package      # all packages, built in an Ubuntu 22.04 VM
@@ -171,7 +173,7 @@ make package      # all packages, built in an Ubuntu 22.04 VM
 
 ## How this was built
 
-SysScope was built with heavy AI assistance. The design and the verification
+Candor was built with heavy AI assistance. The design and the verification
 approach are documented in `docs/`: every kernel change is tested in virtual
 machines first, results are recorded with the commands that produced them,
 and independent reviews hunted for bugs and security holes before release.

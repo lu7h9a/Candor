@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# WP04 Verify, run as root inside a dev VM: start `sysscoped --dev --dump`,
+# WP04 Verify, run as root inside a dev VM: start `candord --dev --dump`,
 # run /bin/true 100 times from a known parent, stop the daemon, and check the
 # dump has exactly 100 FORK, 100 EXEC and 100 EXIT for that parent's children
 # with the correct exe path. Also checks dmesg for new BPF/kernel warnings.
 set -euo pipefail
-BIN=/opt/sysscope/bin/sysscoped
+BIN=/opt/candor/bin/candord
 OUT=$(mktemp -d)
 dmesg_before=$(dmesg --level=err,warn | wc -l)
 

@@ -8,7 +8,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"; repo="$(cd "$here/.." && pwd)"
 source "$here/lib.sh"
 d=${1:-debian12}
-deb=$(ls "$repo"/target/packages/sysscope_*_amd64.deb | head -1)
+deb=$(ls "$repo"/target/packages/candor_*_amd64.deb | head -1)
 script=$(awk '/^```bash$/{on=1; next} /^```/{on=0} on' "$repo/README.md")
 [ -n "$script" ] || die "no bash blocks in README.md"
 "$here/down.sh" "$d" >/dev/null 2>&1 || true

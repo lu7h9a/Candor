@@ -1,6 +1,6 @@
 # Security policy
 
-SysScope runs a root daemon and a sandbox, so security reports matter to us.
+Candor runs a root daemon and a sandbox, so security reports matter to us.
 Thank you for taking the time to send one.
 
 ## Reporting a vulnerability
@@ -10,10 +10,10 @@ repository, open the **Security** tab and choose **Report a vulnerability**.
 Do not open a public issue for a security problem.
 
 Please include:
-- the SysScope version (`sysscope --version`), your distribution and kernel
+- the Candor version (`candor --version`), your distribution and kernel
   (`uname -r`);
 - what an attacker can do, and from which position: an unprivileged local
-  user, a member of the `sysscope` group, or a program inside Glasshouse;
+  user, a member of the `candor` group, or a program inside Glasshouse;
 - steps to reproduce, ideally a minimal script.
 
 ## What happens next
@@ -29,7 +29,7 @@ There is no bug bounty.
 
 ## In scope
 
-- A local user or a program gaining privileges through `sysscoped`, the
+- A local user or a program gaining privileges through `candord`, the
   socket, act mode or the Glasshouse helper.
 - A program inside Glasshouse reading or changing anything outside the
   sandbox, or reaching the network, the daemon or the desktop.
@@ -41,7 +41,7 @@ There is no bug bounty.
 
 ## Out of scope
 
-- A program with root hiding from SysScope. SysScope does not defend against
+- A program with root hiding from Candor. Candor does not defend against
   root ([docs/THREAT_MODEL.md](docs/THREAT_MODEL.md), section 3.5).
 - Kernel vulnerabilities that a Glasshouse sample could use. Glasshouse is
   not a containment system, and the README says so.

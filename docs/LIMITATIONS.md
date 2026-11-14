@@ -1,6 +1,6 @@
 # Limitations
 
-What SysScope cannot see or do. These are design limits, not bugs; the
+What Candor cannot see or do. These are design limits, not bugs; the
 threat model ([THREAT_MODEL.md](THREAT_MODEL.md)) gives the security view of
 the same points.
 
@@ -11,7 +11,7 @@ the same points.
   resume, kill) only does what a person asks.
 - **Not protection against root.** A program running as root can stop the
   daemon, change its rules, unload its probes, or hide with a kernel
-  rootkit loaded before or after SysScope.
+  rootkit loaded before or after Candor.
 - **Glasshouse is not a containment system.** The program shares your
   kernel; a kernel or sandbox bug could let it out. Use a separate machine
   or virtual machine for real malware ([REAL_SAMPLES.md](REAL_SAMPLES.md)).
@@ -32,7 +32,7 @@ the same points.
 
 ## When it can lose events
 
-Every loss is counted and shown ("lost events" in `sysscope status` and in
+Every loss is counted and shown ("lost events" in `candor status` and in
 the GUI). What you see is then incomplete:
 
 - A single program producing more than about 2,000 events per second (bursts
@@ -56,7 +56,7 @@ the GUI). What you see is then incomplete:
   view.
 - **Private namespaces and containers.** A program's path is what the program
   itself sees. When that differs from the real file on your system (a
-  container, a chroot, a bind mount), SysScope marks it "(in a private
+  container, a chroot, a bind mount), Candor marks it "(in a private
   namespace)". Trust is checked against the real file.
 - **Trusted programs can be misused.** The allowlist trusts root-owned
   executables in root-owned directories. A trusted program that loads
@@ -68,7 +68,7 @@ They flag behaviour worth a second look, and they can be wrong both ways:
 
 - **False positives**: a backup tool reading SSH keys, or an installer
   running from `/tmp`. Each finding lists harmless explanations, and the
-  allowlist in `/etc/sysscope/allow.toml` silences what you trust. On the
+  allowlist in `/etc/candor/allow.toml` silences what you trust. On the
   recorded everyday workloads there were none ([FP_REPORT.md](FP_REPORT.md)),
   but your machine is not those workloads.
 - **Missed behaviour**: rules have thresholds, so slower or quieter activity
@@ -85,9 +85,9 @@ They flag behaviour worth a second look, and they can be wrong both ways:
 
 ## Follow mode
 
-While SysScope follows one process tree, the kernel ignores every other
+While Candor follows one process tree, the kernel ignores every other
 process: detection is reduced for everyone. That is why it needs root or the
-`sysscope-act` group, every switch is logged, and every viewer sees the mode.
+`candor-act` group, every switch is logged, and every viewer sees the mode.
 
 ## Platform
 
@@ -95,7 +95,7 @@ process: detection is reduced for everyone. That is why it needs root or the
   refuses to start and explains why (exit code 3).
 - Glasshouse needs bubblewrap and unprivileged user namespaces. Ubuntu 24.04's
   default AppArmor policy blocks them, so Glasshouse is unavailable there,
-  and SysScope says so.
+  and Candor says so.
 - Times in explanations are shown in UTC.
 - The GUI has been tested headless with software rendering. A check on a
   real desktop with a real graphics card is still pending

@@ -2,8 +2,8 @@
 //! from a sandbox-adjacent process; the CLI reads saved reports).
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use sysscope_proto::GhReport;
-use sysscope_proto::helper::{HelperIn, HelperOut};
+use candor_proto::GhReport;
+use candor_proto::helper::{HelperIn, HelperOut};
 
 fuzz_target!(|data: &[u8]| {
     let _ = serde_json::from_slice::<GhReport>(data);

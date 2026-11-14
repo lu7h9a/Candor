@@ -197,29 +197,29 @@ dependencies = [
 ]
 
 [[package]]
-name = "sysscope-core"
+name = "candor-core"
 version = "0.0.1"
 dependencies = [
  "serde",
  "serde_json",
- "sysscope-proto",
+ "candor-proto",
  "thiserror",
  "toml",
 ]
 
 [[package]]
-name = "sysscope-fuzz"
+name = "candor-fuzz"
 version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
  "serde_json",
- "sysscope-core",
- "sysscope-proto",
+ "candor-core",
+ "candor-proto",
  "thiserror",
 ]
 
 [[package]]
-name = "sysscope-proto"
+name = "candor-proto"
 version = "0.0.1"
 dependencies = [
  "serde",

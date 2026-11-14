@@ -1,0 +1,43 @@
+.TH CANDORD 8 "2026-11-15" "candor 0.0.1" "System Administration"
+.SH NAME
+candord \- Candor process-monitor daemon
+.SH SYNOPSIS
+.B candord
+[\fB\-\-enable\-act\fR] [\fB\-\-syscalls\fR count|off] [\fB\-\-record\fR \fIFILE\fR]
+.SH DESCRIPTION
+.B candord
+loads eBPF probes that observe processes (programs started, files opened,
+renamed and deleted, connections, syscall counts), keeps a bounded in-memory
+process table, runs the detection rules, and serves the
+.BR candor (1)
+and
+.BR candor-gui (1)
+clients on \fI/run/candor/candor.sock\fR (mode 0660, group
+\fBcandor\fR). It makes no network connections.
+.PP
+It is normally run by systemd as \fBcandord.service\fR, which is installed
+but not enabled:
+.B systemctl enable \-\-now candord
+.SH OPTIONS
+.TP
+.B \-\-enable\-act
+Allow the experimental act mode (pause, resume, kill on request).
+.TP
+.BR \-\-syscalls " count|off"
+Per-process syscall counts (default count).
+.TP
+.BI \-\-record " FILE"
+Write every event to FILE (development; see docs/PRIVACY.md).
+.SH FILES
+.TP
+.I /etc/candor/rules.toml, /etc/candor/allow.toml, /etc/candor/candord.toml
+Local overrides of the built-in rules, allowlist and settings.
+.TP
+.I /var/lib/candor
+Glasshouse runs and reports; R100 baselines if enabled.
+.SH EXIT STATUS
+3 when this kernel cannot run Candor (for example no BTF), with an explanation.
+.SH SEE ALSO
+.BR candor (1),
+.BR candor-glasshouse (8),
+/usr/share/doc/candor/THREAT_MODEL.md

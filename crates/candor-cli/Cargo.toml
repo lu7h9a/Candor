@@ -1,0 +1,23 @@
+[package]
+name = "candor-cli"
+description = "Candor command-line client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+rustix = { version = "1.1.6", features = ["event", "net", "time"] }
+serde = "1.0.229"
+serde_json = "1.0.154"
+candor-core = { version = "0.0.1", path = "../candor-core" }
+candor-proto = { version = "0.0.1", path = "../candor-proto" }
+thiserror = "2.0.21"
+
+[[bin]]
+name = "candor"
+path = "src/main.rs"

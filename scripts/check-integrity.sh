@@ -25,8 +25,8 @@ fi
 
 # --- 2. threshold changes need a Deviations entry ---------------------------
 THRESHOLD_FILES=(
-    crates/sysscope-core/src/limits.rs
-    crates/sysscope-core/rules.toml
+    crates/candor-core/src/limits.rs
+    crates/candor-core/rules.toml
     bench/thresholds.toml
 )
 empty_tree=$(git hash-object -t tree /dev/null)

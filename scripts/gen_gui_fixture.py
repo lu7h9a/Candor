@@ -47,7 +47,7 @@ p(1600, 1030, "/tmp/.cache-x/update-helper", "update-helper", uid=1000, cpu=0.2,
 def key(pid, start=100):
     return {"tgid": pid, "start": start}
 
-lines = [{"sysscope_record": 1, "proto": 1, "daemon_version": "0.0.1", "kernel": "6.19.14+kali-amd64 (fixture)",
+lines = [{"candor_record": 1, "proto": 1, "daemon_version": "0.0.1", "kernel": "6.19.14+kali-amd64 (fixture)",
           "boot_to_wall_ns": 1_763_000_000 * SEC - T0, "features": ["exec", "files", "network", "listen", "syscalls"],
           "act_enabled": False}]
 eid = [0]
@@ -76,7 +76,7 @@ for sec in range(0, 76):
         ev(ts + 1000, 1100, {"k": "Open", "path": "/home/u/.mozilla/firefox/abc.default/cache2/entries/%04X" % f,
                              "dev": 2050, "ino": 50000 + f, "read": True, "write": f % 3 == 0, "create": False,
                              "trunc": False, "path_trunc": False})
-    ev(ts + 2000, 1200, {"k": "Open", "path": "/home/u/src/sysscope/crates/sysscope-gui/src/ui.rs", "dev": 2050,
+    ev(ts + 2000, 1200, {"k": "Open", "path": "/home/u/src/candor/crates/candor-gui/src/ui.rs", "dev": 2050,
                          "ino": 70001, "read": True, "write": sec % 10 == 0, "create": False, "trunc": False, "path_trunc": False})
     if rnd.random() < 0.3:  # irregular browsing traffic
         ev(ts + 3000, 1100, {"k": "Connect", "family": "inet6", "addr": "2001:db8::443", "port": 443, "sock": "stream"})
@@ -95,7 +95,7 @@ for sec in range(0, 76):
         # ... and connects to the same public address every 5 seconds.
         ev(ts + 50, 1600, {"k": "Connect", "family": "inet", "addr": "93.184.216.34", "port": 443, "sock": "stream"})
     if sec % 2 == 0:
-        ev(ts + 60, 1310 + (sec // 2) % 4, {"k": "Open", "path": "/home/u/src/sysscope/target/debug/deps/libx-%d.rlib" % sec,
+        ev(ts + 60, 1310 + (sec // 2) % 4, {"k": "Open", "path": "/home/u/src/candor/target/debug/deps/libx-%d.rlib" % sec,
                                            "dev": 2050, "ino": 80000 + sec, "read": False, "write": True, "create": True,
                                            "trunc": True, "path_trunc": False})
     if sec >= 30:

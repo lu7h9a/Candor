@@ -11,7 +11,7 @@ import json, os, shutil, sys
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "fixtures", "rules")
 SEC = 1_000_000_000
-HEADER = {"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture",
+HEADER = {"candor_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture",
           "boot_to_wall_ns": 0, "features": [], "act_enabled": False}
 
 

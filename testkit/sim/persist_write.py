@@ -8,5 +8,5 @@ from _simlib import sim_dir
 d = sim_dir()
 rc = os.path.join(d, ".bashrc")
 with open(rc, "a") as f:
-    f.write("# written by the SysScope persistence simulator\n")
+    f.write("# written by the Candor persistence simulator\n")
 print("persist_write: wrote", rc)

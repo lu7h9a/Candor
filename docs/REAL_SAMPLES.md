@@ -10,13 +10,13 @@ and a real sample may exploit it:
 only a text report. Follow these steps exactly.
 
 1. **Get the sample yourself, still inside its password-protected zip.**
-   SysScope never downloads, links to or fetches samples.
+   Candor never downloads, links to or fetches samples.
    *Why:* an archive with a password (sample collections use "infected")
    cannot be opened by accident, scanned and quarantined mid-copy, or run by
    a double click.
 
 2. **Keep the zip in its own folder that only you can read:**
-   `mkdir -m 700 ~/sysscope-quarantine` and move it there. Do not extract it.
+   `mkdir -m 700 ~/candor-quarantine` and move it there. Do not extract it.
    *Why:* the sample stays an inert blob on the host; nothing on the host
    ever needs to open it.
 
@@ -26,14 +26,14 @@ only a text report. Follow these steps exactly.
    only that format, and one file means there is no doubt what was run.
 
 4. **Build the detonation guest once:** `make release` then
-   `vm/build-detonation-image.sh` (re-run after every SysScope update).
+   `vm/build-detonation-image.sh` (re-run after every Candor update).
    *Why:* this step has network access, so it happens before any sample
-   exists. It installs bubblewrap and SysScope into a Debian 12 disk, disables
+   exists. It installs bubblewrap and Candor into a Debian 12 disk, disables
    cloud-init and SSH, and leaves an autorun unit that acts only when a sample
    disc is attached.
 
 5. **Close VirtualBox and other VMs, then run**
-   `vm/detonate.sh ~/sysscope-quarantine/sample.zip infected 60`.
+   `vm/detonate.sh ~/candor-quarantine/sample.zip infected 60`.
    The arguments are the archive, its password and the timeout in seconds
    (1 to 600).
    *Why:* the script refuses to start without KVM or while a VirtualBox VM
@@ -64,9 +64,9 @@ only a text report. Follow these steps exactly.
 
 9. **The report comes back as untrusted text.** The script reads at most
    64 MiB from the serial file, takes only the marked block, parses it
-   strictly, and prints it through `sysscope glasshouse report` (all text
+   strictly, and prints it through `candor glasshouse report` (all text
    escaped). The QEMU command line is in `report-header.txt` next to
-   `report.json` under `~/.cache/sysscope-vm/detonate/<date>/`.
+   `report.json` under `~/.cache/candor-vm/detonate/<date>/`.
    *Why:* the sample controls file names and contents in the report. Strict
    parsing and escaping stop it from attacking your terminal, and the header
    proves which isolation options were used.

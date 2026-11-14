@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # build-detonation-image.sh - builds the detonation guest disk once (plan
-# 6.6): Debian 12 cloud image + bubblewrap + SysScope release binaries +
+# 6.6): Debian 12 cloud image + bubblewrap + Candor release binaries +
 # the autorun unit (vm/detonation/autorun.sh). The build boot has network
 # (to install bubblewrap) and NO sample; the finished disk is flattened to
-# ~/.cache/sysscope-vm/detonation/detonation.qcow2 and is only ever booted
+# ~/.cache/candor-vm/detonation/detonation.qcow2 and is only ever booted
 # by vm/detonate.sh with -snapshot and -nic none. Re-run after `make release`
 # to refresh the binaries.
 source "$(dirname "$0")/lib.sh"
@@ -14,7 +14,7 @@ fetch_image
 dir="${VM_CACHE}/detonation"; st="${dir}/build"
 rm -rf "$st"; mkdir -p "$st"; chmod 700 "$dir" "$st"
 port=2229
-ssh-keygen -q -t ed25519 -N '' -C sysscope-detonation-build -f "${st}/id_ed25519"
+ssh-keygen -q -t ed25519 -N '' -C candor-detonation-build -f "${st}/id_ed25519"
 cat > "${st}/user-data" <<UD
 #cloud-config
 users:
@@ -25,15 +25,15 @@ users:
     ssh_authorized_keys:
       - $(cat "${st}/id_ed25519.pub")
 write_files:
-  - path: /etc/sysscope-test-vm
-    content: "SysScope detonation guest (built by vm/build-detonation-image.sh)\n"
+  - path: /etc/candor-test-vm
+    content: "Candor detonation guest (built by vm/build-detonation-image.sh)\n"
 runcmd:
-  - [sh, -c, "touch /run/sysscope-vm-ready"]
+  - [sh, -c, "touch /run/candor-vm-ready"]
 UD
-printf 'instance-id: sysscope-detonation-build-%s\nlocal-hostname: sysscope-detonation\n' "$(date +%s)" > "${st}/meta-data"
+printf 'instance-id: candor-detonation-build-%s\nlocal-hostname: candor-detonation\n' "$(date +%s)" > "${st}/meta-data"
 genisoimage -quiet -output "${st}/seed.iso" -volid cidata -joliet -rock "${st}/user-data" "${st}/meta-data"
 qemu-img create -q -f qcow2 -b "$IMG_FILE" -F qcow2 "${st}/disk.qcow2" 8G
-qemu-system-x86_64 -name sysscope-detonation-build -machine q35,accel=kvm -enable-kvm -cpu host \
+qemu-system-x86_64 -name candor-detonation-build -machine q35,accel=kvm -enable-kvm -cpu host \
     -m 2048 -smp 2 \
     -drive "file=${st}/disk.qcow2,if=virtio,format=qcow2" \
     -drive "file=${st}/seed.iso,if=virtio,format=raw,readonly=on" \
@@ -42,35 +42,35 @@ qemu-system-x86_64 -name sysscope-detonation-build -machine q35,accel=kvm -enabl
 s() { ssh -i "${st}/id_ed25519" -p "$port" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
       -o LogLevel=ERROR -o ConnectTimeout=5 -o BatchMode=yes "${VM_USER}@127.0.0.1" "$@"; }
 ok=0
-for _ in $(seq 1 120); do s 'test -f /run/sysscope-vm-ready' 2>/dev/null && { ok=1; break; }; sleep 3; done
+for _ in $(seq 1 120); do s 'test -f /run/candor-vm-ready' 2>/dev/null && { ok=1; break; }; sleep 3; done
 [ $ok -eq 1 ] || { kill "$(cat "${st}/qemu.pid")"; die "build guest did not come up; see ${st}/console.log"; }
-tar -C "$repo/target/release" -cf - sysscoped sysscope sysscope-glasshouse | s 'sudo mkdir -p /opt/sysscope/bin && sudo tar -C /opt/sysscope/bin -xf -'
-s 'sudo tee /usr/local/sbin/sysscope-detonate > /dev/null && sudo chmod 755 /usr/local/sbin/sysscope-detonate' < "$here/detonation/autorun.sh"
+tar -C "$repo/target/release" -cf - candord candor candor-glasshouse | s 'sudo mkdir -p /opt/candor/bin && sudo tar -C /opt/candor/bin -xf -'
+s 'sudo tee /usr/local/sbin/candor-detonate > /dev/null && sudo chmod 755 /usr/local/sbin/candor-detonate' < "$here/detonation/autorun.sh"
 s 'sudo bash -s' <<'GUEST'
 set -e
 export DEBIAN_FRONTEND=noninteractive
 apt-get -qq update && apt-get -qq install -y bubblewrap > /dev/null
 mkdir -p /usr/lib/sysusers.d
-printf 'g sysscope -\ng sysscope-act -\nu sysscope-box - "SysScope Glasshouse sandbox" / /usr/sbin/nologin\n' > /usr/lib/sysusers.d/sysscope.conf
-systemd-sysusers /usr/lib/sysusers.d/sysscope.conf
-cat > /etc/systemd/system/sysscope-detonate.service <<'UNIT'
+printf 'g candor -\ng candor-act -\nu candor-box - "Candor Glasshouse sandbox" / /usr/sbin/nologin\n' > /usr/lib/sysusers.d/candor.conf
+systemd-sysusers /usr/lib/sysusers.d/candor.conf
+cat > /etc/systemd/system/candor-detonate.service <<'UNIT'
 [Unit]
-Description=SysScope detonation run (sample disc attached)
-ConditionPathExists=/dev/disk/by-label/SYSSCOPESAMPLE
+Description=Candor detonation run (sample disc attached)
+ConditionPathExists=/dev/disk/by-label/CANDORSAMPLE
 After=local-fs.target systemd-udev-settle.service
 Wants=systemd-udev-settle.service
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/sysscope-detonate
+ExecStart=/usr/local/sbin/candor-detonate
 [Install]
 WantedBy=multi-user.target
 UNIT
-systemctl enable sysscope-detonate.service
-/opt/sysscope/bin/sysscope-glasshouse availability
+systemctl enable candor-detonate.service
+/opt/candor/bin/candor-glasshouse availability
 # No cloud-init, ssh or build key in the finished image.
 touch /etc/cloud/cloud-init.disabled
 systemctl disable ssh.service 2>/dev/null || true
-rm -f /home/sysscope/.ssh/authorized_keys
+rm -f /home/candor/.ssh/authorized_keys
 apt-get -qq clean
 sync
 # Power off from here (the build key is gone); the host waits for QEMU.

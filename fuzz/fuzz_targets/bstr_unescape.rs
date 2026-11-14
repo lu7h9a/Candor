@@ -4,9 +4,9 @@
 //! valid UTF-8 by design, see bstr.rs; display::safe neutralises them).
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use sysscope_core::display::{json_safe, safe};
-use sysscope_proto::BStr;
-use sysscope_proto::bstr::unescape;
+use candor_core::display::{json_safe, safe};
+use candor_proto::BStr;
+use candor_proto::bstr::unescape;
 
 fn dangerous(c: char) -> bool {
     matches!(c as u32,
