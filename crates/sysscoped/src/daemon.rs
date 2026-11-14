@@ -105,6 +105,8 @@ struct Core {
     engine: Engine,
     clients: BTreeMap<u64, Client>,
     homes: BTreeMap<u32, Vec<u8>>,
+    /// Executable checks with a deadline (metapool.rs).
+    meta: crate::metapool::MetaPool,
     /// Modification time of /etc/passwd when `homes` was read.
     homes_mtime: Option<std::time::SystemTime>,
     poller: Sender<PollerCmd>,
@@ -160,20 +162,22 @@ impl Core {
                 if let Some((exe, argv)) = exec {
                     // A box process's exe path names a file in the sandbox's
                     // view: never stat it on the host; it is untrusted.
-                    let (trusted, system_dir, world_writable_dir) = if self.gh.in_box(&key) {
-                        (false, false, false)
+                    // Off the core thread with a deadline (metapool.rs).
+                    let f = if self.gh.in_box(&key) {
+                        crate::metapool::Facts::default()
                     } else {
-                        hostinfo::exe_facts(key, &exe, crate::follow::start_of(key.tgid))
+                        let script = sysscope_core::proc::script_of(&exe, &argv);
+                        self.check_exe(key, exe.clone(), script)
                     };
+                    let (trusted, system_dir, world_writable_dir) =
+                        (f.trusted, f.system_dir, f.world_writable_dir);
                     // Inside the Glasshouse box "~" is the sandbox home.
                     let home = if self.gh.in_box(&key) {
                         b"/home/victim".to_vec()
                     } else {
                         self.homes.get(&uid).cloned().unwrap_or_default()
                     };
-                    let script_trusted = !self.gh.in_box(&key)
-                        && sysscope_core::proc::script_of(&exe, &argv)
-                            .is_some_and(|s| hostinfo::script_trusted(&s));
+                    let script_trusted = f.script_trusted;
                     self.apply(Input::ExeMeta {
                         proc: key,
                         trusted,
@@ -471,6 +475,29 @@ impl Core {
             .collect()
     }
 
+    /// Trust check of an executable (and script) with a deadline; a check
+    /// that hangs is logged once per process and answered "not trusted".
+    fn check_exe(
+        &mut self,
+        key: ProcKey,
+        exe: sysscope_proto::BStr,
+        script: Option<sysscope_proto::BStr>,
+    ) -> crate::metapool::Facts {
+        let before = self.meta.timed_out;
+        let shown = sysscope_core::display::safe(&exe);
+        let f = self
+            .meta
+            .check(key, exe, crate::follow::start_of(key.tgid), script);
+        if self.meta.timed_out != before {
+            eprintln!(
+                "sysscoped: checking the executable of pid {} ({shown}) did not finish in {} ms; it is treated as not trusted",
+                key.tgid,
+                crate::metapool::META_TIMEOUT.as_millis()
+            );
+        }
+        f
+    }
+
     /// The same verification an exec gets, for processes found by a scan.
     fn check_existing(&mut self, fresh: Vec<(ProcKey, sysscope_proto::BStr, u32)>) {
         for (key, exe, uid) in fresh {
@@ -478,8 +505,9 @@ impl Core {
             if self.gh.in_box(&key) {
                 continue;
             }
+            let f = self.check_exe(key, exe, None);
             let (trusted, system_dir, world_writable_dir) =
-                hostinfo::exe_facts(key, &exe, crate::follow::start_of(key.tgid));
+                (f.trusted, f.system_dir, f.world_writable_dir);
             let home = self.homes.get(&uid).cloned().unwrap_or_default();
             self.apply(Input::ExeMeta {
                 proc: key,
@@ -946,6 +974,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         },
         clients: BTreeMap::new(),
         homes: hostinfo::load_homes(),
+        meta: crate::metapool::MetaPool::new(crate::metapool::host_check),
         homes_mtime: hostinfo::passwd_mtime(),
         poller: cmd_tx,
         follow: None,

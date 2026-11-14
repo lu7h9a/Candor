@@ -19,6 +19,7 @@ mod dump;
 mod follow;
 mod glasshouse;
 mod hostinfo;
+mod metapool;
 mod mounts;
 mod sampler;
 mod server;
