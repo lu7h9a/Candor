@@ -12,7 +12,7 @@
  * actions: exec N, fork N, open-read N, open-write N, rename N, unlink N,
  *          connect-tcp N, connect-tcp6 N, connect-fail N, connect-udp N,
  *          listen N, threads N, syscalls getppid N, flood N, longpath,
- *          badname, memfd-exec, leader-exits-first, open-relative,
+ *          badname, memfd-exec, leader-exits-first, exec-self (last), open-relative,
  *          open-symlink, uring-open, gen3, sleep MS, nanosleep N,
  *          spawn-hold N MS, busy MS, alloc MB MS, open-path PATH;
  *          arguments after "--" are ignored (they only appear in argv)
@@ -419,6 +419,27 @@ static void act_flood(long n)
 	end_action();
 }
 
+/* Replaces this process's image with /bin/true (same pid and start time),
+ * after writing the manifest; must be the last action. Run after a flood it
+ * checks that an exec is not lost to an exhausted budget. */
+static void act_exec_self(void)
+{
+	char real[4096];
+	if (!realpath("/bin/true", real))
+		die("realpath /bin/true");
+	begin_action("exec-self", 1);
+	mput(",\"exe\":");
+	mput_bytes(real, strlen(real));
+	end_action();
+	mput("]}\n");
+	if (write(1, manifest, mlen) != (ssize_t)mlen)
+		die("write manifest");
+	char *argv[] = {real, NULL};
+	char *envp[] = {NULL};
+	syscall(SYS_execve, real, argv, envp);
+	die("execve");
+}
+
 static void act_longpath(void)
 {
 	/* 40 nested 20-byte directory names: well over PATH_CAP (512). */
@@ -822,6 +843,8 @@ int main(int argc, char **argv)
 			act_syscalls(name, need_n(argc, argv, &i));
 		} else if (!strcmp(a, "flood"))
 			act_flood(need_n(argc, argv, &i));
+		else if (!strcmp(a, "exec-self"))
+			act_exec_self(); /* does not return */
 		else if (!strcmp(a, "longpath"))
 			act_longpath();
 		else if (!strcmp(a, "badname"))

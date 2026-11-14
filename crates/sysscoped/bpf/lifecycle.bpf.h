@@ -39,7 +39,10 @@ int BPF_PROG(on_exec, struct task_struct *p, pid_t old_pid, struct linux_binprm 
 		._pad = 0,
 	};
 
-	if (!gate_emit(tgid)) {
+	/* No budget token: an exec carries the process's identity (exe, trust,
+	 * R002/R003), so a burst of other events must not be able to hide it.
+	 * exec is costly, which bounds its rate; ring-full drops still count. */
+	if (!gate_pass(tgid)) {
 		bpf_map_delete_elem(&exec_stash, &k);
 		return 0;
 	}

@@ -130,3 +130,26 @@ fn followed_nanosleep_latency_is_measured() {
     let mean_ms = s["lat_total_ns"].as_f64().unwrap() / 200.0 / 1e6;
     assert!((1.0..=3.0).contains(&mean_ms), "mean {mean_ms} ms");
 }
+
+/// An exec right after the process used up its event budget still arrives:
+/// exec carries the process's identity (exe, trust, R002/R003), so a burst
+/// of opens must not be able to hide it (review finding F1).
+#[test]
+fn exec_after_an_exhausted_budget_is_not_lost() {
+    let dump = Dump::start(&[]).unwrap();
+    let m = wl(&["flood", "20000", "exec-self"]).unwrap();
+    let (ev, stats) = dump.stop_full().unwrap();
+    let key = wl_key(&m);
+    let (budget, _) = drops_of(&stats, key.tgid);
+    assert!(budget > 0, "the flood should have exhausted the budget");
+    let want = action(&m, "exec-self")["exe"].as_str().unwrap().to_string();
+    let execs: Vec<String> = ev
+        .iter()
+        .filter(|e| e.proc == key)
+        .filter_map(|e| match &e.kind {
+            EventKind::Exec { exe, .. } => Some(exe.escaped()),
+            _ => None,
+        })
+        .collect();
+    assert!(execs.contains(&want), "execs of {key:?}: {execs:?}");
+}
