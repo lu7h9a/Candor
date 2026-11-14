@@ -132,6 +132,7 @@ without CAP_SYS_ADMIN.
 | Path shown for a program in a private mount namespace is its own view | trust checks resolve through /proc/<pid>/root (review 2 finding 5); the displayed path and R002's prefix test still use the program's view: NEEDS_USER Q7 |
 | Glasshouse adopts a process that vanished before its cgroup could be read, on its uid alone | accepted: only the sandbox runs as `sysscope-box`; refusing would lose short-lived box processes (review 2 finding 14) |
 | Act and maps decisions use SO_PEERCRED uid; act group membership is read from /proc/<pid>/status at act time | low; SO_PEERGROUPS at connect needs unsafe code outside abi.rs (I14) (review F12, review 2 finding 3) |
+| The kernel skips a probe run when the probe is already running on that CPU (more often on fully preemptible kernels: Arch, Fedora) | counted by the kernel per program and shown as "skipped by the kernel" (Loss.missed); which process lost the event is not known (WP31) |
 | Root | out of scope (3.5) |
 
 ## 6. Measurements (2026-11-14, host kernel 6.19.14, systemd 260)

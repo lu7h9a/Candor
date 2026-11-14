@@ -96,6 +96,11 @@ pub struct Loss {
     /// every per-process view (review 2 finding 4; additive).
     #[serde(default)]
     pub untracked: u64,
+    /// Events the kernel never ran a probe for because the probe was
+    /// already running on that CPU (BPF recursion protection); counted by
+    /// the kernel per program, not per process (WP31; additive).
+    #[serde(default)]
+    pub missed: u64,
     /// Boot-time ns since which these counts were accumulated.
     pub since_ts_ns: u64,
 }

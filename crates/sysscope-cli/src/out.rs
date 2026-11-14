@@ -191,8 +191,8 @@ pub fn status(welcome: &DaemonMsg, snap: &DaemonMsg) -> String {
             sysscope_proto::Mode::System(_) => "system-wide".to_string(),
             sysscope_proto::Mode::Follow { follow } => format!("following pid {}", follow.tgid),
         };
-        s.push_str(&format!("mode: {mode}\nprocesses: {live} live, {} tracked\nflagged (score >= 30): {flagged}\nlost events: ring buffer {}, budget {}, scratch {}, undecodable {}, untracked (process table full) {}\n",
-            procs.len(), loss.ringbuf, loss.budget, loss.scratch, loss.decode, loss.untracked));
+        s.push_str(&format!("mode: {mode}\nprocesses: {live} live, {} tracked\nflagged (score >= 30): {flagged}\nlost events: ring buffer {}, budget {}, scratch {}, undecodable {}, untracked (process table full) {}, skipped by the kernel {}\n",
+            procs.len(), loss.ringbuf, loss.budget, loss.scratch, loss.decode, loss.untracked, loss.missed));
     }
     s
 }

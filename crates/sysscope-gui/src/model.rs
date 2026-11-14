@@ -439,6 +439,7 @@ impl Model {
             .saturating_add(self.loss.scratch)
             .saturating_add(self.loss.decode)
             .saturating_add(self.loss.untracked)
+            .saturating_add(self.loss.missed)
     }
 
     /// True when new losses happened since the user last dismissed the banner.

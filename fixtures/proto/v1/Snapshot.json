@@ -47,6 +47,7 @@
     "scratch": 0,
     "decode": 0,
     "untracked": 3,
+    "missed": 2,
     "since_ts_ns": 1000
   }
 }

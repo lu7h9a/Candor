@@ -22,6 +22,22 @@ pub mod skel {
     include!(concat!(env!("OUT_DIR"), "/sysscope.skel.rs"));
 }
 
+/// How often the kernel skipped the program behind `fd` because it was
+/// already running on the same CPU (bpf_prog_info.recursion_misses, Linux
+/// 5.12+). Such events are neither emitted nor counted by the program
+/// itself; the daemon adds this to Loss.missed (I3, found in WP31). 0 if the
+/// kernel does not report it.
+pub fn recursion_misses(fd: std::os::fd::BorrowedFd<'_>) -> u64 {
+    use libbpf_rs::libbpf_sys::{bpf_prog_get_info_by_fd, bpf_prog_info};
+    use std::os::fd::AsRawFd;
+    let mut info = bpf_prog_info::default();
+    let mut len = u32::try_from(std::mem::size_of::<bpf_prog_info>()).unwrap_or(0);
+    // SAFETY: `info` is a valid, writable bpf_prog_info of `len` bytes and
+    // `fd` is a live BPF program descriptor borrowed for this call.
+    let r = unsafe { bpf_prog_get_info_by_fd(fd.as_raw_fd(), &mut info, &mut len) };
+    if r == 0 { info.recursion_misses } else { 0 }
+}
+
 /// Maximum path bytes in one event (PATH_CAP in sysscope.h).
 pub const PATH_CAP: usize = 512;
 /// Maximum argv bytes in one event (ARGV_CAP in sysscope.h).

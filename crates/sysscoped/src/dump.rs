@@ -82,8 +82,13 @@ pub fn run(o: LoadOpts, follow: Option<u32>, stop: &AtomicBool) -> Result<()> {
     let _ = out.flush();
     let loss = col.loss()?;
     eprintln!(
-        "sysscoped: received={received} dropped ringbuf={} budget={} scratch={}",
-        loss.ringbuf, loss.budget, loss.scratch
+        "sysscoped: received={received} dropped ringbuf={} budget={} scratch={} missed={}",
+        loss.ringbuf, loss.budget, loss.scratch, loss.missed
     );
+    // Global loss counters as a line too, for tests (I3 identity).
+    let line = serde_json::json!({"loss": {
+        "ringbuf": loss.ringbuf, "budget": loss.budget, "scratch": loss.scratch, "missed": loss.missed,
+    }});
+    let _ = writeln!(std::io::stdout().lock(), "{line}");
     Ok(())
 }

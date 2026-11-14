@@ -113,6 +113,7 @@ impl Dump {
         for line in text.lines() {
             if line.starts_with("{\"sysstat\"")
                 || line.starts_with("{\"budget\"")
+                || line.starts_with("{\"loss\"")
                 || line.starts_with("{\"t\":\"Samples\"")
             {
                 // Kept whole: {"sysstat": {...}}, {"budget": {...}} or a

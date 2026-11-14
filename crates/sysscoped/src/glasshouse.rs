@@ -948,6 +948,7 @@ impl Glasshouse {
             scratch: loss_now.scratch.saturating_sub(s.scratch),
             decode: loss_now.decode.saturating_sub(s.decode),
             untracked: loss_now.untracked.saturating_sub(s.untracked),
+            missed: loss_now.missed.saturating_sub(s.missed),
             since_ts_ns: run.started_ts,
         };
         let report = GhReport {

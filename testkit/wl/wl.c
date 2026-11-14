@@ -411,11 +411,17 @@ static void act_flood(long n)
 	begin_action("flood", n);
 	mput(",\"file\":");
 	file_identity(path);
+	long failed = 0;
 	for (long i = 0; i < n; i++) {
 		int fd = raw_open(path, O_RDONLY, 0);
 		if (fd >= 0)
 			raw_close(fd);
+		else
+			failed++;
 	}
+	/* A failed open never reaches the open hook: the loss identity counts
+	 * only the opens that happened. */
+	mput(",\"failed\":%ld", failed);
 	end_action();
 }
 

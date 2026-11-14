@@ -289,6 +289,16 @@ impl<'obj> Collector<'obj> {
         }
     }
 
+    /// Probe runs the kernel skipped (recursion protection), all programs.
+    pub fn missed(&self) -> u64 {
+        use std::os::fd::AsFd;
+        self.skel
+            .object()
+            .progs()
+            .map(|p| abi::recursion_misses(p.as_fd()))
+            .sum()
+    }
+
     /// Cumulative kernel loss counters.
     pub fn loss(&self) -> Result<Loss> {
         Ok(Loss {
@@ -297,6 +307,7 @@ impl<'obj> Collector<'obj> {
             scratch: read_drop(&self.skel.maps.drops, abi::DROP_SCRATCH)?,
             decode: 0,
             untracked: 0, // the core's process table fills this in
+            missed: self.missed(),
             since_ts_ns: 0,
         })
     }

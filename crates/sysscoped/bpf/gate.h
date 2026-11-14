@@ -106,12 +106,25 @@ static __always_inline int take_token(__u32 tgid)
 	return 1;
 }
 
-/* Counts a ring-buffer-full loss for tgid (per process and globally). */
+/* Counts a ring-buffer-full loss for tgid (per process and globally). The
+ * per-process entry is created here if the process has none yet: EXEC and
+ * EXIT take no budget token, so an EXEC lost to a full ring can be a
+ * process's first event; without the entry that drop was counted only
+ * globally (found by the exact identity test, WP31; I3). */
 static __always_inline void count_rb_drop(__u32 tgid)
 {
 	count_drop(DROP_RINGBUF);
 	struct proc_key pk = {.tgid = tgid, ._pad = 0, .start_boot_ns = current_start_ns()};
 	struct budget *b = bpf_map_lookup_elem(&budget, &pk);
+	if (!b) {
+		struct cfg *c = get_cfg();
+		struct budget init = {.tokens = c ? c->budget_burst : 0,
+				      .last_refill_ns = bpf_ktime_get_boot_ns(),
+				      .dropped = 0,
+				      .rb_dropped = 0};
+		bpf_map_update_elem(&budget, &pk, &init, BPF_NOEXIST);
+		b = bpf_map_lookup_elem(&budget, &pk);
+	}
 	if (b)
 		__sync_fetch_and_add(&b->rb_dropped, 1);
 }

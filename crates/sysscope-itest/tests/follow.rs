@@ -65,21 +65,44 @@ fn flood_identity(extra: &[&str], neighbour_lossless: bool) {
     let flood = busy.join().unwrap();
     let (ev, stats) = dump.stop_full().unwrap();
 
+    // Exact identity over every event of the flood process (owner's choice
+    // A, WP31): the per-process drop counters count drops of any of its
+    // events, so the received side counts all of them too. Besides the
+    // 200 000 flood opens, wl (statically linked: no loader opens) emits
+    // exactly FLOOD_OTHER events: its EXEC, the /proc/self/stat open, the
+    // open that creates the flood target, and its EXIT. A tiny ring can drop
+    // those as well; before, only the flood opens were counted as received,
+    // so such a drop made the sum 200 002.
+    const FLOOD_OTHER: u64 = 4;
     let target = manifest_id(&action(&flood, "flood")["file"]);
-    let received = ev
+    let mine: Vec<&sysscope_proto::Event> =
+        ev.iter().filter(|e| e.proc == wl_key(&flood)).collect();
+    let flood_opens = mine
         .iter()
-        .filter(|e| e.proc == wl_key(&flood))
         .filter(|e| matches!(&e.kind, EventKind::Open { dev, ino, read: true, write: false, .. } if (*dev, *ino) == target))
         .count() as u64;
+    let received = mine.len() as u64;
+    let others: Vec<&'static str> = mine
+        .iter()
+        .filter(|e| !matches!(&e.kind, EventKind::Open { dev, ino, read: true, write: false, .. } if (*dev, *ino) == target))
+        .map(|e| sysscope_itest::kind_name(e))
+        .collect();
+    // Opens that failed in wl never reached the hook (reported by wl).
+    let failed = action(&flood, "flood")["failed"].as_u64().unwrap_or(0);
     let (budget, ring) = drops_of(&stats, wl_key(&flood).tgid);
+    let missed = stats
+        .iter()
+        .find_map(|v| v.get("loss"))
+        .and_then(|l| l["missed"].as_u64())
+        .unwrap_or(0);
     assert!(
         budget + ring > 0,
         "the flood should have exceeded the budget"
     );
     assert_eq!(
         received + budget + ring,
-        200_000,
-        "received {received} + budget {budget} + ring {ring}"
+        200_000 - failed + FLOOD_OTHER,
+        "received {received} ({flood_opens} flood opens + other {others:?}) + budget {budget} + ring {ring}; wl failed opens {failed}; kernel-skipped probe runs (all processes) {missed}"
     );
 
     // The neighbour lost nothing.
