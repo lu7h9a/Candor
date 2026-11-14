@@ -472,10 +472,27 @@ fn replay(rest: &[String], json: bool) -> Result<(), CliError> {
         }
     });
     let frames_out = opt(rest, "--frames");
+    // Each alert with its process's score at that moment: scores decay and
+    // exited processes leave the state, so the final snapshot understates
+    // what a user saw during a long recording (review F7).
+    let mut alert_scores = Vec::new();
     let alerts = match &frames_out {
         Some(out) => write_frames(&mut engine, lines, out)?,
-        None => sysscope_core::replay::replay_engine(&mut engine, lines)
-            .map_err(|e| CliError::Other(format!("{path}: {e}")))?,
+        None => {
+            let mut alerts = Vec::new();
+            sysscope_core::replay::for_each_input(lines, |input| {
+                for a in engine.apply(&input) {
+                    let now = engine.state.now().max(a.ts_ns);
+                    let score = engine.detector.score(&a.proc, now);
+                    alert_scores.push(serde_json::json!({
+                        "proc": a.proc, "rule": a.rule, "ts_ns": a.ts_ns, "score": score
+                    }));
+                    alerts.push(a);
+                }
+            })
+            .map_err(|e| CliError::Other(format!("{path}: {e}")))?;
+            alerts
+        }
     };
     if let Some(e) = read_error {
         return Err(CliError::Other(format!("{path}: {e}")));
@@ -490,7 +507,8 @@ fn replay(rest: &[String], json: bool) -> Result<(), CliError> {
         println!(
             "{}",
             out::json(
-                &serde_json::json!({"snapshot": snap, "findings": findings, "alerts": alerts.len()})
+                &serde_json::json!({"snapshot": snap, "findings": findings, "alerts": alerts.len(),
+                    "alert_scores": alert_scores})
             )
         );
     } else {

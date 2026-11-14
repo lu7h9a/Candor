@@ -30,7 +30,13 @@ out = subprocess.run([cli, "--json", "replay", rec], capture_output=True, text=T
 if out.returncode != 0:
     sys.exit("replay failed: " + out.stderr[-500:])
 r = json.loads(out.stdout)
+# Band = the highest score the process reached: at an alert (taken when it
+# happened) or in the final snapshot. Scores decay and exited processes
+# leave the state, so the final snapshot alone understates long recordings.
 score = {(p["key"]["tgid"], p["key"]["start"]): p["score"] for p in r["snapshot"]["procs"]}
+for a in r.get("alert_scores", []):
+    k = (a["proc"]["tgid"], a["proc"]["start"])
+    score[k] = max(score.get(k, 0), a["score"])
 found = []
 for f in r["findings"]:
     s = score.get((f["proc"]["tgid"], f["proc"]["start"]), 0)
