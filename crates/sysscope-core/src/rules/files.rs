@@ -23,16 +23,21 @@ fn hit(rule: &str, ev: &Event, subject: &str, confidence: f64, summary: String) 
     }
 }
 
+/// The first class matching `path`. "~/" means the process's own home;
+/// with `any_home` it also means every /home/<user> and /root, because a
+/// credential file is one whoever reads it (root or another user).
 fn find_class<'a>(
     classes: &'a [PathClass],
     path: &BStr,
     st: &State,
     ev: &Event,
+    any_home: bool,
 ) -> Option<&'a PathClass> {
     let p = st.get(&ev.proc);
-    classes
-        .iter()
-        .find(|c| class_matches(&c.paths, &c.exclude_suffix, path, p))
+    classes.iter().find(|c| {
+        class_matches(&c.paths, &c.exclude_suffix, path, p)
+            || (any_home && class_matches(&c.paths, &c.exclude_suffix, path, None))
+    })
 }
 
 /// R001: a credential file opened for reading.
@@ -44,7 +49,7 @@ pub fn r001(rules: &Rules, st: &State, ev: &Event) -> Option<Hit> {
     else {
         return None;
     };
-    let class = find_class(&rules.credentials, path, st, ev)?;
+    let class = find_class(&rules.credentials, path, st, ev, true)?;
     let system = st.get(&ev.proc).is_some_and(|p| p.exe_system);
     let c = if system {
         cfg.confidence_system_exe?
@@ -128,7 +133,7 @@ pub fn r004(rules: &Rules, st: &State, ev: &Event) -> Option<Hit> {
         EventKind::Rename { old, new, .. } => (new, format!("renamed {old} to {new}")),
         _ => return None,
     };
-    let class = find_class(&rules.persistence, path, st, ev)?;
+    let class = find_class(&rules.persistence, path, st, ev, false)?;
     let c = if cfg.strong_subjects.contains(&class.subject) {
         cfg.confidence_strong?
     } else {

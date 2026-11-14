@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R001",
+      "subject": "netrc",
+      "tgid": 520,
+      "confidence": 0.9
+    }
+  ],
+  "scores": {
+    "520": 54
+  }
+}

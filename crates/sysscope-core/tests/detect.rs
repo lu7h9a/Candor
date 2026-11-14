@@ -491,3 +491,40 @@ fn script_of_finds_the_script_argument() {
     assert_eq!(got("/usr/bin/bash", "bash"), None);
     assert_eq!(got("/usr/bin/cat", "cat /etc/x"), None);
 }
+
+fn ptrace(id: u64, ts: u64, p: ProcKey, target: ProcKey) -> Event {
+    Event {
+        id,
+        ts_ns: ts,
+        proc: p,
+        tid: p.tgid,
+        uid: 1000,
+        kind: EventKind::Ptrace {
+            target,
+            attach: true,
+        },
+    }
+}
+
+/// R011's debugger exemption needs a verified system executable: a program
+/// the user named gdb is not exempt (review finding F5).
+#[test]
+fn debugger_exemption_needs_a_trusted_executable() {
+    let rules = Rules::load(None).unwrap();
+    let target = key(77);
+    for (exe, trusted, fires) in [
+        ("/usr/bin/gdb", true, false),
+        ("/usr/bin/gdb", false, true),
+        ("/home/u/bin/gdb", false, true),
+        ("/usr/bin/python3", true, true),
+    ] {
+        let p = key(5);
+        let mut s = state_with(p, exe, trusted);
+        s.apply(&Input::RawEvent {
+            event: exec(9, SEC, target, "/usr/bin/sleep"),
+        });
+        let ev = ptrace(10, 2 * SEC, p, target);
+        let hit = sysscope_core::rules::procs::r011(&rules, &s, &ev);
+        assert_eq!(hit.is_some(), fires, "{exe} trusted={trusted}");
+    }
+}

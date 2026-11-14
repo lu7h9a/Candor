@@ -1,0 +1,13 @@
+{
+  "findings": [
+    {
+      "rule": "R001",
+      "subject": "ssh_keys",
+      "tgid": 510,
+      "confidence": 0.9
+    }
+  ],
+  "scores": {
+    "510": 54
+  }
+}

@@ -69,8 +69,12 @@ pub fn r011(rules: &Rules, st: &State, ev: &Event) -> Option<Hit> {
     if in_tree(st, *target, ev.proc) {
         return None; // a parent looking at its own child: normal
     }
+    // The debugger exemption needs the verified, root-owned system
+    // executable: a name alone is chosen by whoever wrote the program.
     let me = st.get(&ev.proc);
     if let Some(p) = me
+        && p.exe_trusted
+        && p.exe_system
         && class_matches(&cfg.debuggers, &[], &p.exe, None)
     {
         return None;
