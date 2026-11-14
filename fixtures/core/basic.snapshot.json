@@ -29,7 +29,8 @@
       "top_rule": null,
       "exited_ts": null,
       "followed": false,
-      "ev_dropped": 0
+      "ev_dropped": 0,
+      "private_view": false
     },
     {
       "key": {
@@ -59,7 +60,8 @@
       "top_rule": null,
       "exited_ts": null,
       "followed": false,
-      "ev_dropped": 0
+      "ev_dropped": 0,
+      "private_view": false
     },
     {
       "key": {
@@ -89,7 +91,8 @@
       "top_rule": null,
       "exited_ts": 1500000000,
       "followed": false,
-      "ev_dropped": 0
+      "ev_dropped": 0,
+      "private_view": false
     },
     {
       "key": {
@@ -119,7 +122,8 @@
       "top_rule": null,
       "exited_ts": null,
       "followed": false,
-      "ev_dropped": 0
+      "ev_dropped": 0,
+      "private_view": false
     }
   ],
   "loss": {

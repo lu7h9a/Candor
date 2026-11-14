@@ -123,9 +123,11 @@ impl State {
                 system_dir,
                 home,
                 script_trusted,
+                private_view,
                 ..
             } => {
                 if let Some(p) = self.procs.get_mut(proc) {
+                    p.private_view = *private_view;
                     p.exe_trusted = *trusted;
                     p.script_trusted = *script_trusted && !p.script.as_bytes().is_empty();
                     p.exe_system = *system_dir;
@@ -223,10 +225,11 @@ impl State {
                     p.placeholder,
                     (p.exe_trusted, p.exe_system, p.home.clone()),
                     (p.script.clone(), p.script_trusted),
+                    p.private_view,
                 )
             });
             if self.ensure(child, ev.uid, ev.ts_ns) {
-                if let (Some((exe, comm, placeholder, facts, script)), Some(c)) =
+                if let (Some((exe, comm, placeholder, facts, script, private_view)), Some(c)) =
                     (inherited, self.procs.get_mut(&child))
                     && c.placeholder
                 {
@@ -235,6 +238,7 @@ impl State {
                     c.placeholder = placeholder;
                     (c.exe_trusted, c.exe_system, c.home) = facts;
                     (c.script, c.script_trusted) = script;
+                    c.private_view = private_view;
                 }
                 self.link(child, ev.proc);
             }

@@ -147,7 +147,15 @@ fn detail_and_follow_work_over_the_socket() {
     let key: ProcKey = loop {
         if let DaemonMsg::Snapshot { procs, .. } = c.recv().unwrap()
             && let Some(r) = procs.iter().find(|r| r.key.tgid == pid)
+            && r.n_exec > 0
         {
+            // An ordinary process is not marked as a private view (Q7 A),
+            // and neither is the daemon, even inside its hardened unit's
+            // own mount namespace (same files as the host).
+            assert!(!r.private_view, "{r:?}");
+            if let Some(dr) = procs.iter().find(|r| r.key.tgid == d.pid()) {
+                assert!(!dr.private_view, "{dr:?}");
+            }
             break r.key;
         }
     };

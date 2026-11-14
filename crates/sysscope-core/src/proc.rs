@@ -97,6 +97,8 @@ pub struct Proc {
     pub followed: bool,
     /// Kernel budget drops for this process.
     pub ev_dropped: u64,
+    /// Its exe path is a private view (see ProcRow::private_view).
+    pub private_view: bool,
     /// Consecutive full scans that did not contain this live process.
     pub missed_scans: u32,
     /// Time of the last event or sample (boot ns).
@@ -304,6 +306,7 @@ impl Proc {
                 self.exe_system = false;
                 self.script = script_of(exe, argv).unwrap_or_default();
                 self.script_trusted = false;
+                self.private_view = false;
                 self.placeholder = false;
                 self.n_exec += 1;
             }
@@ -365,6 +368,7 @@ impl Proc {
             exited_ts: self.exited_ts,
             followed: self.followed,
             ev_dropped: self.ev_dropped,
+            private_view: self.private_view,
         }
     }
 }

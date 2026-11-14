@@ -187,6 +187,7 @@ impl Core {
                         home: sysscope_proto::BStr(home),
                         world_writable_dir,
                         script_trusted,
+                        private_view: f.private_view,
                     });
                 }
             }
@@ -358,7 +359,18 @@ impl Core {
             }
             ClientMsg::Follow { root } => {
                 let known = self.engine.state.get(&root).is_some_and(|p| p.is_live());
-                if !known {
+                // Follow limits detection for everyone: root or sysscope-act
+                // only (owner's Q6 answer B).
+                if let Err(why) = crate::act::authorised_for(c.peer, "follow mode") {
+                    eprintln!(
+                        "sysscoped: follow pid {} refused for uid {} pid {}: {why}",
+                        root.tgid, c.peer.uid, c.peer.pid
+                    );
+                    q.put_reply(DaemonMsg::Error {
+                        code: "not_authorised".into(),
+                        message: why,
+                    });
+                } else if !known {
                     q.put_reply(DaemonMsg::Error {
                         code: "unknown_process".into(),
                         message: format!("process {} is not running", root.tgid),
@@ -384,7 +396,12 @@ impl Core {
                 self.sync_watch_sys();
             }
             ClientMsg::Unfollow {} => {
-                if self.poller.try_send(PollerCmd::Unfollow).is_ok() {
+                if let Err(why) = crate::act::authorised_for(c.peer, "follow mode") {
+                    q.put_reply(DaemonMsg::Error {
+                        code: "not_authorised".into(),
+                        message: why,
+                    });
+                } else if self.poller.try_send(PollerCmd::Unfollow).is_ok() {
                     eprintln!(
                         "sysscoped: unfollow requested by uid {} pid {}",
                         c.peer.uid, c.peer.pid
@@ -543,6 +560,7 @@ impl Core {
                 home: sysscope_proto::BStr(home),
                 world_writable_dir,
                 script_trusted: false,
+                private_view: f.private_view,
             });
         }
     }

@@ -50,6 +50,16 @@ pub fn safe_str(s: &str) -> String {
     out
 }
 
+/// A process's executable for display: `safe` path, marked when the path is
+/// the program's own view in a private namespace (owner's Q7 answer A).
+pub fn exe_shown(r: &sysscope_proto::ProcRow) -> String {
+    if r.private_view {
+        format!("{} (in a private namespace)", safe(&r.exe))
+    } else {
+        safe(&r.exe)
+    }
+}
+
 /// Display form of a byte string: wire escaping plus `safe_str`.
 pub fn safe(b: &BStr) -> String {
     safe_str(&b.escaped())
@@ -66,6 +76,20 @@ mod tests {
         assert!(safe.chars().all(|c| !dangerous(c)), "{safe}");
         let back: String = serde_json::from_str(&safe).unwrap();
         assert_eq!(back, "a\u{85}b\u{202e}c\u{e0041}d");
+    }
+
+    #[test]
+    fn a_private_view_is_marked_and_still_escaped() {
+        let mut r = sysscope_proto::ProcRow {
+            exe: BStr::new("/usr/bin/\u{202e}x".as_bytes().to_vec()),
+            ..Default::default()
+        };
+        assert_eq!(exe_shown(&r), "/usr/bin/\\u{202E}x");
+        r.private_view = true;
+        assert_eq!(
+            exe_shown(&r),
+            "/usr/bin/\\u{202E}x (in a private namespace)"
+        );
     }
 
     #[test]

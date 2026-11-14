@@ -354,6 +354,12 @@ fn r001_is_not_silenced_by_a_fake_usr_bin_in_a_private_mount_namespace() {
     }
     let f = expect(&found, "R001", Some("ssh_keys"));
     assert_eq!(f.exe.escaped(), "/usr/bin/ssh");
+    // The path is its private view: the finding says so (Q7 answer A).
+    assert!(
+        f.why.iter().any(|w| w.contains("private namespace")),
+        "{:?}",
+        f.why
+    );
     let _ = std::fs::remove_file("/root/.ssh/id_sysscope_ns");
     let _ = std::fs::remove_dir_all(&base);
     assert!(d.stop().unwrap().success());

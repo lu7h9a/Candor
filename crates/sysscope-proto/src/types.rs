@@ -71,6 +71,11 @@ pub struct ProcRow {
     pub followed: bool,
     /// Events dropped by the kernel budget for this process.
     pub ev_dropped: u64,
+    /// The path `exe` is the process's own view (private mount namespace or
+    /// chroot) and names a different file, or none, on the host; shown as
+    /// "(in a private namespace)" (owner's Q7 answer A; additive).
+    #[serde(default)]
+    pub private_view: bool,
 }
 
 /// Counters of events lost in the kernel (invariant I3).

@@ -14,3 +14,11 @@ __pycache__/
 /CLAUDE.md
 /docs/KICKOFF_PROMPT.txt
 /fuzz/coverage/
+# Builder's log, owner questions and plan documents: local only (owner,
+# 2026-11-14). Plan deviations are recorded in docs/DEVIATIONS.md instead.
+/PROGRESS.md
+/NEEDS_USER.md
+/docs/MASTER_PLAN.md
+/docs/ESCALATION.md
+/docs/LEARNING_PATH.md
+/docs/ENV.md

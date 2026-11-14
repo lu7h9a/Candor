@@ -37,7 +37,8 @@
       "top_rule": "R001",
       "exited_ts": null,
       "followed": false,
-      "ev_dropped": 0
+      "ev_dropped": 0,
+      "private_view": false
     }
   ],
   "loss": {

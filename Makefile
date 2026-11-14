@@ -30,7 +30,7 @@ APT_PKGS := build-essential clang llvm lld libelf-dev zlib1g-dev libzstd-dev pkg
 
 setup:
 	@if ! sudo -n true 2>/dev/null; then \
-		echo "make setup: passwordless sudo is not available (see NEEDS_USER.md Q1)."; \
+		echo "make setup: passwordless sudo is not available (a sudoers rule for your user is needed)."; \
 		echo "Install the packages yourself with:"; \
 		echo "  sudo apt-get install -y $(APT_PKGS)"; \
 		exit 1; \
@@ -70,7 +70,7 @@ test: integrity sysroot
 	$(CARGO) test --workspace --exclude sysscope-itest
 
 test-root: release wl
-	@sudo -n true 2>/dev/null || { echo "make test-root: needs passwordless sudo (NEEDS_USER.md Q1)"; exit 1; }
+	@sudo -n true 2>/dev/null || { echo "make test-root: needs passwordless sudo"; exit 1; }
 	CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUNNER="sudo -E" \
 		$(CARGO) test -p sysscope-itest --release -- --test-threads=1
 

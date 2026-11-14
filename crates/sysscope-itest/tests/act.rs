@@ -275,3 +275,28 @@ fn a_recycled_pid_is_refused() {
     b.wait().unwrap();
     assert!(d.stop().unwrap().success());
 }
+
+/// Follow mode limits detection for every client, so it needs root or the
+/// group sysscope-act, like act mode (owner's Q6 answer B).
+#[test]
+fn follow_needs_the_act_group() {
+    let gid = act_gid();
+    let d = Daemon::start(&[]).unwrap();
+    let mut s = sleeper(true);
+    settle();
+    let sock =
+        std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/sysscope-dev").unwrap());
+    let pid = s.id().to_string();
+    let o = cli(Some(&[sock]), &["follow", &pid]);
+    assert!(!o.status.success(), "follow allowed without sysscope-act");
+    assert!(err(&o).contains("not authorised"), "{}", err(&o));
+    let o = cli(Some(&[sock, gid]), &["follow", &pid]);
+    assert!(o.status.success(), "{}", err(&o));
+    let o = cli(Some(&[sock, gid]), &["unfollow"]);
+    assert!(o.status.success(), "{}", err(&o));
+    let want = format!("follow pid {pid} refused for uid {NOBODY}");
+    assert!(d.stderr_text().contains(&want), "{}", d.stderr_text());
+    s.kill().unwrap();
+    s.wait().unwrap();
+    assert!(d.stop().unwrap().success());
+}

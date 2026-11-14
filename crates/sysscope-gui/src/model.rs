@@ -371,7 +371,7 @@ fn display_name(r: &ProcRow) -> String {
     if r.exe.as_bytes().is_empty() {
         format!("[{}]", safe(&r.comm))
     } else {
-        safe(&r.exe)
+        sysscope_core::display::exe_shown(r)
     }
 }
 

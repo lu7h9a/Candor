@@ -84,6 +84,30 @@ pub fn exe_facts(key: ProcKey, exe: &BStr, current_start: Option<u64>) -> (bool,
     (trusted, system, world_writable)
 }
 
+/// True if `exe` (the path as the process sees it) does not name the file
+/// the process runs when looked up in the host's view (pid 1's root): a
+/// private mount namespace or chroot (owner's Q7 answer A). Hardened
+/// services in their own namespace see the same files and are not marked.
+/// Deleted and memfd executables are R003's case, relative fallback paths
+/// cannot be judged: both false.
+pub fn private_view(key: ProcKey, exe: &BStr, current_start: Option<u64>) -> bool {
+    if current_start != Some(key.start_ticks) || exe.as_bytes().first() != Some(&b'/') {
+        return false;
+    }
+    let Ok(real) = std::fs::metadata(format!("/proc/{}/exe", key.tgid)) else {
+        return false;
+    };
+    if real.nlink() == 0 {
+        return false;
+    }
+    let mut p = b"/proc/1/root".to_vec();
+    p.extend_from_slice(exe.as_bytes());
+    match std::fs::metadata(std::ffi::OsStr::from_bytes(&p)) {
+        Ok(h) => (h.dev(), h.ino()) != (real.dev(), real.ino()),
+        Err(_) => true,
+    }
+}
+
 /// True if the process shares the host's mount namespace (pid 1's).
 pub fn in_host_mount_ns(tgid: u32) -> bool {
     let ns = |p: String| std::fs::metadata(p).map(|m| (m.dev(), m.ino())).ok();

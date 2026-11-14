@@ -2,7 +2,7 @@
 //!
 //! Every collection the core keeps has a fixed cap defined here (invariant
 //! I8), and each cap has a test that hits it. Changing a number in this file
-//! needs a "Deviations from the plan" entry in PROGRESS.md
+//! needs a "Deviations from the plan" entry in docs/DEVIATIONS.md
 //! (scripts/check-integrity.sh enforces that).
 
 /// Live (not exited) processes tracked.

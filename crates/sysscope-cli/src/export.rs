@@ -75,7 +75,7 @@ pub fn json(rows: &[ProcRow], findings: &[Finding], r: &mut Option<Redactor>) ->
         .map(|p| {
             let exe = safe(&p.exe);
             serde_json::json!({
-                "pid": p.key.tgid, "start_ticks": p.key.start_ticks,
+                "pid": p.key.tgid, "start_ticks": p.key.start_ticks, "private_view": p.private_view,
                 "parent_pid": p.parent.map(|k| k.tgid), "uid": p.uid,
                 "exe": match r { Some(r) => r.text(&exe), None => exe },
                 "cpu_pct": p.cpu_pct, "rss": p.rss, "threads": p.threads,
