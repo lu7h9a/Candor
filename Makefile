@@ -67,7 +67,11 @@ itest-bin: release wl
 # Unprivileged tests only. The root integration tests live in sysscope-itest and
 # run through `make test-root`; they are excluded here, not ignored.
 test: integrity sysroot
-	$(CARGO) test --workspace --exclude sysscope-itest
+	$(CARGO) test --workspace --exclude sysscope-itest -- --skip no_frame_over_50ms_with_2000_processes
+	@# The GUI frame-time budget (50 ms) is measured on the optimised build
+	@# users run, not the debug build (owner's choice H, WP32: on 2-CPU CI
+	@# runners the debug build drew a 56 ms frame).
+	$(CARGO) test --release -p sysscope-gui --test stress
 
 test-root: release wl
 	@sudo -n true 2>/dev/null || { echo "make test-root: needs passwordless sudo"; exit 1; }
