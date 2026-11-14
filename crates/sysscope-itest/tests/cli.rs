@@ -73,7 +73,9 @@ fn hostile_file_names_are_escaped_in_output() {
 fn secret_finding_setup() -> std::path::PathBuf {
     // A program in /tmp (R002) that reads a "private key" under root's home
     // (R001) with secrets in its command line.
-    let dir = std::env::temp_dir().join("sysscope-cli-test");
+    // Literal /tmp, not $TMPDIR: R002 is about /tmp (WP29 runs the itests
+    // with TMPDIR elsewhere).
+    let dir = std::path::PathBuf::from("/tmp/sysscope-cli-test");
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let exe = dir.join("tool");

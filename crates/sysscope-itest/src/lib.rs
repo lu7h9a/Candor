@@ -58,7 +58,7 @@ impl Dump {
         require_root()?;
         let out = std::env::temp_dir().join(format!("sysscope-dump-{}.jsonl", std::process::id()));
         let file = std::fs::File::create(&out).map_err(|e| e.to_string())?;
-        let mut child = Command::new(bin_dir().join("sysscoped"))
+        let mut child = daemon_command()
             .args(["--dev", "--dump"])
             .args(extra_args)
             .stdout(Stdio::from(file))
@@ -315,6 +315,21 @@ pub fn action<'a>(m: &'a Manifest, name: &str) -> &'a serde_json::Value {
 /// Socket of a daemon started with --dev.
 pub const DEV_SOCKET: &str = "/run/sysscope-dev/sysscope.sock";
 
+/// `sysscoped`, or `$SYSSCOPE_ITEST_WRAP sysscoped` when that is set: WP29
+/// runs every root itest with the daemon inside the hardened systemd unit
+/// (scripts/unit-wrap.sh).
+fn daemon_command() -> Command {
+    let daemon = bin_dir().join("sysscoped");
+    match std::env::var_os("SYSSCOPE_ITEST_WRAP") {
+        Some(w) if !w.is_empty() => {
+            let mut c = Command::new(w);
+            c.arg(daemon);
+            c
+        }
+        _ => Command::new(daemon),
+    }
+}
+
 /// A running `sysscoped --dev` serving the socket.
 pub struct Daemon {
     child: Child,
@@ -337,7 +352,7 @@ impl Daemon {
                 c.args(rest).arg(&daemon);
                 c
             }
-            None => Command::new(&daemon),
+            None => daemon_command(),
         };
         let mut child = cmd
             .arg("--dev")

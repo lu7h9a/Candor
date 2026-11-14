@@ -10,6 +10,6 @@
 | R006 end-to-end with the beacon simulator | WP17 | plan contradiction (loopback-only simulator vs non-loopback rule), NEEDS_USER Q3 | owner answer, then the WP17 e2e itest |
 | Simulator end-to-end tests for R001-R008 | WP16/17 | need the live daemon (WP12) and root (Q1) or a VM | itests driving testkit/sim against sysscoped |
 | Pid reuse against the kernel maps (followed_tgid, budget, sys_count) | gate | keys now include start time; forcing pid reuse needs ns_last_pid in a VM (planned for WP27) | WP27 pid-reuse itest |
-| Idle clients holding all 8 slots | gate | accepted: only root and sysscope-group members can connect; documented in THREAT_MODEL (WP29) | - |
 | Fedora 45 itests | WP31 | all 30 passed once (kernel 7.2.11) before the gate fixes; re-run in WP31 | make vm-matrix |
 | GUI CPU and look on a real GPU and real desktop | WP21 | only Xvfb + llvmpipe here; GUI threads 6-7 %, whole process ~33 % with software rendering | owner runs sysscope-gui on the desktop (human check, WP34) |
+| Home directories reloaded when /etc/passwd changes (review F16) | WP29 | needs a write to /etc/passwd, outside the allowed write paths on the host | a VM test that adds a user while the daemon runs and checks R001's `~/` for that user |

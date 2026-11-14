@@ -89,7 +89,12 @@ fn r011_attach_to_a_sibling_is_reported() {
 
 /// A marked work directory for one simulator.
 fn work(tag: &str) -> PathBuf {
-    let w = std::env::temp_dir().join(format!("sysscope-e2e-{tag}-{}", std::process::id()));
+    work_in(&std::env::temp_dir(), tag)
+}
+
+/// A fresh simulator work directory under `base`.
+fn work_in(base: &std::path::Path, tag: &str) -> PathBuf {
+    let w = base.join(format!("sysscope-e2e-{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&w);
     std::fs::create_dir_all(&w).unwrap();
     std::fs::write(w.join(".sysscope-sim-ok"), "").unwrap();
@@ -199,7 +204,9 @@ fn r001_and_r004_with_the_sim_dirs_added_to_their_classes() {
 #[test]
 fn r002_temp_exec_and_r003_fileless_exec() {
     let d = Daemon::start(&[]).unwrap();
-    let w = work("tmpexec"); // under /tmp
+    // Literal /tmp, not $TMPDIR: R002 is about /tmp (WP29 runs the itests
+    // with TMPDIR elsewhere).
+    let w = work_in(std::path::Path::new("/tmp"), "tmpexec");
     let a = sim_alerts("tmp_exec.py", &w, &[], Duration::from_secs(4));
     expect(&a, "R002", Some("/tmp/"));
     let a = sim_alerts("memfd_exec.py", &w, &[], Duration::from_secs(4));
