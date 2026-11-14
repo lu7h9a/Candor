@@ -679,8 +679,20 @@ mod tests {
     }
     use crate::decoys;
 
+    /// Scratch directory on a tmpfs when there is one (owner's choice E,
+    /// WP32): real runs diff a fresh tmpfs, which does not reuse inode
+    /// numbers within a run; a disk /tmp (CI's ext4) can give a new file the
+    /// number of one just deleted, which made a deleted decoy look
+    /// "modified, renamed" in ransomware_like_changes_are_classified.
     fn tmp(tag: &str) -> std::path::PathBuf {
-        let d = std::env::temp_dir().join(format!("sysscope-differ-{tag}-{}", std::process::id()));
+        let shm = std::path::Path::new("/dev/shm");
+        let base =
+            if shm.is_dir() && std::fs::metadata(shm).is_ok_and(|m| !m.permissions().readonly()) {
+                shm.to_path_buf()
+            } else {
+                std::env::temp_dir()
+            };
+        let d = base.join(format!("sysscope-differ-{tag}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
         d
