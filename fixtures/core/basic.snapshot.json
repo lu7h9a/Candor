@@ -127,6 +127,7 @@
     "budget": 3,
     "scratch": 0,
     "decode": 0,
+    "untracked": 0,
     "since_ts_ns": 0
   }
 }

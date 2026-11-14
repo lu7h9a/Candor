@@ -77,6 +77,16 @@ fn live_process_cap_holds() {
     }
     assert_eq!(s.live_count(), MAX_LIVE_PROCS);
     assert_eq!(s.stats().procs_refused, 1001); // root takes one slot
+    // An event of a process the table could not hold is counted in the
+    // snapshot's loss, so users see it (I3, review 2 finding 4).
+    let refused = key(10 + n - 1);
+    s.apply_event(&ev(u64::from(n), 2, refused, EventKind::Exit {}));
+    let untracked = s.stats().events_unattributed;
+    assert!(untracked >= 1, "{untracked}");
+    match s.snapshot(1) {
+        sysscope_proto::DaemonMsg::Snapshot { loss, .. } => assert_eq!(loss.untracked, untracked),
+        other => panic!("{other:?}"),
+    }
 }
 
 #[test]

@@ -296,6 +296,7 @@ impl<'obj> Collector<'obj> {
             budget: read_drop(&self.skel.maps.drops, abi::DROP_BUDGET)?,
             scratch: read_drop(&self.skel.maps.drops, abi::DROP_SCRATCH)?,
             decode: 0,
+            untracked: 0, // the core's process table fills this in
             since_ts_ns: 0,
         })
     }

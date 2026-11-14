@@ -348,8 +348,8 @@ fn report(ui: &mut Ui, g: &GhView, acts: &mut Vec<Action>) {
     }
     let l = &r.loss;
     ui.label(format!(
-        "Lost events during the run: ring buffer {}, budget {}, scratch {}, undecodable {}",
-        l.ringbuf, l.budget, l.scratch, l.decode
+        "Lost events during the run: ring buffer {}, budget {}, scratch {}, undecodable {}, untracked {}",
+        l.ringbuf, l.budget, l.scratch, l.decode, l.untracked
     ));
     for n in &r.notes {
         ui.label(RichText::new(format!("Note: {}", safe_str(n))).italics());

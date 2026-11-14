@@ -86,6 +86,11 @@ pub struct Loss {
     /// gate review; additive).
     #[serde(default)]
     pub decode: u64,
+    /// Events of processes the daemon could not track because its process
+    /// table was full (MAX_LIVE_PROCS); seen by the kernel, missing from
+    /// every per-process view (review 2 finding 4; additive).
+    #[serde(default)]
+    pub untracked: u64,
     /// Boot-time ns since which these counts were accumulated.
     pub since_ts_ns: u64,
 }

@@ -170,8 +170,8 @@ fn top_bar(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         if lost > 0 {
             let r = ui.label(
                 RichText::new(format!(
-                    "LOST EVENTS: ring buffer {}, budget {}, scratch {}, undecodable {}",
-                    m.loss.ringbuf, m.loss.budget, m.loss.scratch, m.loss.decode
+                    "LOST EVENTS: ring buffer {}, budget {}, scratch {}, undecodable {}, untracked {}",
+                    m.loss.ringbuf, m.loss.budget, m.loss.scratch, m.loss.decode, m.loss.untracked
                 ))
                 .color(Color32::from_rgb(0xd0, 0x30, 0x30)),
             );
@@ -193,8 +193,8 @@ fn loss_banner(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 let r = ui.label(RichText::new(format!(
-                    "Some activity was not recorded: {} events lost (ring buffer {}, per-process budget {}, scratch {}, undecodable {}). What you see is incomplete.",
-                    m.loss_total(), m.loss.ringbuf, m.loss.budget, m.loss.scratch, m.loss.decode
+                    "Some activity was not recorded: {} events lost (ring buffer {}, per-process budget {}, scratch {}, undecodable {}, untracked because the process table was full {}). What you see is incomplete.",
+                    m.loss_total(), m.loss.ringbuf, m.loss.budget, m.loss.scratch, m.loss.decode, m.loss.untracked
                 )).color(Color32::WHITE));
                 tag(&r, Role::Label, "loss-banner");
                 if ui.button("Dismiss").clicked() {

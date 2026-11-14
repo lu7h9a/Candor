@@ -364,7 +364,10 @@ impl State {
             ts_ns: self.now,
             mode: Mode::System(SystemMode::System),
             procs: self.rows(),
-            loss: self.loss,
+            loss: Loss {
+                untracked: self.stats.events_unattributed,
+                ..self.loss
+            },
         }
     }
 

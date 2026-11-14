@@ -232,6 +232,7 @@ pub fn daemon_samples() -> Vec<(&'static str, DaemonMsg)> {
                     budget: 12,
                     scratch: 0,
                     decode: 0,
+                    untracked: 3,
                     since_ts_ns: 1_000,
                 },
             },
@@ -551,11 +552,12 @@ pub fn arb_row() -> impl Strategy<Value = ProcRow> {
 }
 
 pub fn arb_loss() -> impl Strategy<Value = Loss> {
-    any::<[u64; 5]>().prop_map(|a| Loss {
+    any::<[u64; 6]>().prop_map(|a| Loss {
         ringbuf: a[0],
         budget: a[1],
         scratch: a[2],
         decode: a[4],
+        untracked: a[5],
         since_ts_ns: a[3],
     })
 }

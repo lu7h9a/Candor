@@ -45,6 +45,7 @@
     "budget": 12,
     "scratch": 0,
     "decode": 0,
+    "untracked": 3,
     "since_ts_ns": 1000
   }
 }

@@ -933,6 +933,7 @@ impl Glasshouse {
             budget: loss_now.budget.saturating_sub(s.budget),
             scratch: loss_now.scratch.saturating_sub(s.scratch),
             decode: loss_now.decode.saturating_sub(s.decode),
+            untracked: loss_now.untracked.saturating_sub(s.untracked),
             since_ts_ns: run.started_ts,
         };
         let report = GhReport {
