@@ -1,4 +1,4 @@
 {"sysscope_record": 1, "proto": 1, "daemon_version": "fixture", "kernel": "fixture", "boot_to_wall_ns": 0, "features": [], "act_enabled": false}
-{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 520, "start": 1}, "tid": 520, "uid": 1001, "kind": {"k": "Exec", "exe": "/home/bob/bin/tool", "argv": "/home/bob/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
+{"t": "RawEvent", "event": {"id": 1, "ts_ns": 1001000000, "proc": {"tgid": 520, "start": 1}, "tid": 520, "uid": 1000, "kind": {"k": "Exec", "exe": "/home/bob/bin/tool", "argv": "/home/bob/bin/tool", "argv_trunc": false, "fileless": false, "dev": 1, "ino": 9}}}
 {"t": "ExeMeta", "proc": {"tgid": 520, "start": 1}, "trusted": false, "system_dir": false, "home": "/home/bob", "world_writable_dir": false}
-{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 520, "start": 1}, "tid": 520, "uid": 1001, "kind": {"k": "Open", "path": "/home/alice/.netrc", "dev": 1, "ino": 1001, "read": true, "write": false, "create": false, "trunc": false, "path_trunc": false}}}
+{"t": "RawEvent", "event": {"id": 2, "ts_ns": 1002000000, "proc": {"tgid": 520, "start": 1}, "tid": 520, "uid": 1000, "kind": {"k": "Open", "path": "/home/alice/.netrc", "dev": 1, "ino": 1001, "read": true, "write": false, "create": false, "trunc": false, "path_trunc": false}}}

@@ -136,30 +136,42 @@ fn sock_text(s: SockType) -> &'static str {
 
 /// For an interpreter (shell, perl, python, ruby), the script path it was
 /// started with: the first argument after options; None for inline code
-/// (`-c`, `-e`, `-m`) or a non-interpreter.
+/// (`-c`, `-e`, `-m`) or a non-interpreter. Only options known to take no
+/// value may come before the script; any other option gives None, because
+/// its value would be mistaken for the script (`perl -I /trusted/x evil.pl`,
+/// review F6). None only costs trust, never hides a finding.
 pub fn script_of(exe: &BStr, argv: &BStr) -> Option<BStr> {
     let exe = exe.as_bytes();
     let name = exe.rsplit(|&c| c == b'/').next().unwrap_or(exe);
     let name = String::from_utf8_lossy(name);
-    let interp = ["sh", "bash", "dash", "zsh", "perl", "python", "ruby"]
-        .iter()
-        .any(|i| {
-            name == *i
-                || (name.starts_with(i)
-                    && name[i.len()..]
-                        .chars()
-                        .all(|c| c.is_ascii_digit() || c == '.'))
-        });
-    if !interp {
-        return None;
-    }
+    // Option letters that take no value, per interpreter family.
+    let families: [(&str, &[u8]); 7] = [
+        ("sh", b"aefhnuvxl"),
+        ("bash", b"aefhnuvxl"),
+        ("dash", b"aefhnuvxl"),
+        ("zsh", b"aefhnuvxl"),
+        ("perl", b"wWXTtU"),
+        ("python", b"bBdEiIOqsSuv"),
+        ("ruby", b"wWvd"),
+    ];
+    let flags = families.iter().find_map(|(i, f)| {
+        (name == *i
+            || (name.starts_with(i)
+                && name[i.len()..]
+                    .chars()
+                    .all(|c| c.is_ascii_digit() || c == '.')))
+        .then_some(*f)
+    })?;
     for a in argv.as_bytes().split(|&c| c == 0).skip(1) {
         if a.is_empty() {
             continue;
         }
-        if a.first() == Some(&b'-') {
-            if matches!(a, b"-c" | b"-e" | b"-E" | b"-m" | b"--") {
-                return None;
+        if let Some(opts) = a.strip_prefix(b"-") {
+            if opts.is_empty() || opts == b"-" {
+                return None; // "-" (stdin) or "--"
+            }
+            if !opts.iter().all(|c| flags.contains(c)) {
+                return None; // inline code, or an option with a value
             }
             continue;
         }

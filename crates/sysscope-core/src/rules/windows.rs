@@ -247,10 +247,11 @@ impl WindowState {
             }
             _ => return None,
         };
-        // Only renames, unlinks and truncating opens of existing files can
-        // raise R005's counts; other writes are recorded but not evaluated.
+        // Renames, unlinks and writes to existing files can raise R005's
+        // counts (a write can complete a rename-then-overwrite); creating
+        // opens are recorded but not evaluated.
         let evaluate = match &obs {
-            Obs::WriteOpen { create, trunc, .. } => *trunc && !*create,
+            Obs::WriteOpen { create, .. } => !*create,
             Obs::Rename { .. } | Obs::Unlink { .. } => true,
         };
         let window_ns = cfg.window_s? * SEC;
@@ -442,6 +443,13 @@ fn evaluate_r005(
     // (a) rewritten inodes -> new extension (None if none or unchanged).
     let mut rewritten: BTreeMap<(u64, u64), Option<Vec<u8>>> = BTreeMap::new();
     let mut evidence: Vec<Event> = Vec::new();
+    // Written anywhere in the window: write-then-rename and rename-then-
+    // overwrite are the same rewrite (review F10).
+    for (_, _, obs) in &w.items {
+        if let Obs::WriteOpen { ino, .. } = obs {
+            written.insert(*ino);
+        }
+    }
     for (_, ev, obs) in &w.items {
         match obs {
             Obs::WriteOpen {
@@ -451,7 +459,6 @@ fn evaluate_r005(
                 create,
                 trunc,
             } => {
-                written.insert(*ino);
                 if *create {
                     created_in_dir
                         .entry(dir.clone())

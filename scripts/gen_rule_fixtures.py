@@ -87,6 +87,11 @@ def r001():
     write("R001", "pos-ssh-key-untrusted", c, [("R001", "ssh_keys", P, 0.9)], {P: 54})
     c = Case(); c.proc(P, "/usr/bin/python3", trusted=True, system_dir=True); c.open_(P, "/etc/shadow")
     write("R001", "pos-shadow-system-exe", c, [("R001", "shadow", P, 0.5)], {P: 30})
+    # Credentials in another home count too (review F2): root, another user.
+    c = Case(); c.proc(510, "/root/tool", home="/root"); c.open_(510, "/home/alice/.ssh/id_ed25519")
+    write("R001", "pos-root-reads-user-key", c, [("R001", "ssh_keys", 510, 0.9)], {510: 54})
+    c = Case(); c.proc(520, "/home/bob/bin/tool", home="/home/bob"); c.open_(520, "/home/alice/.netrc", ino=1001)
+    write("R001", "pos-cross-user-netrc", c, [("R001", "netrc", 520, 0.9)], {520: 54})
     c = Case(); c.proc(P, TOOL); c.open_(P, "/home/u/.mozilla/firefox/abc.default/logins.json")
     write("R001", "pos-browser-logins", c, [("R001", "browser_creds", P, 0.9)], {P: 54})
     c = Case(); c.proc(P, TOOL); c.open_(P, "/home/u/.ssh/id_ed25519.pub")
@@ -198,6 +203,12 @@ def r005():
         c.open_(P, "/home/u/docs/f%d.txt.enc" % i, read=False, write=True, create=True, ino=1000 + i)
         c.unlink(P, "/home/u/docs/f%d.txt" % i, ino=10 + i)
     write("R005", "pos-new-sibling-then-unlink", c, [("R005", "mass_rewrite", P, 0.9)], {P: 72})
+    # Rename first, then overwrite in place (review F10): same inode.
+    c = Case(); c.proc(P, TOOL)
+    for i in range(20):
+        c.rename(P, "/home/u/docs/f%d.txt" % i, "/home/u/docs/f%d.txt.locked" % i, ino=10 + i)
+        c.open_(P, "/home/u/docs/f%d.txt.locked" % i, read=False, write=True, ino=10 + i)
+    write("R005", "pos-rename-then-write", c, [("R005", "mass_rewrite", P, 0.9)], {P: 72})
     c = Case(); c.proc(P, TOOL); rewrite_rename(c, 20, new_ext=lambda i: "x%d" % i)
     write("R005", "pos-mixed-extensions", c, [("R005", "mass_rewrite", P, 0.5)], {P: 40})
     c = Case(); c.proc(P, TOOL)

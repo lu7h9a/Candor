@@ -489,6 +489,26 @@ fn script_of_finds_the_script_argument() {
     );
     assert_eq!(got("/usr/bin/python3", "python3 -c code"), None);
     assert_eq!(got("/usr/bin/bash", "bash"), None);
+    // An option's value is not the script (review F6).
+    assert_eq!(
+        got(
+            "/usr/bin/perl",
+            "perl -I /usr/sbin/dpkg-preconfigure evil.pl"
+        ),
+        None
+    );
+    assert_eq!(
+        got("/usr/bin/bash", "bash -O extglob trusted.sh evil.sh"),
+        None
+    );
+    assert_eq!(
+        got("/usr/bin/python3", "python3 -X importtime /opt/a.py"),
+        None
+    );
+    assert_eq!(
+        got("/usr/bin/bash", "bash -ex /opt/build.sh").as_deref(),
+        Some("/opt/build.sh")
+    );
     assert_eq!(got("/usr/bin/cat", "cat /etc/x"), None);
 }
 
@@ -526,5 +546,24 @@ fn debugger_exemption_needs_a_trusted_executable() {
         let ev = ptrace(10, 2 * SEC, p, target);
         let hit = sysscope_core::rules::procs::r011(&rules, &s, &ev);
         assert_eq!(hit.is_some(), fires, "{exe} trusted={trusted}");
+    }
+}
+
+/// The package managers are allowlisted for the persistence places packages
+/// really ship, not for the preload list or authorized_keys (review data
+/// finding: `subject = "*"` was broader than any package needs).
+#[test]
+fn package_manager_allowlist_excludes_strong_persistence() {
+    let p = key(3);
+    for (subject, path, allowed) in [
+        ("cron", "/etc/cron.d/x", true),
+        ("systemd_units", "/usr/lib/systemd/system/x.service", true),
+        ("ld_so_preload", "/etc/ld.so.preload", false),
+        ("ssh_authorized_keys", "/root/.ssh/authorized_keys", false),
+    ] {
+        let s = state_with(p, "/usr/bin/dpkg", true);
+        let mut d = detector();
+        d.raise(&s, hit("R004", p, subject, 0.9, open(2, SEC, p, path)));
+        assert_eq!(d.findings().count() == 0, allowed, "{subject}");
     }
 }
