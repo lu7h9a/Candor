@@ -56,7 +56,7 @@ Can: use any kernel bug reachable through the allowed syscalls, CPU side channel
 The group exists so that the owner's GUI and CLI can talk to the daemon.
 
 Can:
-- See everything the daemon sees about every process (A2): command lines, open paths, connections, `/proc/<pid>/maps` of root processes, findings. Membership is therefore close to root-level read access to process activity; grant it only to people you would show that to.
+- See everything the daemon sees about every process (A2): command lines, open paths, connections, findings. Memory maps only of processes running under its own uid (root sees all), the kernel's rule for `/proc/<pid>/maps`. Membership is therefore close to root-level read access to process activity; grant it only to people you would show that to.
 - Switch the daemon into follow mode, which limits detection for every client (review F9). Each request is logged with uid and pid; the snapshot shows the mode to every viewer. NEEDS_USER Q6 decides whether this needs `sysscope-act`.
 - Upload a Glasshouse sample (bytes only, size-capped) and read reports.
 - Use up to 4 of the 8 client slots; a slot without Hello is freed after 10 s. A Glasshouse upload must average 64 KiB/s or its slot is freed.
