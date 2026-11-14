@@ -26,6 +26,13 @@ pub fn load_homes() -> BTreeMap<u32, Vec<u8>> {
     out
 }
 
+/// Modification time of /etc/passwd (None if it cannot be read).
+pub fn passwd_mtime() -> Option<std::time::SystemTime> {
+    std::fs::metadata("/etc/passwd")
+        .and_then(|m| m.modified())
+        .ok()
+}
+
 const SYSTEM_DIRS: &[&[u8]] = &[
     b"/usr/bin/",
     b"/usr/sbin/",

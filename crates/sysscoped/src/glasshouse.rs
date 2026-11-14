@@ -975,9 +975,25 @@ impl Glasshouse {
 }
 
 /// True if `sysscope-glasshouse availability` says this system can run it.
+/// The check runs as its own transient unit, exactly like a real helper:
+/// the hardened daemon itself may not switch users or create namespaces
+/// (no CAP_SETUID, RestrictNamespaces), so checking from inside it would
+/// always say "unavailable" (found in WP29).
 pub fn available() -> bool {
     let (g, _rx) = Glasshouse::new();
-    Command::new(&g.helper)
+    Command::new("systemd-run")
+        .args([
+            "--wait",
+            "--quiet",
+            "--collect",
+            "--service-type=exec",
+            "-p",
+            "MemoryMax=256M",
+            "-p",
+            "RuntimeMaxSec=60",
+            "--",
+        ])
+        .arg(&g.helper)
         .arg("availability")
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -1043,12 +1059,33 @@ pub fn sweep() {
     for e in rd.flatten() {
         let p = e.path();
         if e.file_type().is_ok_and(|t| t.is_dir()) {
-            let _ = Command::new("umount")
-                .arg("--lazy")
+            // The run tmpfs was mounted by the helper unit in the host's
+            // mount namespace. The hardened daemon has no CAP_SYS_ADMIN and
+            // its own (slave) mount namespace, so systemd unmounts it; the
+            // unmount propagates here. Plain umount as a fallback (dev runs
+            // outside the unit).
+            let ok = Command::new("systemd-run")
+                .args([
+                    "--wait",
+                    "--quiet",
+                    "--collect",
+                    "--",
+                    "/usr/bin/umount",
+                    "--lazy",
+                ])
                 .arg(&p)
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
-                .status();
+                .status()
+                .is_ok_and(|s| s.success());
+            if !ok {
+                let _ = Command::new("umount")
+                    .arg("--lazy")
+                    .arg(&p)
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .status();
+            }
             if std::fs::remove_dir(&p).is_err() {
                 eprintln!(
                     "sysscoped: could not remove a stale Glasshouse run directory {}",

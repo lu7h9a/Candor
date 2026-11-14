@@ -218,7 +218,13 @@ pub fn bind(spec: &SocketSpec) -> Result<UnixListener> {
     use rustix::fs::{Gid, Mode, Uid, chmod, chown};
     let dir = spec.path.parent().context("socket path has no directory")?;
     std::fs::create_dir_all(dir).with_context(|| format!("creating {}", dir.display()))?;
-    chown(dir, Some(Uid::ROOT), Some(Gid::from_raw(spec.gid)))?;
+    chown(dir, Some(Uid::ROOT), Some(Gid::from_raw(spec.gid))).with_context(|| {
+        format!(
+            "giving {} to group {} (needs CAP_CHOWN)",
+            dir.display(),
+            spec.gid
+        )
+    })?;
     chmod(dir, Mode::from_raw_mode(0o750))?;
     if spec.path.exists() {
         if UnixStream::connect(&spec.path).is_ok() {
@@ -237,7 +243,13 @@ pub fn bind(spec: &SocketSpec) -> Result<UnixListener> {
     )?;
     let addr = rustix::net::SocketAddrUnix::new(&spec.path)?;
     rustix::net::bind(&fd, &addr).context("binding the socket")?;
-    chown(&spec.path, Some(Uid::ROOT), Some(Gid::from_raw(spec.gid)))?;
+    chown(&spec.path, Some(Uid::ROOT), Some(Gid::from_raw(spec.gid))).with_context(|| {
+        format!(
+            "giving {} to group {} (needs CAP_CHOWN)",
+            spec.path.display(),
+            spec.gid
+        )
+    })?;
     chmod(&spec.path, Mode::from_raw_mode(0o660))?;
     rustix::net::listen(&fd, 16).context("listen")?;
     Ok(UnixListener::from(fd))

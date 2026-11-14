@@ -105,6 +105,8 @@ struct Core {
     engine: Engine,
     clients: BTreeMap<u64, Client>,
     homes: BTreeMap<u32, Vec<u8>>,
+    /// Modification time of /etc/passwd when `homes` was read.
+    homes_mtime: Option<std::time::SystemTime>,
     poller: Sender<PollerCmd>,
     follow: Option<ProcKey>,
     follow_requester: Option<u64>,
@@ -805,6 +807,13 @@ fn core_loop(
             core.apply(Input::Tick {
                 ts_ns: crate::sampler::boot_ns(),
             });
+            // Users added or changed after start get their real home
+            // (review F16); one stat per second.
+            let m = hostinfo::passwd_mtime();
+            if m != core.homes_mtime {
+                core.homes = hostinfo::load_homes();
+                core.homes_mtime = m;
+            }
             if now >= next_baseline_save {
                 next_baseline_save += Duration::from_secs(600);
                 if let Some(bl) = &core.engine.baselines {
@@ -937,6 +946,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         },
         clients: BTreeMap::new(),
         homes: hostinfo::load_homes(),
+        homes_mtime: hostinfo::passwd_mtime(),
         poller: cmd_tx,
         follow: None,
         follow_requester: None,
