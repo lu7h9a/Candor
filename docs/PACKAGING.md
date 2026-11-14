@@ -42,9 +42,9 @@ Result, 2026-11-14 (0.0.1): all OK on debian12, ubuntu2204, ubuntu2404, fedora (
 lintian: 0 errors. Warnings:
 - `initial-upload-closes-no-bugs`: not a Debian archive upload.
 - `maintainer-script-calls-systemctl`: prerm stops the service directly; there is no debhelper.
-- `no-manual-page` for the four binaries: man pages are planned with the docs (WP32).
+- `no-manual-page` for the four binaries: man pages are planned with the docs (WP33).
 
-rpmlint: 1 error, `no-signature`. Packages are signed with the owner's key at release time; this needs a credential, so it is the owner's step (escalation E9). Warnings:
+rpmlint: 1 error, `no-signature`. Packages are signed with the owner's key at release time (WP32 release automation); this needs a credential, so it is the owner's step (escalation E9). Warnings:
 - `no-manual-page-for-binary` x4 (as above).
 - `invalid-license MIT`: the license is MIT (SPDX identifier `MIT`); the rpmlint in the Ubuntu build guest does not accept it with its default configuration.
 - `dangerous-command-in-%postun rm`: it removes `/run/sysscope` and `/var/lib/sysscope` only, on erase.
