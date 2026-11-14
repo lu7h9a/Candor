@@ -26,6 +26,9 @@ use sysscope_proto::{
 
 /// Maximum simultaneous clients (plan 4.2).
 pub const MAX_CLIENTS: usize = 8;
+/// Connections one non-root uid may hold, so one member of the socket group
+/// cannot take every slot (review 2 finding 7). Root is not limited.
+pub const MAX_CLIENTS_PER_UID: usize = 4;
 /// A connection must send Hello within this time; otherwise it would hold
 /// one of the MAX_CLIENTS slots without ever being a client.
 pub const HELLO_TIMEOUT: Duration = Duration::from_secs(10);
@@ -391,6 +394,7 @@ pub fn accept_loop(
 ) {
     let _ = listener.set_nonblocking(true);
     let mut next_id = 1u64;
+    let per_uid: Arc<Mutex<std::collections::HashMap<u32, usize>>> = Arc::default();
     while !stop.load(Ordering::Relaxed) {
         let mut stream = match listener.accept() {
             Ok((s, _)) => s,
@@ -417,13 +421,48 @@ pub fn accept_loop(
             eprintln!("sysscoped: refused client uid={uid} pid={pid}: {MAX_CLIENTS} connected");
             continue;
         }
+        let held = per_uid
+            .lock()
+            .map(|m| m.get(&uid).copied().unwrap_or(0))
+            .unwrap_or(0);
+        if uid != 0 && held >= MAX_CLIENTS_PER_UID {
+            let _ = stream.set_write_timeout(Some(Duration::from_secs(1)));
+            let _ = write_msg(
+                &mut stream,
+                &DaemonMsg::Error {
+                    code: "too_many_clients".into(),
+                    message: format!("at most {MAX_CLIENTS_PER_UID} clients per user"),
+                },
+            );
+            eprintln!(
+                "sysscoped: refused client uid={uid} pid={pid}: {MAX_CLIENTS_PER_UID} already connected for that user"
+            );
+            continue;
+        }
+        if let Ok(mut m) = per_uid.lock() {
+            *m.entry(uid).or_insert(0) += 1;
+        }
         count.fetch_add(1, Ordering::SeqCst);
         let id = next_id;
         next_id += 1;
         eprintln!("sysscoped: client {id} connected uid={uid} pid={pid}");
         let queue = ClientQueue::new();
+        let release = {
+            let per_uid = Arc::clone(&per_uid);
+            move || {
+                if let Ok(mut m) = per_uid.lock()
+                    && let Some(n) = m.get_mut(&uid)
+                {
+                    *n = n.saturating_sub(1);
+                    if *n == 0 {
+                        m.remove(&uid);
+                    }
+                }
+            }
+        };
         let (Ok(r), w) = (stream.try_clone(), stream) else {
             count.fetch_sub(1, Ordering::SeqCst);
+            release();
             continue;
         };
         let _ = core.send(ClientCmd::New {
@@ -438,6 +477,7 @@ pub fn accept_loop(
         std::thread::spawn(move || {
             reader(r, id, q2, core2);
             count2.fetch_sub(1, Ordering::SeqCst);
+            release();
         });
         std::thread::spawn(move || writer(w, queue));
     }

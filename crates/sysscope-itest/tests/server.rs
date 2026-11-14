@@ -447,3 +447,46 @@ fn maps_only_of_the_requesters_own_processes() {
     let _ = std::fs::remove_dir_all(&dir);
     assert!(d.stop().unwrap().success());
 }
+
+/// One non-root user holds at most 4 of the 8 client slots (review 2
+/// finding 7); the fifth connection of that user is refused.
+#[test]
+fn one_user_cannot_take_every_client_slot() {
+    let d = Daemon::start(&[]).unwrap();
+    let sock =
+        std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/sysscope-dev").unwrap());
+    // As nobody: open five connections, read the first reply of the fifth.
+    let py = r#"
+import socket, struct, json, time
+socks = []
+for i in range(5):
+    s = socket.socket(socket.AF_UNIX); s.connect("/run/sysscope-dev/sysscope.sock"); socks.append(s)
+    time.sleep(0.1)
+s = socks[4]; s.settimeout(5)
+n = struct.unpack("<I", s.recv(4))[0]; body = b""
+while len(body) < n: body += s.recv(n - len(body))
+print(json.loads(body)["code"])
+"#;
+    let o = std::process::Command::new("setpriv")
+        .args(["--reuid=65534", "--regid=65534"])
+        .arg(format!("--groups={sock}"))
+        .args(["python3", "-c", py])
+        .output()
+        .unwrap();
+    assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    assert_eq!(
+        String::from_utf8_lossy(&o.stdout).trim(),
+        "too_many_clients"
+    );
+    assert!(
+        d.stderr_text().contains("already connected for that user"),
+        "{}",
+        d.stderr_text()
+    );
+    // Root is not limited and still gets in.
+    assert!(matches!(
+        Client::hello().unwrap().1,
+        DaemonMsg::Welcome { .. }
+    ));
+    assert!(d.stop().unwrap().success());
+}

@@ -152,4 +152,10 @@ fn exec_after_an_exhausted_budget_is_not_lost() {
         })
         .collect();
     assert!(execs.contains(&want), "execs of {key:?}: {execs:?}");
+    // Its exit right after is not lost either (review 2 finding 13).
+    assert!(
+        ev.iter()
+            .any(|e| e.proc == key && matches!(e.kind, EventKind::Exit {})),
+        "no EXIT for {key:?}"
+    );
 }

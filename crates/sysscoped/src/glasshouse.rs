@@ -44,6 +44,14 @@ pub const MAX_CHILDREN_LISTED: usize = 1_000;
 pub const MAX_REPORTS: usize = 200;
 /// An upload with no progress for this long is dropped (frees the slot).
 const UPLOAD_IDLE: Duration = Duration::from_secs(60);
+/// Slowest accepted upload rate: a client that trickles one chunk a minute
+/// cannot hold the only run slot for hours (review 2 finding 7).
+const UPLOAD_MIN_BYTES_PER_S: u64 = 64 * 1024;
+
+/// Longest a whole upload of `size` bytes may take.
+fn upload_deadline(size: u64) -> Duration {
+    UPLOAD_IDLE + Duration::from_secs(size / UPLOAD_MIN_BYTES_PER_S)
+}
 /// A started run may take timeout + this long before the daemon gives up
 /// on the helper (kills its unit and frees the slot).
 const RUN_GRACE: Duration = Duration::from_secs(300);
@@ -84,6 +92,7 @@ pub struct Effects {
 
 struct Upload {
     file: std::fs::File,
+    began: Instant,
     size: u64,
     got: u64,
     next_seq: u32,
@@ -384,6 +393,7 @@ impl Glasshouse {
             run_id: run_id.clone(),
             stage: Stage::Uploading(Upload {
                 file,
+                began: Instant::now(),
                 size,
                 got: 0,
                 next_seq: 0,
@@ -767,7 +777,11 @@ impl Glasshouse {
         } else {
             UPLOAD_IDLE
         };
-        if run.last_activity.elapsed() < limit {
+        let too_slow = match &run.stage {
+            Stage::Uploading(u) => u.began.elapsed() > upload_deadline(u.size),
+            _ => false,
+        };
+        if run.last_activity.elapsed() < limit && !too_slow {
             return fx;
         }
         if started {
@@ -1134,6 +1148,16 @@ fn group_id(name: &str) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn upload_deadline_grows_with_size_and_is_bounded() {
+        assert_eq!(upload_deadline(1), UPLOAD_IDLE);
+        // The largest sample may take its size at 64 KiB/s plus a minute:
+        // about 69 minutes, not the 4096 idle minutes of one chunk a minute.
+        let max = upload_deadline(MAX_SAMPLE);
+        assert_eq!(max, UPLOAD_IDLE + Duration::from_secs(4096));
+        assert!(max < UPLOAD_IDLE * 70);
+    }
 
     #[test]
     fn helper_must_be_root_owned_in_a_root_owned_directory() {

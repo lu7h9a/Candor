@@ -105,6 +105,8 @@ struct Core {
     engine: Engine,
     clients: BTreeMap<u64, Client>,
     homes: BTreeMap<u32, Vec<u8>>,
+    /// Glasshouse commands for the poller not yet accepted by its channel.
+    pending_poller: std::collections::VecDeque<PollerCmd>,
     /// Executable checks with a deadline (metapool.rs).
     meta: crate::metapool::MetaPool,
     /// Modification time of /etc/passwd when `homes` was read.
@@ -449,15 +451,29 @@ impl Core {
     }
 
     fn gh_effects(&mut self, fx: &crate::glasshouse::Effects) {
-        for cmd in &fx.poller {
-            // The poller channel is small; these commands must not be lost
-            // (a lost GhBox would leave the box waiting for Go).
-            let _ = self.poller.send(cmd.clone());
-        }
+        // These commands must not be lost (a lost GhBox would leave the box
+        // waiting for Go), but a blocking send could deadlock with the
+        // poller blocked on a full event channel (review 2 finding 8): they
+        // wait in order in `pending_poller`, retried by the core loop. At
+        // most two per run, one run at a time.
+        self.pending_poller.extend(fx.poller.iter().cloned());
+        self.flush_poller();
         if let Some(inodes) = &fx.decoys {
             self.apply(Input::Decoys {
                 inodes: inodes.clone(),
             });
+        }
+    }
+
+    /// Sends queued poller commands, in order, as far as the channel allows.
+    fn flush_poller(&mut self) {
+        while let Some(cmd) = self.pending_poller.pop_front() {
+            if let Err(e) = self.poller.try_send(cmd) {
+                if let crossbeam_channel::TrySendError::Full(cmd) = e {
+                    self.pending_poller.push_front(cmd);
+                }
+                break;
+            }
         }
     }
 
@@ -664,7 +680,15 @@ fn fit_report(mut msg: DaemonMsg) -> DaemonMsg {
                 report.findings.len(),
             ];
             let Some(&max) = lens.iter().max().filter(|m| **m > 0) else {
-                report.notes.truncate(50);
+                // Only notes are left: keep a few, and say so (review 2
+                // finding 12: an oversize frame closed the client silently).
+                if report.notes.len() > 10 {
+                    report.notes.truncate(10);
+                    report
+                        .notes
+                        .push("most notes were left out so the report fits one message".into());
+                    continue;
+                }
                 break;
             };
             if max == report.created.len() {
@@ -746,7 +770,26 @@ pub fn fit_detail(mut msg: DaemonMsg) -> DaemonMsg {
             }
         }
     }
-    msg
+    too_large_or(msg)
+}
+
+/// The message, or an Error a client can show if it still does not fit one
+/// frame (sending it would fail and close the connection without a word;
+/// review 2 finding 12).
+fn too_large_or(msg: DaemonMsg) -> DaemonMsg {
+    let size = sysscope_proto::encode(&msg)
+        .map(|b| b.len())
+        .unwrap_or(usize::MAX);
+    if size <= sysscope_proto::MAX_DAEMON_FRAME as usize {
+        return msg;
+    }
+    DaemonMsg::Error {
+        code: "too_large".into(),
+        message: format!(
+            "the answer does not fit one message ({size} bytes, limit {})",
+            sysscope_proto::MAX_DAEMON_FRAME
+        ),
+    }
 }
 
 fn kernel_release() -> String {
@@ -870,9 +913,13 @@ fn core_loop(
                 let _ = w.flush();
             }
         }
-        let wait = next_snapshot
+        core.flush_poller();
+        let mut wait = next_snapshot
             .min(next_tick)
             .saturating_duration_since(Instant::now());
+        if !core.pending_poller.is_empty() {
+            wait = wait.min(Duration::from_millis(10));
+        }
         select! {
             recv(events) -> m => match m {
                 Ok(m) => core.on_poller(m),
@@ -986,6 +1033,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         clients: BTreeMap::new(),
         homes: hostinfo::load_homes(),
         meta: crate::metapool::MetaPool::new(crate::metapool::host_check),
+        pending_poller: std::collections::VecDeque::new(),
         homes_mtime: hostinfo::passwd_mtime(),
         poller: cmd_tx,
         follow: None,
@@ -1071,6 +1119,31 @@ mod tests {
         );
         let frame = fit_snapshot(msg).expect("reduced snapshot fits");
         assert!(frame.len() <= sysscope_proto::MAX_DAEMON_FRAME as usize + 4);
+    }
+
+    #[test]
+    fn a_detail_that_cannot_shrink_becomes_a_clear_error() {
+        // The series is not shrunk; 3 x 1M numbers do not fit 16 MiB.
+        let n = 1_000_000;
+        let msg = DaemonMsg::Detail {
+            proc: ProcKey::default(),
+            series: Series {
+                t: (0..n).map(|i| u64::MAX - i).collect(),
+                cpu: vec![123.456; n as usize],
+                rss: vec![u64::MAX; n as usize],
+            },
+            recent: vec![],
+            files: vec![],
+            conns: vec![],
+            syscalls: vec![],
+            children: vec![],
+            maps: None,
+            findings: vec![],
+        };
+        match fit_detail(msg) {
+            DaemonMsg::Error { code, .. } => assert_eq!(code, "too_large"),
+            other => panic!("not an error: {:?}", std::mem::discriminant(&other)),
+        }
     }
 
     #[test]

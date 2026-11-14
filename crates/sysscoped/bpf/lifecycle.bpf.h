@@ -148,7 +148,10 @@ int BPF_PROG(on_exit, struct task_struct *p)
 	__u8 one = 1;
 	if (bpf_map_update_elem(&exit_seen, &pk, &one, BPF_NOEXIST) != 0)
 		return 0; /* another thread of this process already emitted EXIT */
-	if (!gate_emit(tgid)) {
+	/* No budget token, like EXEC: one EXIT per process at most (exit_seen),
+	 * and the process that exhausted its budget is the one whose end (R100,
+	 * retention) matters most (review 2 finding 13). Ring-full is counted. */
+	if (!gate_pass(tgid)) {
 		bpf_map_delete_elem(&followed_tgid, &tgid);
 		return 0;
 	}
