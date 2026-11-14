@@ -99,11 +99,20 @@ fn flood_identity(extra: &[&str], neighbour_lossless: bool) {
         budget + ring > 0,
         "the flood should have exceeded the budget"
     );
-    assert_eq!(
-        received + budget + ring,
-        200_000 - failed + FLOOD_OTHER,
-        "received {received} ({flood_opens} flood opens + other {others:?}) + budget {budget} + ring {ring}; wl failed opens {failed}; kernel-skipped probe runs (all processes) {missed}"
+    // Owner's choice A2 (WP31): the kernel also skips a probe run when the
+    // probe is already running on that CPU (recursion protection; frequent
+    // on fully preemptible kernels) and counts that only per program
+    // (Loss.missed), not per process. So: never more than expected; exactly
+    // expected when the kernel skipped nothing; otherwise every missing
+    // event is covered by the kernel's skip count.
+    let expected = 200_000 - failed + FLOOD_OTHER;
+    let counted = received + budget + ring;
+    let detail = format!(
+        "received {received} ({flood_opens} flood opens + other {others:?}) + budget {budget} + ring {ring} = {counted}, expected {expected}; wl failed opens {failed}; kernel-skipped probe runs (all processes) {missed}"
     );
+    assert!(counted <= expected, "{detail}");
+    assert!(expected - counted <= missed, "{detail}");
+    let flood_short = expected - counted;
 
     // The neighbour lost nothing.
     let calm_target = manifest_id(&action(&calm, "open-read")["file"]);
@@ -112,17 +121,26 @@ fn flood_identity(extra: &[&str], neighbour_lossless: bool) {
         .filter(|e| matches!(&e.kind, EventKind::Open { dev, ino, write: false, .. } if (*dev, *ino) == calm_target))
         .count();
     let (cb, cr) = drops_of(&stats, wl_key(&calm).tgid);
+    // Kernel skips not already used up by the flood may also hit the
+    // neighbour (A2).
+    let skips_left = missed - flood_short;
+    let missing = 1000 - calm_reads as u64;
     if neighbour_lossless {
-        assert_eq!(calm_reads, 1000);
         assert_eq!((cb, cr), (0, 0));
-    } else {
-        // Every missing read is a counted drop. wl emits at most 4 other
-        // events (its exec, the /proc/self/stat open, the setup open, exit),
-        // which may also be among the drops.
-        let missing = 1000 - calm_reads as u64;
         assert!(
-            cb + cr >= missing && cb + cr <= missing + 4,
-            "missing {missing}, counted {cb}+{cr}"
+            missing <= skips_left,
+            "neighbour missing {missing} reads; kernel skips left {skips_left}"
+        );
+        if missed == 0 {
+            assert_eq!(calm_reads, 1000);
+        }
+    } else {
+        // Every missing read is a counted drop or a kernel skip. wl emits at
+        // most 4 other events (its exec, the /proc/self/stat open, the setup
+        // open, exit), which may also be among the drops.
+        assert!(
+            cb + cr + skips_left >= missing && cb + cr <= missing + 4,
+            "missing {missing}, counted {cb}+{cr}, kernel skips left {skips_left}"
         );
     }
 }

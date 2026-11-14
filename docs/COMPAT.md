@@ -15,7 +15,7 @@ the Glasshouse demo run against the installed binaries.
 | files | pass | pass | pass | pass | pass |
 | network | pass | pass | pass | pass | pass |
 | follow | pass | pass | pass | pass | pass |
-| loss identity | pass | pass | fail: loss_identity_holds_with_a_tiny_ring_buffer | fail: loss_identity_holds_with_a_tiny_ring_buffer | fail: loss_identity_holds_with_a_tiny_ring_buffer |
+| loss identity | pass | pass | pass | pass | pass |
 | CLI | pass | pass | pass | pass | pass |
 | CLI export | pass | pass | pass | pass | pass |
 | R001 | pass | pass | pass | pass | pass |
@@ -38,4 +38,4 @@ Features each daemon reported as not available:
 - fedora: (none)
 - arch: (none)
 
-Failures: 3; without an entry in docs/UNVERIFIED.md: 0.
+Failures: 0; without an entry in docs/UNVERIFIED.md: 0.
