@@ -7,9 +7,8 @@
 
 use crate::bstr::BStr;
 use crate::types::{
-    FeatureNote,
-    ConnStat, DecoyStatus, Event, FileStat, Finding, GhReport, Loss, MapRow, Mode, ProcKey,
-    ProcRow, Series, SysStat,
+    ConnStat, DecoyStatus, Event, FeatureNote, FileStat, Finding, GhReport, Loss, MapRow, Mode,
+    ProcKey, ProcRow, Series, SysStat,
 };
 use serde::{Deserialize, Serialize};
 

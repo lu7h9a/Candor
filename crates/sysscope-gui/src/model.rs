@@ -858,7 +858,10 @@ mod tests {
             ]
         );
         assert!(!m.gh.offered);
-        assert_eq!(m.gh_unavailable.as_deref(), Some("AppArmor blocks user namespaces"));
+        assert_eq!(
+            m.gh_unavailable.as_deref(),
+            Some("AppArmor blocks user namespaces")
+        );
     }
 
     #[test]

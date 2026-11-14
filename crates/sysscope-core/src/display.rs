@@ -102,10 +102,7 @@ mod tests {
             feature_note(&n),
             "ptrace: not available on this kernel: no hook\\u{001B}[2J"
         );
-        let n = sysscope_proto::FeatureNote {
-            kernel: false,
-            ..n
-        };
+        let n = sysscope_proto::FeatureNote { kernel: false, ..n };
         assert!(feature_note(&n).starts_with("ptrace: not available: "));
     }
 
