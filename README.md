@@ -173,7 +173,7 @@ make package      # all packages, built in an Ubuntu 22.04 VM
 
 ## How this was built
 
-Candor was built with heavy AI assistance. The design and the verification
+Candor was built with AI assistance. The design and the verification
 approach are documented in `docs/`: every kernel change is tested in virtual
 machines first, results are recorded with the commands that produced them,
 and independent reviews hunted for bugs and security holes before release.
