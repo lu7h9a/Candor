@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# WP24 Verify (VM only, root). Needs /tmp/fake_malware.py (vm/embed.sh).
+# WP24 Verify (VM only, root). The demo sample testkit/sim/fake_malware.py is
+# shipped to /opt/sysscope/sim by vm/run.sh.
 # 1. demo run through daemon + CLI -> exact report counts;
 # 2. calibration: the same sample under strace -f -c (run-local
 #    --calibrate, seccomp off) -> opens counted independently of BPF;
 # 3. the same run while following an unrelated process (followed_cgroup).
 set -u
 BIN=/opt/sysscope/bin
+SAMPLE=/opt/sysscope/sim/fake_malware.py
 mkdir -p /usr/lib/sysusers.d && printf 'g sysscope -\ng sysscope-act -\nu sysscope-box - "SysScope Glasshouse sandbox" / /usr/sbin/nologin\n' > /usr/lib/sysusers.d/sysscope.conf
 systemd-sysusers /usr/lib/sysusers.d/sysscope.conf
 rm -rf /var/lib/sysscope/reports
@@ -17,7 +19,7 @@ fail=0
 if ! "$BIN/sysscope-glasshouse" availability; then
     # Correct outcome here: the daemon must not offer Glasshouse and the CLI
     # must say so cleanly.
-    "$BIN/sysscope" glasshouse run /tmp/fake_malware.py > /tmp/u.out 2> /tmp/u.err; rc=$?
+    "$BIN/sysscope" glasshouse run "$SAMPLE" > /tmp/u.out 2> /tmp/u.err; rc=$?
     cat /tmp/u.err
     kill -INT $dpid; wait $dpid
     if [ $rc -ne 0 ] && grep -q "Glasshouse is not available on this system" /tmp/u.err; then
@@ -28,7 +30,7 @@ fi
 "$BIN/sysscope" --json status | grep -q '"glasshouse"' && echo "OK   daemon offers glasshouse" || { echo "FAIL feature flag"; fail=1; }
 
 run_demo() { # $1 = output prefix
-    "$BIN/sysscope" --json glasshouse run /tmp/fake_malware.py > "$1.json" 2> "$1.err"
+    "$BIN/sysscope" --json glasshouse run "$SAMPLE" > "$1.json" 2> "$1.err"
     echo "glasshouse run rc=$?"
 }
 check_report() { # $1 = report json; prints counts, exit 1 on mismatch
@@ -74,11 +76,11 @@ run_demo /tmp/r1
 grep -v '^Glasshouse is a behaviour' /tmp/r1.err | head -20
 check_report /tmp/r1.json > /tmp/r1.check; c1=$?; cat /tmp/r1.check
 [ $c1 -eq 0 ] || fail=1
-"$BIN/sysscope" glasshouse run /tmp/fake_malware.py 2>/dev/null > /tmp/r1.txt
+"$BIN/sysscope" glasshouse run "$SAMPLE" 2>/dev/null > /tmp/r1.txt
 sed -n '1,40p' /tmp/r1.txt
 
 echo "== 2. calibration (strace -f, successful opens only, seccomp off, run-local)"
-"$BIN/sysscope-glasshouse" run-local --calibrate /tmp/fake_malware.py > /tmp/cal.out 2> /tmp/cal.err
+"$BIN/sysscope-glasshouse" run-local --calibrate "$SAMPLE" > /tmp/cal.out 2> /tmp/cal.err
 echo "run-local --calibrate rc=$?"
 sed -n '/--- strace ---/,$p' /tmp/cal.out > /tmp/strace.txt
 all_ok=$(grep -cE '(open|openat|openat2|creat)\(' /tmp/strace.txt)

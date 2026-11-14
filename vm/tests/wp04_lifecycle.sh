@@ -22,7 +22,9 @@ python3 - "$OUT" <<'PY'
 import json, sys, os
 out = sys.argv[1]
 parent = int(open(os.path.join(out, "parent")).read())
-ev = [json.loads(l) for l in open(os.path.join(out, "dump.jsonl"))]
+# The dump also carries /proc scans ({"t":"Samples"}) and final counters
+# ({"sysstat"}, {"budget"}) since WP12; only event lines have "kind".
+ev = [v for v in (json.loads(l) for l in open(os.path.join(out, "dump.jsonl"))) if "kind" in v]
 true_exe = os.path.realpath("/bin/true")
 key = lambda p: (p["tgid"], p["start"])
 forks = [e for e in ev if e["kind"]["k"] == "Fork" and e["proc"]["tgid"] == parent]

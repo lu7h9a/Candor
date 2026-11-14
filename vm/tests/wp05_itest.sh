@@ -3,6 +3,8 @@
 # (built on the host by `make itest-bin`), single-threaded, as root.
 set -euo pipefail
 export SYSSCOPE_BIN_DIR=/opt/sysscope/bin
+# Rule simulators shipped by vm/run.sh (rules_e2e).
+export SYSSCOPE_SIM_DIR=/opt/sysscope/sim
 # Groups and the sandbox user from packaging/sysusers (act-mode and
 # Glasshouse tests need them).
 mkdir -p /usr/lib/sysusers.d
