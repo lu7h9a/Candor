@@ -74,6 +74,7 @@ fn state_with(p: ProcKey, exe: &str, trusted: bool) -> State {
         home: BStr::from("/home/u"),
         world_writable_dir: false,
         script_trusted: false,
+        private_view: false,
     });
     s
 }
@@ -430,6 +431,7 @@ fn interp_state(p: ProcKey, argv: &str, trusted: bool, script_trusted: bool) -> 
         home: BStr::from("/root"),
         world_writable_dir: false,
         script_trusted,
+        private_view: false,
     });
     s
 }
@@ -566,4 +568,43 @@ fn package_manager_allowlist_excludes_strong_persistence() {
         d.raise(&s, hit("R004", p, subject, 0.9, open(2, SEC, p, path)));
         assert_eq!(d.findings().count() == 0, allowed, "{subject}");
     }
+}
+
+/// A finding about a program whose path is its private view says so in its
+/// explanation (owner's Q7 answer A).
+#[test]
+fn findings_of_a_private_view_say_so() {
+    let p = key(9);
+    let mut s = State::new();
+    s.apply(&Input::RawEvent {
+        event: exec(1, SEC, p, "/usr/bin/tool"),
+    });
+    s.apply(&Input::ExeMeta {
+        proc: p,
+        trusted: false,
+        system_dir: false,
+        home: BStr::from("/home/u"),
+        world_writable_dir: false,
+        script_trusted: false,
+        private_view: true,
+    });
+    let mut d = detector();
+    d.raise(
+        &s,
+        hit(
+            "R001",
+            p,
+            "ssh_keys",
+            0.9,
+            open(2, SEC, p, "/home/u/.ssh/id_rsa"),
+        ),
+    );
+    let f = d.findings().next().unwrap();
+    assert!(
+        f.why.iter().any(|w| w.contains("private namespace")),
+        "{:?}",
+        f.why
+    );
+    let row = s.rows().into_iter().find(|r| r.key == p).unwrap();
+    assert!(row.private_view, "the row carries the mark");
 }

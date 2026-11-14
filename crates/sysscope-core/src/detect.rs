@@ -190,6 +190,13 @@ impl Detector {
             None => {
                 let mut why: Vec<String> = cfg.why.iter().map(|w| fill(w, &hit.vars)).collect();
                 why.extend(hit.extra_why.iter().cloned());
+                // The path is the program's own view (Q7 answer A): say so,
+                // because the same path names another file, or none, here.
+                if state.get(&hit.proc).is_some_and(|p| p.private_view) {
+                    why.push(
+                        "the program runs in a private namespace: the path shown is its own view and is not the file of that name on this system".into(),
+                    );
+                }
                 let finding = Finding {
                     id: self.next_id,
                     rule: hit.rule.clone(),

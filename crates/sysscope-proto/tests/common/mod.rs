@@ -85,6 +85,7 @@ pub fn sample_row() -> ProcRow {
         exited_ts: None,
         followed: false,
         ev_dropped: 0,
+        private_view: false,
     }
 }
 
@@ -547,6 +548,7 @@ pub fn arb_row() -> impl Strategy<Value = ProcRow> {
                 exited_ts,
                 followed,
                 ev_dropped,
+                private_view: score % 2 == 0,
             },
         )
 }

@@ -102,11 +102,20 @@ fn group_id(name: &str) -> Option<u32> {
 
 /// May this client use act mode at all?
 pub fn authorised(r: Requester) -> Result<(), String> {
+    authorised_for(r, "act mode")
+}
+
+/// Root, or a member of `sysscope-act`: needed for act mode and for follow
+/// mode, which limits detection for every client (owner's Q6 answer B).
+/// `what` names the feature in the refusal.
+pub fn authorised_for(r: Requester, what: &str) -> Result<(), String> {
     if r.uid == 0 {
         return Ok(());
     }
     let Some(gid) = group_id("sysscope-act") else {
-        return Err("only root may act: the group sysscope-act does not exist".into());
+        return Err(format!(
+            "only root may use {what}: the group sysscope-act does not exist"
+        ));
     };
     let status = std::fs::read_to_string(format!("/proc/{}/status", r.pid)).unwrap_or_default();
     let member = status
@@ -117,7 +126,9 @@ pub fn authorised(r: Requester) -> Result<(), String> {
     if member {
         Ok(())
     } else {
-        Err("not authorised: act mode needs membership in the group sysscope-act".into())
+        Err(format!(
+            "not authorised: {what} needs membership in the group sysscope-act"
+        ))
     }
 }
 

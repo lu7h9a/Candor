@@ -61,7 +61,7 @@ pub fn table(rows: &[ProcRow], limit: usize) -> String {
             if r.exe.as_bytes().is_empty() {
                 format!("[{}]", safe(&r.comm))
             } else {
-                safe(&r.exe)
+                sysscope_core::display::exe_shown(r)
             },
             if r.exited_ts.is_some() {
                 " (exited)"
@@ -97,7 +97,7 @@ pub fn tree(rows: &[ProcRow]) -> String {
         let name = if r.exe.as_bytes().is_empty() {
             format!("[{}]", safe(&r.comm))
         } else {
-            safe(&r.exe)
+            sysscope_core::display::exe_shown(r)
         };
         let score = if r.tree_score > 0 {
             format!("  [tree score {} {}]", r.tree_score, band(r.tree_score))

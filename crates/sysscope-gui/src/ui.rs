@@ -125,7 +125,7 @@ fn top_bar(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                         .rows
                         .iter()
                         .find(|r| r.key == follow)
-                        .map(|r| safe(&r.exe))
+                        .map(sysscope_core::display::exe_shown)
                         .unwrap_or_default();
                     format!("Following {exe} ({})", follow.tgid)
                 }
@@ -209,7 +209,7 @@ fn confirm_follow(ui: &mut Ui, m: &Model, k: sysscope_proto::ProcKey, acts: &mut
         .rows
         .iter()
         .find(|r| r.key == k)
-        .map(|r| safe(&r.exe))
+        .map(sysscope_core::display::exe_shown)
         .unwrap_or_default();
     egui::Window::new("Follow this process tree?")
         .collapsible(false)
@@ -468,7 +468,9 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         return;
     };
     let row = m.rows.iter().find(|r| r.key == sel);
-    let name = row.map(|r| safe(&r.exe)).unwrap_or_default();
+    let name = row
+        .map(sysscope_core::display::exe_shown)
+        .unwrap_or_default();
     ui.heading(format!("{name} (pid {})", sel.tgid));
     ui.horizontal(|ui| {
         if matches!(m.mode, Mode::Follow { .. }) {

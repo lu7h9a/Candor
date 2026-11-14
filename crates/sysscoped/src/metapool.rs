@@ -45,6 +45,8 @@ pub struct Facts {
     pub world_writable_dir: bool,
     /// The script passes the same check.
     pub script_trusted: bool,
+    /// The exe path is the process's private view (hostinfo::private_view).
+    pub private_view: bool,
 }
 
 /// What a worker runs for one job.
@@ -63,6 +65,7 @@ pub fn host_check(j: &Job) -> Facts {
         system_dir,
         world_writable_dir,
         script_trusted,
+        private_view: crate::hostinfo::private_view(j.key, &j.exe, j.start),
     }
 }
 
@@ -204,6 +207,7 @@ mod tests {
             system_dir: true,
             world_writable_dir: false,
             script_trusted: false,
+            private_view: false,
         }
     }
 

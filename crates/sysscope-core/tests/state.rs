@@ -365,6 +365,7 @@ fn a_forked_child_inherits_the_parents_verified_facts() {
         home: BStr::from("/root"),
         world_writable_dir: false,
         script_trusted: false,
+        private_view: false,
     });
     s.apply(&Input::RawEvent {
         event: ev(2, parent, EventKind::Fork { child }),

@@ -73,6 +73,10 @@ pub enum Input {
         /// as `trusted` (for allowlist entries with `script`).
         #[serde(default)]
         script_trusted: bool,
+        /// The exe path names a different file (or none) on the host: the
+        /// process sees its own mount namespace or root (Q7 answer A).
+        #[serde(default)]
+        private_view: bool,
     },
     /// Files whose (dev, ino) are decoys: Glasshouse manifest entries or
     /// host canaries from /etc/sysscope/canaries.toml (R012). Replaces the set.
