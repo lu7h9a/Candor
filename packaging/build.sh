@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
-# build.sh VERSION - runs as root INSIDE the ubuntu2204 build VM (oldest
-# supported glibc, plan WP30) on the source tree unpacked at /root/src.
-# Builds the release binaries, stages them (stage.sh) and writes to
-# /root/out: the .deb, the .rpm, the tarball, the Arch PKGBUILD and the
+# build.sh VERSION - builds every package on the oldest supported glibc
+# (ubuntu 22.04, plan WP30): inside the build VM (vm/package.sh, as root, on
+# /root/src) or on a GitHub ubuntu-22.04 runner (release workflow, WP32).
+# Builds the release binaries, stages them (stage.sh) and writes to OUT:
+# the .deb, the .rpm, the tarball, the Arch PKGBUILD, SHA256SUMS and the
 # lintian/rpmlint reports.
+# Environment: SYSSCOPE_SRC (default /root/src), SYSSCOPE_OUT (default
+# /root/out), SYSSCOPE_SKIP_SETUP=1 (packages and Rust already installed),
+# SYSSCOPE_ITEST=1 (also the root itest binaries for the distro matrix),
+# SYSSCOPE_GIT_COMMIT (for --version; no .git in the VM's source copy).
 set -euo pipefail
 ver=${1:?VERSION}
-src=/root/src; out=/root/out; work=/root/pkgwork
+src=${SYSSCOPE_SRC:-/root/src}; out=${SYSSCOPE_OUT:-/root/out}; work="$out.work"
 rm -rf "$out" "$work"; mkdir -p "$out" "$work"
+if [ "${SYSSCOPE_SKIP_SETUP:-0}" != 1 ]; then
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y -qq build-essential clang llvm libelf-dev zlib1g-dev libzstd-dev pkg-config \
@@ -17,12 +23,14 @@ if [ ! -x /root/.cargo/bin/cargo ]; then
     # The official rustup installer (plan section 2).
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none >/dev/null
 fi
+fi
 export PATH=/root/.cargo/bin:$PATH
 cd "$src"
 cargo build --release --locked -p sysscoped -p sysscope-cli -p sysscope-gui -p sysscope-glasshouse 2>&1 | tail -3
 bin="$src/target/release"
 # Root itest binaries and the static workload, built here too so the distro
 # matrix (vm/matrix.sh, WP31) runs them on the oldest glibc as well.
+if [ "${SYSSCOPE_ITEST:-0}" = 1 ]; then
 mkdir -p "$out/itest"
 cargo test --release --locked -p sysscope-itest --no-run --message-format=json 2>/dev/null |
     python3 -c 'import json,sys,shutil
@@ -31,6 +39,7 @@ for l in sys.stdin:
     if m.get("reason")=="compiler-artifact" and m.get("executable") and m["target"]["kind"]==["test"]:
         shutil.copy(m["executable"], sys.argv[1]+"/sysscope-itest-"+m["target"]["name"])' "$out/itest"
 gcc -static -O2 -Wall -Wextra -Werror -pthread -o "$out/itest/sysscope-wl" testkit/wl/wl.c
+fi
 echo "glibc needed: $(objdump -T "$bin"/sysscoped "$bin"/sysscope "$bin"/sysscope-gui "$bin"/sysscope-glasshouse | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -1)"
 ldd "$bin/sysscoped" | grep -q libbpf && { echo "libbpf is linked dynamically"; exit 1; } || echo "libbpf: static"
 

@@ -66,8 +66,9 @@ fn parse() -> Result<Args, CliError> {
             "--json" => a.json = true,
             "--version" | "-V" => {
                 println!(
-                    "sysscope {} (protocol {})",
+                    "sysscope {} (commit {}, protocol {})",
                     env!("CARGO_PKG_VERSION"),
+                    env!("SYSSCOPE_GIT_COMMIT"),
                     sysscope_proto::PROTO_VERSION
                 );
                 std::process::exit(0);

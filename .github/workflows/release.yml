@@ -1,0 +1,64 @@
+# Release (plan WP32): on a tag v*, build every package on ubuntu-22.04 (the
+# oldest supported glibc), run `make test`, and attach the packages and
+# SHA256SUMS to a DRAFT release. Nothing is ever published automatically:
+# the owner reviews and publishes the draft (escalation E8).
+# The tag must be v<version in Cargo.toml>; a tag ending in "-test" is a
+# dry run of this workflow (any version) and its draft is deleted after use.
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write   # create the draft release
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Version from Cargo.toml matches the tag
+        id: ver
+        run: |
+          ver=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          tag=${GITHUB_REF_NAME#v}
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          case "$tag" in
+            *-test) echo "dry run tag $GITHUB_REF_NAME (packages are version $ver)" ;;
+            "$ver") ;;
+            *) echo "tag $GITHUB_REF_NAME does not match Cargo.toml version $ver"; exit 1 ;;
+          esac
+      - name: Install build packages
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends build-essential clang llvm \
+            libelf-dev zlib1g-dev libzstd-dev pkg-config clang-format libxkbcommon-dev \
+            libwayland-dev libx11-dev libxcursor-dev libxi-dev libxrandr-dev libfontconfig-dev \
+            libgl1-mesa-dri dpkg-dev fakeroot rpm lintian rpmlint
+      - name: Install Rust (version from rust-toolchain.toml)
+        run: rustup show active-toolchain || rustup toolchain install
+      - name: make test
+        run: make test
+      - name: Build packages
+        env:
+          SYSSCOPE_SRC: ${{ github.workspace }}
+          SYSSCOPE_OUT: ${{ github.workspace }}/dist
+          SYSSCOPE_SKIP_SETUP: "1"
+        run: packaging/build.sh "${{ steps.ver.outputs.version }}"
+      - name: Verify checksums
+        working-directory: dist
+        run: sha256sum -c SHA256SUMS
+      - name: Draft release (never published automatically)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=$(awk -v v="${{ steps.ver.outputs.version }}" \
+            '$0 ~ "^## \\[" v "\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md)
+          [ -n "$notes" ] || notes="See CHANGELOG.md."
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "SysScope $GITHUB_REF_NAME" --notes "$notes" \
+            dist/*.deb dist/*.rpm dist/*.tar.gz dist/PKGBUILD dist/sysscope.install \
+            dist/SHA256SUMS dist/lintian.txt dist/rpmlint.txt

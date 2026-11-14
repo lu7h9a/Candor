@@ -1,0 +1,44 @@
+# Changelog
+
+All notable changes to this project are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
+uses [Semantic Versioning](https://semver.org/). The version is defined once,
+in the workspace `Cargo.toml`.
+
+## [Unreleased]
+
+## [0.0.1] - 2026-11-15
+
+The first build to have packages. This is a pre-release.
+
+### Added
+- **sysscoped**, a root daemon that watches processes with CO-RE eBPF:
+  - programs started, forks and exits;
+  - files opened, renamed and deleted;
+  - outbound connections and listening sockets;
+  - per-process syscall counts;
+  - follow mode for one process tree.
+- **Detection rules R001–R009, R011 and R012**, each finding explained in plain language with
+  the events that prove it, plus **R100**, an experimental baseline rule that
+  is off by default.
+- **sysscope-gui**, a desktop app, and **sysscope**, a CLI. Both are
+  unprivileged and talk to the daemon over a Unix socket. The CLI can export,
+  replay recordings and run Glasshouse.
+- **Glasshouse**, a bubblewrap sandbox that runs a program against decoy
+  files and reports what it read, changed, deleted and connected to. It is
+  not a malware containment system; see the README.
+- **Act mode**, experimental and off by default: pause, resume or kill a
+  process. It needs the `sysscope-act` group.
+- Lost events are accounted for: kernel budget, ring buffer, scratch,
+  undecodable records, a full process table, and probe runs the kernel
+  skipped.
+- Packages for Debian and Ubuntu (.deb), Fedora (.rpm) and Arch (PKGBUILD),
+  plus a tarball with install and uninstall scripts. The service is
+  installed but not enabled.
+- A hardened systemd unit with five capabilities; see
+  `docs/THREAT_MODEL.md`.
+- `sysscope --version` prints the version, the git commit and the protocol
+  version.
+
+[Unreleased]: https://github.com/lu7h9a/sysscope/compare/v0.0.1...HEAD
+[0.0.1]: https://github.com/lu7h9a/sysscope/releases/tag/v0.0.1
