@@ -59,7 +59,7 @@ Can:
 - See everything the daemon sees about every process (A2): command lines, open paths, connections, `/proc/<pid>/maps` of root processes, findings. Membership is therefore close to root-level read access to process activity; grant it only to people you would show that to.
 - Switch the daemon into follow mode, which limits detection for every client (review F9). Each request is logged with uid and pid; the snapshot shows the mode to every viewer. NEEDS_USER Q6 decides whether this needs `sysscope-act`.
 - Upload a Glasshouse sample (bytes only, size-capped) and read reports.
-- Use one of the 8 client slots; a slot without Hello is freed after 10 s.
+- Use up to 4 of the 8 client slots; a slot without Hello is freed after 10 s. A Glasshouse upload must average 64 KiB/s or its slot is freed.
 
 Cannot:
 - Change rules or allowlists (D24), make the daemon open a path (I12), act on processes without also being in `sysscope-act` (and then only on processes it could signal itself, unless root).
@@ -121,15 +121,16 @@ without CAP_SYS_ADMIN.
 |---|---|
 | Kernel or bubblewrap vulnerability reachable from a sample | accepted; Glasshouse is not for real malware; detonation VM for real samples |
 | Side channels, sandbox detection | accepted (plan 6.5) |
-| Path spoofing in a private mount namespace (R002, display) | open, NEEDS_USER Q7 |
 | Follow mode switched by any socket-group member | open, NEEDS_USER Q6; logged |
 | Ring buffer shared by all processes: a flood causes counted loss for everyone | accepted, counted (I3), R008 |
 | Denied opens of credential files are not observed | accepted; the hook runs after permission checks |
 | Act group membership read at act time from /proc | low; fix with SO_PEERGROUPS at connect (review F12) |
-| `on_connect` copies 128 bytes regardless of `addrlen`; bytes beyond the address (kernel stack) cross the ring buffer, the daemon truncates them | low; zero the tail in BPF (review F13) |
-| Blocking `stat`/`canonicalize` on the core thread (a stalled network mount stalls the daemon) | open; missed periods are now skipped (F8), metadata calls still move to a worker |
 | Glasshouse relies on seccomp alone to forbid nested user namespaces | low; `bwrap --disable-userns` as a second layer is planned |
 | Pid reuse within one clock tick (10 ms) between two processes | accepted; start_ticks granularity, documented in plan D11 |
+| A stalled filesystem (FUSE, network) under a traced program's path | each executable check waits at most 50 ms on a pool of at most 4 workers; then "not trusted" (review 2 finding 1) |
+| Path shown for a program in a private mount namespace is its own view | trust checks resolve through /proc/<pid>/root (review 2 finding 5); the displayed path and R002's prefix test still use the program's view: NEEDS_USER Q7 |
+| Glasshouse adopts a process that vanished before its cgroup could be read, on its uid alone | accepted: only the sandbox runs as `sysscope-box`; refusing would lose short-lived box processes (review 2 finding 14) |
+| Act and maps decisions use SO_PEERCRED uid; act group membership is read from /proc/<pid>/status at act time | low; SO_PEERGROUPS at connect needs unsafe code outside abi.rs (I14) (review F12, review 2 finding 3) |
 | Root | out of scope (3.5) |
 
 ## 6. Measurements (2026-11-14, host kernel 6.19.14, systemd 260)

@@ -37,10 +37,17 @@ int BPF_PROG(on_connect, struct socket *sock, void *address, int addrlen)
 	/* Constant-size copy: the verifier cannot always see a bound on a
 	 * computed length after clang optimises it. The syscall path keeps the
 	 * address in a 128-byte sockaddr_storage; only addrlen bytes are used. */
+	__u32 n = 0;
 	if (bpf_probe_read_kernel(e->addr, SOCKADDR_CAP, address) == 0)
-		e->addrlen = addrlen < 0 ? 0 : (addrlen > SOCKADDR_CAP ? SOCKADDR_CAP : addrlen);
-	else
-		e->addrlen = 0;
+		n = addrlen < 0 ? 0 : (addrlen > SOCKADDR_CAP ? SOCKADDR_CAP : addrlen);
+	e->addrlen = n;
+	/* Bytes past addrlen are whatever was next to the address in kernel
+	 * memory (stack): zeroed, so they never leave the kernel (I6 spirit,
+	 * review finding F13). Constant indices only, for the verifier. */
+#pragma unroll
+	for (int i = 0; i < SOCKADDR_CAP; i++)
+		if ((__u32)i >= n)
+			e->addr[i] = 0;
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
