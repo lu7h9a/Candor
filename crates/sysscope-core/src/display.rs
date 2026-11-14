@@ -50,6 +50,19 @@ pub fn safe_str(s: &str) -> String {
     out
 }
 
+/// One unavailable feature for display: "<feature>: not available on this
+/// kernel: <reason>" (or "switched off" / "not available" when it is a
+/// setting or the system, not the kernel); escaped (plan WP31, I10).
+pub fn feature_note(n: &sysscope_proto::FeatureNote) -> String {
+    let why = safe_str(&n.reason);
+    let feature = safe_str(&n.feature);
+    if n.kernel {
+        format!("{feature}: not available on this kernel: {why}")
+    } else {
+        format!("{feature}: not available: {why}")
+    }
+}
+
 /// A process's executable for display: `safe` path, marked when the path is
 /// the program's own view in a private namespace (owner's Q7 answer A).
 pub fn exe_shown(r: &sysscope_proto::ProcRow) -> String {
@@ -76,6 +89,24 @@ mod tests {
         assert!(safe.chars().all(|c| !dangerous(c)), "{safe}");
         let back: String = serde_json::from_str(&safe).unwrap();
         assert_eq!(back, "a\u{85}b\u{202e}c\u{e0041}d");
+    }
+
+    #[test]
+    fn feature_notes_name_the_kernel_and_are_escaped() {
+        let n = sysscope_proto::FeatureNote {
+            feature: "ptrace".into(),
+            kernel: true,
+            reason: "no hook\u{1b}[2J".into(),
+        };
+        assert_eq!(
+            feature_note(&n),
+            "ptrace: not available on this kernel: no hook\\u{001B}[2J"
+        );
+        let n = sysscope_proto::FeatureNote {
+            kernel: false,
+            ..n
+        };
+        assert!(feature_note(&n).starts_with("ptrace: not available: "));
     }
 
     #[test]

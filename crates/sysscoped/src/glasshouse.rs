@@ -1014,15 +1014,13 @@ pub fn helper_trusted(helper: &std::path::Path) -> Result<(), String> {
 /// the hardened daemon itself may not switch users or create namespaces
 /// (no CAP_SETUID, RestrictNamespaces), so checking from inside it would
 /// always say "unavailable" (found in WP29).
-pub fn available() -> bool {
+pub fn available() -> Result<(), String> {
     let (g, _rx) = Glasshouse::new();
-    if let Err(why) = helper_trusted(&g.helper) {
-        eprintln!("sysscoped: Glasshouse disabled: {why}");
-        return false;
-    }
-    Command::new("/usr/bin/systemd-run")
+    helper_trusted(&g.helper)?;
+    let out = Command::new("/usr/bin/systemd-run")
         .args([
             "--wait",
+            "--pipe",
             "--quiet",
             "--collect",
             "--service-type=exec",
@@ -1034,10 +1032,20 @@ pub fn available() -> bool {
         ])
         .arg(&g.helper)
         .arg("availability")
-        .stdout(Stdio::null())
+        .stdin(Stdio::null())
         .stderr(Stdio::null())
-        .status()
-        .is_ok_and(|s| s.success())
+        .output()
+        .map_err(|e| format!("cannot start the availability check: {e}"))?;
+    if out.status.success() {
+        return Ok(());
+    }
+    // The helper prints "unavailable: <why>" (already escaped); bounded.
+    let text = String::from_utf8_lossy(&out.stdout);
+    let why = text
+        .lines()
+        .find_map(|l| l.strip_prefix("unavailable: "))
+        .unwrap_or("the sandbox check failed");
+    Err(why.chars().take(1000).collect())
 }
 
 /// Saves a report as `REPORTS/<run_id>.json`, 0640 root:sysscope.

@@ -266,6 +266,7 @@ mod tests {
                 kernel: "k".into(),
                 boot_to_wall_ns: 0,
                 features: vec![],
+                unavailable: Vec::new(),
                 act_enabled: false,
             };
             write_frame(&mut s, &encode(&w).unwrap(), MAX_DAEMON_FRAME).unwrap();

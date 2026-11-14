@@ -989,16 +989,39 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         "network".into(),
         "listen".into(),
     ];
+    // Optional features: offered, or listed with the reason (plan WP31).
+    let mut unavailable = Vec::new();
+    let note = |feature: &str, kernel: bool, reason: String| sysscope_proto::FeatureNote {
+        feature: feature.into(),
+        kernel,
+        reason,
+    };
     if load.syscalls {
         features.push("syscalls".into());
+    } else {
+        unavailable.push(note(
+            "syscalls",
+            false,
+            "per-process syscall counts are switched off (syscalls = \"off\" in /etc/sysscope/sysscoped.toml, or --syscalls off)".into(),
+        ));
     }
     if col.ptrace {
         features.push("ptrace".into());
+    } else {
+        unavailable.push(note(
+            "ptrace",
+            true,
+            "the kernel has no security_ptrace_access_check in its BTF, so attempts to inject into another process (R011) cannot be seen".into(),
+        ));
     }
     // Glasshouse is offered only where a real sandbox start works (the
     // helper's probe; it never changes a system setting).
-    if crate::glasshouse::available() {
-        features.push("glasshouse".into());
+    match crate::glasshouse::available() {
+        Ok(()) => features.push("glasshouse".into()),
+        Err(why) => {
+            eprintln!("sysscoped: Glasshouse not available: {why}");
+            unavailable.push(note("glasshouse", false, why));
+        }
     }
     let boot_to_wall = boot_to_wall_ns();
     let welcome = DaemonMsg::Welcome {
@@ -1007,6 +1030,7 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         kernel: kernel_release(),
         boot_to_wall_ns: boot_to_wall,
         features: features.clone(),
+        unavailable,
         act_enabled: opts.enable_act,
     };
     let record = match &opts.record {

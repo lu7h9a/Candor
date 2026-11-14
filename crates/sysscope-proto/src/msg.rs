@@ -7,6 +7,7 @@
 
 use crate::bstr::BStr;
 use crate::types::{
+    FeatureNote,
     ConnStat, DecoyStatus, Event, FileStat, Finding, GhReport, Loss, MapRow, Mode, ProcKey,
     ProcRow, Series, SysStat,
 };
@@ -171,6 +172,11 @@ pub enum DaemonMsg {
         boot_to_wall_ns: u64,
         /// Optional features available on this kernel.
         features: Vec<String>,
+        /// Optional features that are not available, each with the reason,
+        /// for "not available on this kernel: <reason>" (plan WP31;
+        /// additive).
+        #[serde(default)]
+        unavailable: Vec<FeatureNote>,
         /// True if act mode is enabled.
         act_enabled: bool,
     },

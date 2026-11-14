@@ -180,6 +180,10 @@ fn top_bar(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         if m.multi_user_now() {
             ui.label("Monitoring all users on this machine");
         }
+        for n in &m.unavailable {
+            let r = ui.label(RichText::new(n).small().italics());
+            tag(&r, Role::Label, "feature-unavailable");
+        }
         if let Some(n) = &m.notice {
             ui.label(RichText::new(n).italics());
         }

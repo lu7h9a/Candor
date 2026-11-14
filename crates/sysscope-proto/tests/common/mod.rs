@@ -216,6 +216,11 @@ pub fn daemon_samples() -> Vec<(&'static str, DaemonMsg)> {
                 kernel: "6.19.14+kali-amd64".into(),
                 boot_to_wall_ns: 1_763_000_000_000_000_000,
                 features: vec!["listen".into(), "syscalls".into()],
+                unavailable: vec![sysscope_proto::FeatureNote {
+                    feature: "ptrace".into(),
+                    kernel: true,
+                    reason: "the kernel has no security_ptrace_access_check in its BTF".into(),
+                }],
                 act_enabled: false,
             },
         ),
@@ -827,6 +832,14 @@ pub fn arb_daemon() -> impl Strategy<Value = DaemonMsg> {
                         daemon_version,
                         kernel,
                         boot_to_wall_ns,
+                        unavailable: features
+                            .iter()
+                            .map(|f| sysscope_proto::FeatureNote {
+                                feature: f.clone(),
+                                kernel: f.len() % 2 == 0,
+                                reason: format!("no {f}"),
+                            })
+                            .collect(),
                         features,
                         act_enabled,
                     }

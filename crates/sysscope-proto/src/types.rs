@@ -492,3 +492,14 @@ pub struct GhReport {
     #[serde(default)]
     pub notes: Vec<String>,
 }
+
+/// An optional feature the daemon does not offer, and why (plan WP31).
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FeatureNote {
+    /// Feature name as in Welcome.features ("ptrace", "syscalls", ...).
+    pub feature: String,
+    /// True if the kernel lacks something (as opposed to a setting).
+    pub kernel: bool,
+    /// Plain-language reason.
+    pub reason: String,
+}

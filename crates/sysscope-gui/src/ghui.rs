@@ -58,11 +58,17 @@ pub fn page(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             ui.add_space(6.0);
             let live = matches!(m.conn, ConnState::Connected { .. });
             if !g.offered {
-                ui.label(RichText::new(if live {
-                    "Glasshouse is not available on this system: the daemon does not offer it (run `sysscope-glasshouse availability` to see why)."
+                let text = if live {
+                    format!(
+                        "Glasshouse is not available on this system: {}",
+                        m.gh_unavailable
+                            .as_deref()
+                            .unwrap_or("the daemon does not offer it (run `sysscope-glasshouse availability` to see why).")
+                    )
                 } else {
-                    "Glasshouse needs a running daemon."
-                }).italics());
+                    "Glasshouse needs a running daemon.".into()
+                };
+                ui.label(RichText::new(text).italics());
             }
             controls(ui, g, live, acts);
             if let Some(b) = &g.browse {

@@ -64,9 +64,17 @@ pub fn run(c: &mut Conn, rest: &[String], json: bool) -> Result<(), CliError> {
     let (timeout_s, file, args) = parse(rest)?;
     let offered = matches!(&c.welcome, DaemonMsg::Welcome { features, .. } if features.iter().any(|f| f == "glasshouse"));
     if !offered {
-        return Err(CliError::Other(
-            "Glasshouse is not available on this system (the daemon does not offer it; `sysscope-glasshouse availability` says why)".into(),
-        ));
+        let why = match &c.welcome {
+            DaemonMsg::Welcome { unavailable, .. } => unavailable
+                .iter()
+                .find(|n| n.feature == "glasshouse")
+                .map(|n| safe_str(&n.reason)),
+            _ => None,
+        }
+        .unwrap_or_else(|| "the daemon does not offer it".into());
+        return Err(CliError::Other(format!(
+            "Glasshouse is not available on this system: {why}"
+        )));
     }
     let mut f = std::fs::File::open(&file).map_err(|e| CliError::Other(format!("{file}: {e}")))?;
     let meta = f

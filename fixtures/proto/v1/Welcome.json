@@ -8,5 +8,12 @@
     "listen",
     "syscalls"
   ],
+  "unavailable": [
+    {
+      "feature": "ptrace",
+      "kernel": true,
+      "reason": "the kernel has no security_ptrace_access_check in its BTF"
+    }
+  ],
   "act_enabled": false
 }

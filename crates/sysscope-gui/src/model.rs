@@ -315,6 +315,11 @@ pub struct Model {
     pub alerts: VecDeque<Finding>,
     /// Last message from a follow/unfollow request.
     pub notice: Option<String>,
+    /// Optional features the daemon does not offer, as display lines
+    /// ("<feature>: not available on this kernel: <reason>", plan WP31).
+    pub unavailable: Vec<String>,
+    /// The reason Glasshouse is not offered, if the daemon gave one.
+    pub gh_unavailable: Option<String>,
     /// Process waiting for the follow confirmation.
     pub confirm_follow: Option<ProcKey>,
     /// Loss total already acknowledged by the user (banner hides until it grows).
@@ -396,6 +401,8 @@ impl Model {
             detail_order: VecDeque::new(),
             alerts: VecDeque::new(),
             notice: None,
+            unavailable: Vec::new(),
+            gh_unavailable: None,
             confirm_follow: None,
             loss_seen: 0,
             visible: Vec::new(),
@@ -460,9 +467,18 @@ impl Model {
                 boot_to_wall_ns,
                 act_enabled,
                 features,
+                unavailable,
                 ..
             } => {
                 self.gh.offered = features.iter().any(|f| f == "glasshouse");
+                self.unavailable = unavailable
+                    .iter()
+                    .map(sysscope_core::display::feature_note)
+                    .collect();
+                self.gh_unavailable = unavailable
+                    .iter()
+                    .find(|n| n.feature == "glasshouse")
+                    .map(|n| safe_str(&n.reason));
                 if !matches!(self.conn, ConnState::Replay(_)) {
                     self.conn = ConnState::Connected {
                         version: safe_str(&daemon_version),
@@ -812,6 +828,40 @@ mod tests {
     }
 
     #[test]
+    fn unavailable_features_are_shown_with_their_reason() {
+        let mut m = Model::new();
+        m.apply(Incoming::Msg(Box::new(DaemonMsg::Welcome {
+            proto: 1,
+            daemon_version: "t".into(),
+            kernel: "k".into(),
+            boot_to_wall_ns: 0,
+            features: vec!["exec".into()],
+            unavailable: vec![
+                sysscope_proto::FeatureNote {
+                    feature: "ptrace".into(),
+                    kernel: true,
+                    reason: "no ptrace hook".into(),
+                },
+                sysscope_proto::FeatureNote {
+                    feature: "glasshouse".into(),
+                    kernel: false,
+                    reason: "AppArmor blocks user namespaces".into(),
+                },
+            ],
+            act_enabled: false,
+        })));
+        assert_eq!(
+            m.unavailable,
+            vec![
+                "ptrace: not available on this kernel: no ptrace hook".to_string(),
+                "glasshouse: not available: AppArmor blocks user namespaces".to_string(),
+            ]
+        );
+        assert!(!m.gh.offered);
+        assert_eq!(m.gh_unavailable.as_deref(), Some("AppArmor blocks user namespaces"));
+    }
+
+    #[test]
     fn glasshouse_status_and_report_update_the_page() {
         use sysscope_proto::{BStr, DecoyState};
         let mut m = Model::new();
@@ -821,6 +871,7 @@ mod tests {
             kernel: "k".into(),
             boot_to_wall_ns: 0,
             features: vec!["glasshouse".into()],
+            unavailable: Vec::new(),
             act_enabled: false,
         })));
         assert!(m.gh.offered);

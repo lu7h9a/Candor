@@ -561,6 +561,7 @@ fn write_frames<S: AsRef<str>>(
             .and_then(|v| v.as_u64())
             .unwrap_or(0),
         features: Vec::new(),
+        unavailable: Vec::new(),
         act_enabled: false,
     };
     put(&mut w, &welcome);

@@ -164,6 +164,7 @@ pub fn status(welcome: &DaemonMsg, snap: &DaemonMsg) -> String {
         daemon_version,
         kernel,
         features,
+        unavailable,
         act_enabled,
         ..
     } = welcome
@@ -175,6 +176,10 @@ pub fn status(welcome: &DaemonMsg, snap: &DaemonMsg) -> String {
             safe_str(&features.join(", ")),
             if *act_enabled { "enabled" } else { "off" }
         ));
+        for n in unavailable {
+            s.push_str(&sysscope_core::display::feature_note(n));
+            s.push('\n');
+        }
     }
     if let DaemonMsg::Snapshot {
         procs, loss, mode, ..
