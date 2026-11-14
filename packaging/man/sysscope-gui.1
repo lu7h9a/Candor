@@ -1,0 +1,21 @@
+.TH SYSSCOPE-GUI 1 "2026-11-15" "sysscope 0.0.1" "User Commands"
+.SH NAME
+sysscope-gui \- desktop client for the SysScope process monitor
+.SH SYNOPSIS
+.B sysscope-gui
+[\fB\-\-replay\fR \fIFILE.frames.jsonl\fR]
+.SH DESCRIPTION
+The SysScope desktop app: the live process table and tree, per-process files,
+network, syscalls, children and memory maps, findings with their evidence,
+follow mode, and the Glasshouse sandbox page. It talks to
+.BR sysscoped (8)
+over its socket and needs membership in the \fBsysscope\fR group. It refuses
+to run as root.
+.SH OPTIONS
+.TP
+.BI \-\-replay " FILE"
+Show a saved recording (made with \fBsysscope replay \-\-frames\fR) instead of
+the live daemon.
+.SH SEE ALSO
+.BR sysscope (1),
+.BR sysscoped (8)

@@ -1,0 +1,43 @@
+.TH SYSSCOPED 8 "2026-11-15" "sysscope 0.0.1" "System Administration"
+.SH NAME
+sysscoped \- SysScope process-monitor daemon
+.SH SYNOPSIS
+.B sysscoped
+[\fB\-\-enable\-act\fR] [\fB\-\-syscalls\fR count|off] [\fB\-\-record\fR \fIFILE\fR]
+.SH DESCRIPTION
+.B sysscoped
+loads eBPF probes that observe processes (programs started, files opened,
+renamed and deleted, connections, syscall counts), keeps a bounded in-memory
+process table, runs the detection rules, and serves the
+.BR sysscope (1)
+and
+.BR sysscope-gui (1)
+clients on \fI/run/sysscope/sysscope.sock\fR (mode 0660, group
+\fBsysscope\fR). It makes no network connections.
+.PP
+It is normally run by systemd as \fBsysscoped.service\fR, which is installed
+but not enabled:
+.B systemctl enable \-\-now sysscoped
+.SH OPTIONS
+.TP
+.B \-\-enable\-act
+Allow the experimental act mode (pause, resume, kill on request).
+.TP
+.BR \-\-syscalls " count|off"
+Per-process syscall counts (default count).
+.TP
+.BI \-\-record " FILE"
+Write every event to FILE (development; see docs/PRIVACY.md).
+.SH FILES
+.TP
+.I /etc/sysscope/rules.toml, /etc/sysscope/allow.toml, /etc/sysscope/sysscoped.toml
+Local overrides of the built-in rules, allowlist and settings.
+.TP
+.I /var/lib/sysscope
+Glasshouse runs and reports; R100 baselines if enabled.
+.SH EXIT STATUS
+3 when this kernel cannot run SysScope (for example no BTF), with an explanation.
+.SH SEE ALSO
+.BR sysscope (1),
+.BR sysscope-glasshouse (8),
+/usr/share/doc/sysscope/THREAT_MODEL.md

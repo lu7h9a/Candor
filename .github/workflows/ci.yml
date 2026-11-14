@@ -38,3 +38,28 @@ jobs:
           scripts/check-integrity.sh ${base:+"$base"}
       - name: Lint and test
         run: make lint test
+
+  # Plan WP33: scripts/rename.sh renames the product in a copy, which must
+  # still build and pass the core tests.
+  rename:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang llvm libelf-dev zlib1g-dev \
+            libzstd-dev pkg-config libxkbcommon-dev libx11-dev libfontconfig-dev
+      - name: Install Rust (version from rust-toolchain.toml)
+        run: rustup show active-toolchain || rustup toolchain install
+      - name: Rename a copy and build it
+        run: |
+          copy="$RUNNER_TEMP/renamed"
+          mkdir -p "$copy"
+          git ls-files -z | tar --null -cf - -T - | tar -C "$copy" -xf -
+          scripts/rename.sh glimpse Glimpse "$copy"
+          cd "$copy"
+          cargo build --workspace --locked
+          cargo test --locked -p glimpse-core -p glimpse-proto -p glimpse-glasshouse
+          ./target/debug/glimpse --version

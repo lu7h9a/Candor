@@ -15,3 +15,4 @@
 | Home directories reloaded when /etc/passwd changes (review F16) | WP29 | needs a write to /etc/passwd, outside the allowed write paths on the host | a VM test that adds a user while the daemon runs and checks R001's `~/` for that user |
 | Package signatures (.deb, .rpm) | WP30 | signing needs the owner's key (E9); rpmlint reports no-signature | owner signs at release (WP32) |
 | Man pages for the four binaries | WP30 | not written yet (lintian/rpmlint warnings) | WP33 docs |
+| Per-file bytes read/written for followed processes (plan D12) | WP33 | not built (no fexit vfs_read/vfs_write probes, no file_io map); fields stay 0 and are not shown | build the probes (follow mode only) and an itest with exact byte counts |

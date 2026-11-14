@@ -874,6 +874,25 @@ fn sampler_loop(tx: Sender<Vec<ProcSample>>, stop: Arc<AtomicBool>) {
     }
 }
 
+/// sd_notify("READY=1") on $NOTIFY_SOCKET, if set (path or abstract name).
+fn notify_ready() {
+    let Some(path) = std::env::var_os("NOTIFY_SOCKET") else {
+        return;
+    };
+    let Ok(sock) = std::os::unix::net::UnixDatagram::unbound() else {
+        return;
+    };
+    let bytes = std::os::unix::ffi::OsStrExt::as_bytes(path.as_os_str());
+    let sent = match bytes.strip_prefix(b"@") {
+        Some(name) => <std::os::unix::net::SocketAddr as std::os::linux::net::SocketAddrExt>::from_abstract_name(name)
+            .and_then(|a| sock.send_to_addr(b"READY=1", &a)),
+        None => sock.send_to(b"READY=1", std::path::Path::new(&path)),
+    };
+    if let Err(e) = sent {
+        eprintln!("sysscoped: telling systemd we are ready failed: {e}");
+    }
+}
+
 /// The next deadline of a periodic job that was due at `due`: one period
 /// later, or one period from `now` if that is already past.
 fn next_period(due: Instant, now: Instant, period: Duration) -> Instant {
@@ -1105,6 +1124,10 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
         kernel_release(),
         std::process::id()
     );
+    // Tell systemd (Type=notify) that the socket is ready, so `systemctl
+    // start` returns only when clients can connect (found by the README test
+    // in a clean VM, WP33). No-op when not started by systemd.
+    notify_ready();
     let res = collector::run_poller(&mut col, &ev_tx, &cmd_rx, &stop);
     stop.store(true, Ordering::Relaxed);
     drop(ev_tx);

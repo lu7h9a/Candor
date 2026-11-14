@@ -56,6 +56,10 @@ fi
 %dir /usr/share/icons/hicolor/scalable/apps
 /usr/share/icons/hicolor/scalable/apps/sysscope.svg
 %dir /usr/share/doc/sysscope
+/usr/share/man/man1/sysscope.1.gz
+/usr/share/man/man1/sysscope-gui.1.gz
+/usr/share/man/man8/sysscoped.8.gz
+/usr/share/man/man8/sysscope-glasshouse.8.gz
 %license /usr/share/doc/sysscope/LICENSE
 %doc /usr/share/doc/sysscope/README.md
 %doc /usr/share/doc/sysscope/THREAT_MODEL.md

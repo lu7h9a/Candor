@@ -12,7 +12,8 @@ Documentation=file:///usr/share/doc/sysscope/README.md
 After=local-fs.target systemd-sysusers.service
 
 [Service]
-Type=exec
+Type=notify
+NotifyAccess=main
 ExecStart=/usr/bin/sysscoped
 Restart=on-failure
 RestartSec=2s

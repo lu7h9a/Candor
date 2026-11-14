@@ -24,3 +24,9 @@ inst 0644 "$repo/README.md" "$doc/README.md"
 inst 0644 "$repo/LICENSE" "$doc/LICENSE"
 for f in THREAT_MODEL.md REAL_SAMPLES.md; do inst 0644 "$repo/docs/$f" "$doc/$f"; done
 inst 0644 "$repo/packaging/postinstall-message.txt" "$doc/postinstall-message.txt"
+for m in "$repo"/packaging/man/*.[18]; do
+    sec=${m##*.}; base=$(basename "$m")
+    install -d "$dest/usr/share/man/man$sec"
+    gzip -9n -c "$m" > "$dest/usr/share/man/man$sec/$base.gz"
+    chmod 0644 "$dest/usr/share/man/man$sec/$base.gz"
+done
