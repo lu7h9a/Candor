@@ -311,6 +311,17 @@ impl Core {
             }
             ClientMsg::Ping { n } => q.put_reply(DaemonMsg::Pong { n }),
             ClientMsg::GetDetail { proc, maps } => {
+                // Memory maps (ASLR layout) only of the requester's own
+                // processes, unless root: the rule the kernel applies to
+                // /proc/<pid>/maps (review 2 finding 2).
+                let peer_uid = c.peer.uid;
+                let maps = maps
+                    && (peer_uid == 0
+                        || self
+                            .engine
+                            .state
+                            .get(&proc)
+                            .is_some_and(|p| p.uid == peer_uid));
                 let reply = match self.engine.state.detail(&proc) {
                     Some(DaemonMsg::Detail {
                         proc,

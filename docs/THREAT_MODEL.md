@@ -21,7 +21,7 @@ not tested, is listed under residual risks.
 | Boundary | Direction of untrusted data | Controls |
 |---|---|---|
 | B1 kernel ring buffer -> daemon | records built by BPF from traced processes' data | fixed-size structs, length-checked decoder (`abi.rs`, fuzzed), paths and argv are display bytes only (I5), escaped on output (I10) |
-| B2 Unix socket -> daemon | client frames | socket `0660 root:sysscope` in a `0750` directory; SO_PEERCRED; u32 frame length capped (`MAX_CLIENT_FRAME`), strict serde with unknown fields refused, fuzzed; 8 clients; Hello within 10 s; per-client bounded queues; the daemon never opens a client path (I12, D25) |
+| B2 Unix socket -> daemon | client frames | socket `0660 root:sysscope` in a `0750` directory; SO_PEERCRED; u32 frame length capped (`MAX_CLIENT_FRAME`), typed serde decoding (unknown message types refused; unknown fields ignored on purpose so versions can add fields, plan D2), fuzzed; 8 clients; Hello within 10 s; per-client bounded queues; the daemon never opens a client path (I12, D25) |
 | B3 Glasshouse helper -> daemon | JSON lines from the helper that runs next to the sample | line length cap, `deny_unknown_fields`, bounded counts (MAX_BOX_PROCS, MAX_CREATED, MAX_PATH_KEPT), fuzzed parser |
 | B4 sample -> host filesystem | files the sample leaves in its run directory | differ runs as `sysscope-box`, never follows symlinks (`openat` beneath, O_NOFOLLOW per component), regular files only, caps, run dir removed afterwards |
 | B5 detonation VM -> host | serial-port report | 64 MiB cap, same strict types, escaped display; no network, no shared folders, `-snapshot` (D18) |

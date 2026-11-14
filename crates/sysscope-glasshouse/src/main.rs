@@ -359,7 +359,7 @@ pub fn availability() -> std::result::Result<(), String> {
     if !Path::new("/usr/bin/bwrap").exists() {
         return Err("bubblewrap (/usr/bin/bwrap) is not installed".into());
     }
-    let out = Command::new("setpriv")
+    let out = Command::new("/usr/bin/setpriv")
         .args([
             format!("--reuid={uid}"),
             format!("--regid={gid}"),
@@ -521,14 +521,14 @@ fn read_capped(p: &Path, max: u64) -> Vec<u8> {
 }
 
 fn kill_unit(unit: &str) {
-    let _ = Command::new("systemctl")
+    let _ = Command::new("/usr/bin/systemctl")
         .args(["kill", "--signal=SIGKILL", &format!("{unit}.service")])
         .status();
 }
 
 /// Main pid of a unit (0 while it is starting).
 fn main_pid(unit: &str) -> u32 {
-    Command::new("systemctl")
+    Command::new("/usr/bin/systemctl")
         .args([
             "show",
             "-p",
@@ -547,7 +547,7 @@ fn run_differ(run: &Path, input: &differ::DiffInput) -> Result<differ::DiffOutpu
     const MAX_OUT: u64 = 12 * 1024 * 1024; // below the daemon's helper line cap
     const MAX_TIME: Duration = Duration::from_secs(60); // the differ stops itself at 30 s
     let (uid, gid) = uid_gid_of(BOX_USER)?;
-    let mut child = Command::new("setpriv")
+    let mut child = Command::new("/usr/bin/setpriv")
         .args([
             format!("--reuid={uid}"),
             format!("--regid={gid}"),
@@ -611,7 +611,7 @@ fn run_box(run_id: &str, job: &GhJob, sample: &Path, bridge: &mut dyn Bridge) ->
     let run = PathBuf::from(RUNS).join(run_id);
     std::fs::create_dir_all(RUNS)?;
     std::fs::create_dir(&run).with_context(|| format!("creating {}", run.display()))?;
-    let st = Command::new("mount")
+    let st = Command::new("/usr/bin/mount")
         .args([
             "-t",
             "tmpfs",
@@ -626,11 +626,11 @@ fn run_box(run_id: &str, job: &GhJob, sample: &Path, bridge: &mut dyn Bridge) ->
         bail!("mounting the run tmpfs failed");
     }
     let result = run_in(&run, run_id, job, sample, bridge);
-    let unmounted = Command::new("umount")
+    let unmounted = Command::new("/usr/bin/umount")
         .arg(&run)
         .status()
         .is_ok_and(|s| s.success())
-        || Command::new("umount")
+        || Command::new("/usr/bin/umount")
             .arg("--lazy")
             .arg(&run)
             .status()
@@ -685,7 +685,7 @@ fn run_in(
     box_owned(&fifo)?;
     let unit = format!("sysscope-gh-{run_id}");
     let exe = std::env::current_exe()?;
-    let mut cmd = Command::new("systemd-run");
+    let mut cmd = Command::new("/usr/bin/systemd-run");
     // Not --quiet: systemd-run then reports how the unit ended ("Finished
     // with result: ...", "Main processes terminated with: code=..."), which
     // is the only honest exit status (its own exit code is 1 for any

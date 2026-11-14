@@ -62,10 +62,17 @@ pub fn exe_facts(key: ProcKey, exe: &BStr, current_start: Option<u64>) -> (bool,
         Some(i) => bytes.get(..i).unwrap_or(b""),
         None => b"".as_slice(),
     };
+    // The path is the process's own view (its mount namespace and root):
+    // look the directory up through /proc/<pid>/root, so a bind mount or
+    // chroot that makes "~/evil" appear as "/usr/bin/evil" is checked as
+    // what it really is (review 2 finding 5, I5). A d_path result has no
+    // symlink components, so nothing can escape that root.
     let dir_meta = if dir.is_empty() {
         None
     } else {
-        std::fs::metadata(std::ffi::OsStr::from_bytes(dir)).ok()
+        let mut p = format!("/proc/{}/root", key.tgid).into_bytes();
+        p.extend_from_slice(dir);
+        std::fs::metadata(std::ffi::OsStr::from_bytes(&p)).ok()
     };
     let dir_ok = dir_meta
         .as_ref()
@@ -77,13 +84,31 @@ pub fn exe_facts(key: ProcKey, exe: &BStr, current_start: Option<u64>) -> (bool,
     (trusted, system, world_writable)
 }
 
+/// True if the process shares the host's mount namespace (pid 1's).
+pub fn in_host_mount_ns(tgid: u32) -> bool {
+    let ns = |p: String| std::fs::metadata(p).map(|m| (m.dev(), m.ino())).ok();
+    match (
+        ns(format!("/proc/{tgid}/ns/mnt")),
+        ns("/proc/1/ns/mnt".into()),
+    ) {
+        (Some(a), Some(b)) => a == b,
+        _ => false,
+    }
+}
+
 /// True if a script file is root-owned, not group/world-writable and a
 /// regular file, and so is its directory (the allowlist check of plan 5.3
-/// applied to an interpreter's script). Symlinks are resolved first.
-pub fn script_trusted(path: &BStr) -> bool {
+/// applied to an interpreter's script). Symlinks are resolved first, in the
+/// host's view, so only processes in the host's mount namespace qualify: in
+/// another namespace the same path (or an absolute symlink) can name a
+/// different file (review 2 finding 5).
+pub fn script_trusted(tgid: u32, path: &BStr) -> bool {
     let bytes = path.as_bytes();
     if bytes.first() != Some(&b'/') {
         return false; // relative to an unknown cwd: never trusted
+    }
+    if !in_host_mount_ns(tgid) {
+        return false;
     }
     let Ok(real) = std::fs::canonicalize(std::ffi::OsStr::from_bytes(bytes)) else {
         return false;

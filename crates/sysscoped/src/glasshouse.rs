@@ -228,7 +228,7 @@ fn spawn_helper(
     timeout_s: u32,
     tx: Sender<GhEvent>,
 ) -> std::io::Result<Sender<HelperIn>> {
-    let mut child = Command::new("systemd-run")
+    let mut child = Command::new("/usr/bin/systemd-run")
         .args([
             "--wait",
             "--pipe",
@@ -771,7 +771,7 @@ impl Glasshouse {
             return fx;
         }
         if started {
-            let _ = Command::new("systemctl")
+            let _ = Command::new("/usr/bin/systemctl")
                 .args(["kill", "--signal=SIGKILL"])
                 .arg(format!("sysscope-ghh-{}.service", run.run_id))
                 .arg(format!("sysscope-gh-{}.service", run.run_id))
@@ -975,6 +975,26 @@ impl Glasshouse {
     }
 }
 
+/// The helper runs as root through systemd: it must be a root-owned file
+/// that only root can change, in such a directory (a `--dev` daemon finds it
+/// next to itself, which may be a user's build directory; review 2
+/// finding 11).
+pub fn helper_trusted(helper: &std::path::Path) -> Result<(), String> {
+    use std::os::unix::fs::MetadataExt;
+    let ok = |p: &std::path::Path| {
+        std::fs::metadata(p).is_ok_and(|m| m.uid() == 0 && m.mode() & 0o022 == 0)
+    };
+    let dir_ok = helper.parent().is_some_and(ok);
+    if ok(helper) && dir_ok {
+        Ok(())
+    } else {
+        Err(format!(
+            "the helper {} (or its directory) is not root-owned or is writable by others",
+            helper.display()
+        ))
+    }
+}
+
 /// True if `sysscope-glasshouse availability` says this system can run it.
 /// The check runs as its own transient unit, exactly like a real helper:
 /// the hardened daemon itself may not switch users or create namespaces
@@ -982,7 +1002,11 @@ impl Glasshouse {
 /// always say "unavailable" (found in WP29).
 pub fn available() -> bool {
     let (g, _rx) = Glasshouse::new();
-    Command::new("systemd-run")
+    if let Err(why) = helper_trusted(&g.helper) {
+        eprintln!("sysscoped: Glasshouse disabled: {why}");
+        return false;
+    }
+    Command::new("/usr/bin/systemd-run")
         .args([
             "--wait",
             "--quiet",
@@ -1044,7 +1068,7 @@ fn rotate_reports(keep: usize) {
 /// Removes what an earlier daemon or helper left behind (daemon start):
 /// run tmpfs mounts, run directories, uploads, job files, units.
 pub fn sweep() {
-    let _ = Command::new("systemctl")
+    let _ = Command::new("/usr/bin/systemctl")
         .args([
             "kill",
             "--signal=SIGKILL",
@@ -1065,7 +1089,7 @@ pub fn sweep() {
             // its own (slave) mount namespace, so systemd unmounts it; the
             // unmount propagates here. Plain umount as a fallback (dev runs
             // outside the unit).
-            let ok = Command::new("systemd-run")
+            let ok = Command::new("/usr/bin/systemd-run")
                 .args([
                     "--wait",
                     "--quiet",
@@ -1080,7 +1104,7 @@ pub fn sweep() {
                 .status()
                 .is_ok_and(|s| s.success());
             if !ok {
-                let _ = Command::new("umount")
+                let _ = Command::new("/usr/bin/umount")
                     .arg("--lazy")
                     .arg(&p)
                     .stdout(Stdio::null())
@@ -1110,6 +1134,20 @@ fn group_id(name: &str) -> Option<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn helper_must_be_root_owned_in_a_root_owned_directory() {
+        assert!(helper_trusted(std::path::Path::new("/usr/bin/true")).is_ok());
+        // A build directory the test user owns (unit tests run unprivileged).
+        let dir = std::env::temp_dir().join(format!("sysscope-helper-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let h = dir.join("sysscope-glasshouse");
+        std::fs::write(&h, "x").unwrap();
+        let mine = rustix::process::geteuid().is_root();
+        assert_eq!(helper_trusted(&h).is_ok(), mine);
+        assert!(helper_trusted(&dir.join("missing")).is_err());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn names_are_sanitised() {

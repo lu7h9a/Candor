@@ -293,3 +293,68 @@ fn r008_event_flood_with_a_small_budget() {
     expect(&findings, "R008", None);
     assert!(d.stop().unwrap().success());
 }
+
+/// A program in a private mount namespace that makes a user-owned directory
+/// appear as /usr/bin is not trusted, so an allowlist entry for
+/// /usr/bin/ssh does not silence its read of a private key (review 2
+/// finding 5): the directory is checked through /proc/<pid>/root.
+#[test]
+fn r001_is_not_silenced_by_a_fake_usr_bin_in_a_private_mount_namespace() {
+    // Mounts over /usr/bin (in a private namespace) as root: a hostile test,
+    // so it runs only inside a test VM (SKILL.md section 2).
+    if !std::path::Path::new("/etc/sysscope-test-vm").exists() {
+        eprintln!("skipped: mounts over /usr/bin, run only inside a test VM");
+        return;
+    }
+    let d = Daemon::start(&[]).unwrap();
+    let base = work("fakebin");
+    let fake = base.join("bin");
+    std::fs::create_dir_all(&fake).unwrap();
+    // The file itself is root-owned and not writable by others (as a real
+    // /usr/bin/ssh); only its directory is not root's.
+    std::fs::copy(
+        sysscope_itest::bin_dir().join("sysscope-wl"),
+        fake.join("ssh"),
+    )
+    .unwrap();
+    std::os::unix::fs::chown(&fake, Some(65534), Some(65534)).unwrap();
+    std::fs::create_dir_all("/root/.ssh").unwrap();
+    std::fs::write(
+        "/root/.ssh/id_sysscope_ns",
+        "fake key for the namespace test\n",
+    )
+    .unwrap();
+    let (mut c, _) = Client::hello().unwrap();
+    c.send(&ClientMsg::Subscribe {
+        snapshots: false,
+        alerts: true,
+        events: EventSub::Simple(EventSubMode::None),
+    })
+    .unwrap();
+    let script = format!(
+        "mount --bind {} /usr/bin && exec /usr/bin/ssh --dir {} open-path /root/.ssh/id_sysscope_ns",
+        fake.display(),
+        base.join("wl").display()
+    );
+    let st = Command::new("unshare")
+        .args(["-m", "--propagation", "private", "sh", "-c", &script])
+        .stdout(std::process::Stdio::null())
+        .status()
+        .unwrap();
+    assert!(st.success(), "unshare/mount/exec failed");
+    c.stream
+        .set_read_timeout(Some(Duration::from_millis(500)))
+        .unwrap();
+    let mut found = Vec::new();
+    let deadline = Instant::now() + Duration::from_secs(4);
+    while Instant::now() < deadline {
+        if let Ok(DaemonMsg::Alert { finding }) = c.recv() {
+            found.push(finding);
+        }
+    }
+    let f = expect(&found, "R001", Some("ssh_keys"));
+    assert_eq!(f.exe.escaped(), "/usr/bin/ssh");
+    let _ = std::fs::remove_file("/root/.ssh/id_sysscope_ns");
+    let _ = std::fs::remove_dir_all(&base);
+    assert!(d.stop().unwrap().success());
+}

@@ -403,3 +403,47 @@ fn silent_connections_do_not_hold_client_slots() {
     assert!(matches!(w, DaemonMsg::Welcome { .. }), "{w:?}");
     assert!(d.stop().unwrap().success());
 }
+
+/// A non-root client gets memory maps only of its own processes, as the
+/// kernel's /proc/<pid>/maps rule (review 2 finding 2).
+#[test]
+fn maps_only_of_the_requesters_own_processes() {
+    let d = Daemon::start(&[]).unwrap();
+    let dir = std::env::temp_dir().join(format!("sysscope-maps-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    std::os::unix::fs::chown(&dir, Some(65534), Some(65534)).unwrap();
+    let mut mine = std::process::Command::new("setpriv")
+        .args(["--reuid=65534", "--regid=65534", "--clear-groups"])
+        .arg(sysscope_itest::bin_dir().join("sysscope-wl"))
+        .arg("--dir")
+        .arg(&dir)
+        .args(["sleep", "300000"])
+        .stdout(std::process::Stdio::null())
+        .spawn()
+        .unwrap();
+    std::thread::sleep(Duration::from_millis(1500));
+    let sock =
+        std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/sysscope-dev").unwrap());
+    let maps_of = |pid: u32| -> serde_json::Value {
+        let o = std::process::Command::new("setpriv")
+            .args(["--reuid=65534", "--regid=65534"])
+            .arg(format!("--groups={sock}"))
+            .arg(sysscope_itest::bin_dir().join("sysscope"))
+            .args(["--json", "detail", &pid.to_string(), "--maps"])
+            .output()
+            .unwrap();
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+        let v: serde_json::Value = serde_json::from_slice(&o.stdout).unwrap();
+        v["maps"].clone()
+    };
+    assert!(
+        maps_of(d.pid()).is_null(),
+        "root process maps given to nobody"
+    );
+    let own = maps_of(mine.id());
+    assert!(own.as_array().is_some_and(|m| !m.is_empty()), "{own}");
+    mine.kill().unwrap();
+    mine.wait().unwrap();
+    let _ = std::fs::remove_dir_all(&dir);
+    assert!(d.stop().unwrap().success());
+}

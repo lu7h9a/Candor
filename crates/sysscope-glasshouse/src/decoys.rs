@@ -195,7 +195,7 @@ fn keygen(tmp: &Path) -> Result<(Vec<u8>, Vec<u8>), DecoyError> {
     let key = tmp.join("decoy-key");
     let _ = std::fs::remove_file(&key);
     let _ = std::fs::remove_file(tmp.join("decoy-key.pub"));
-    let out = std::process::Command::new("ssh-keygen")
+    let out = std::process::Command::new("/usr/bin/ssh-keygen")
         .args([
             "-q",
             "-t",

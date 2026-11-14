@@ -57,7 +57,7 @@ pub fn host_check(j: &Job) -> Facts {
     let script_trusted = j
         .script
         .as_ref()
-        .is_some_and(crate::hostinfo::script_trusted);
+        .is_some_and(|s| crate::hostinfo::script_trusted(j.key.tgid, s));
     Facts {
         trusted,
         system_dir,
@@ -210,7 +210,10 @@ mod tests {
     #[test]
     fn a_hung_check_costs_at_most_the_timeout_and_workers_are_capped() {
         let mut p = MetaPool::new(fake);
-        assert!(p.check(key(1), BStr::from("/usr/bin/ls"), Some(1), None).trusted);
+        assert!(
+            p.check(key(1), BStr::from("/usr/bin/ls"), Some(1), None)
+                .trusted
+        );
         for i in 0..10u32 {
             let t0 = Instant::now();
             let f = p.check(key(100 + i), BStr::from("/hang/x"), Some(1), None);
@@ -222,7 +225,10 @@ mod tests {
         assert_eq!(p.timed_out, 10);
         // Every worker is stuck now: the answer is immediate and untrusted.
         let t0 = Instant::now();
-        assert!(!p.check(key(2), BStr::from("/usr/bin/ls"), Some(1), None).trusted);
+        assert!(
+            !p.check(key(2), BStr::from("/usr/bin/ls"), Some(1), None)
+                .trusted
+        );
         assert!(t0.elapsed() < Duration::from_millis(5));
     }
 
