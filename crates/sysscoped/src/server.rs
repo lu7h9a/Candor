@@ -20,12 +20,15 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
 use sysscope_proto::{
-    ClientMsg, DaemonMsg, Event, Finding, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME, decode_client,
-    encode, read_frame, write_frame,
+    ClientMsg, DaemonMsg, Event, Finding, FrameError, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME,
+    decode_client, encode, read_frame, write_frame,
 };
 
 /// Maximum simultaneous clients (plan 4.2).
 pub const MAX_CLIENTS: usize = 8;
+/// A connection must send Hello within this time; otherwise it would hold
+/// one of the MAX_CLIENTS slots without ever being a client.
+pub const HELLO_TIMEOUT: Duration = Duration::from_secs(10);
 /// Events queued per client before the oldest are dropped.
 pub const CLIENT_EVENTS: usize = 4096;
 /// Alerts queued per client before the oldest are dropped.
@@ -309,6 +312,8 @@ fn writer(mut stream: UnixStream, queue: Arc<ClientQueue>) {
 
 /// Reader thread: decodes frames and forwards them to the core.
 fn reader(mut stream: UnixStream, id: u64, queue: Arc<ClientQueue>, core: Sender<ClientCmd>) {
+    let mut greeted = false;
+    let _ = stream.set_read_timeout(Some(HELLO_TIMEOUT));
     loop {
         if queue.is_closed() {
             break;
@@ -316,6 +321,12 @@ fn reader(mut stream: UnixStream, id: u64, queue: Arc<ClientQueue>, core: Sender
         match read_frame(&mut stream, MAX_CLIENT_FRAME) {
             Ok(Some(body)) => match decode_client(&body) {
                 Ok(msg) => {
+                    // After Hello a client may stay quiet for as long as it
+                    // likes (a GUI that only watches).
+                    if !greeted && matches!(msg, ClientMsg::Hello { .. }) {
+                        greeted = true;
+                        let _ = stream.set_read_timeout(None);
+                    }
                     // A client that floods commands faster than the core can
                     // take them is disconnected rather than buffered.
                     if core.try_send(ClientCmd::Msg { id, msg }).is_err() {
@@ -335,6 +346,13 @@ fn reader(mut stream: UnixStream, id: u64, queue: Arc<ClientQueue>, core: Sender
                 }
             },
             Ok(None) => break,
+            Err(e) if !greeted && is_timeout(&e) => {
+                queue.reply_and_close(DaemonMsg::Error {
+                    code: "no_hello".into(),
+                    message: format!("no Hello within {} s", HELLO_TIMEOUT.as_secs()),
+                });
+                break;
+            }
             Err(e) => {
                 queue.reply_and_close(DaemonMsg::Error {
                     code: "bad_frame".into(),
@@ -345,6 +363,11 @@ fn reader(mut stream: UnixStream, id: u64, queue: Arc<ClientQueue>, core: Sender
         }
     }
     let _ = core.send(ClientCmd::Gone { id });
+}
+
+/// True if a read failed because the read timeout expired.
+fn is_timeout(e: &FrameError) -> bool {
+    matches!(e, FrameError::Io(io) if matches!(io.kind(), std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut))
 }
 
 /// Acceptor thread: accepts until `stop`, enforcing MAX_CLIENTS.

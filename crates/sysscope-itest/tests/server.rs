@@ -190,6 +190,9 @@ fn detail_and_follow_work_over_the_socket() {
     if let DaemonMsg::Snapshot { procs, .. } = mode {
         assert!(procs.iter().any(|r| r.key == key && r.followed));
     }
+    // Follow limits detection for everyone, so it is logged (review F9).
+    let want = format!("follow pid {} requested by uid 0", key.tgid);
+    assert!(d.stderr_text().contains(&want), "{}", d.stderr_text());
     let m = w.release().unwrap();
     assert_eq!(wl_key(&m), key);
     assert!(d.stop().unwrap().success());
@@ -368,5 +371,35 @@ fn follow_mode_counts_syscalls_only_while_someone_watches() {
         followed_getppid_count(true, "20000") >= 20000,
         "not counted while watched"
     );
+    assert!(d.stop().unwrap().success());
+}
+
+/// Connections that never say Hello are closed after HELLO_TIMEOUT (10 s),
+/// so eight silent sockets cannot lock every real client out (review F11).
+#[test]
+fn silent_connections_do_not_hold_client_slots() {
+    let d = Daemon::start(&[]).unwrap();
+    let mut silent: Vec<Client> = (0..8).map(|_| Client::connect().unwrap()).collect();
+    for s in &silent {
+        // Longer than the daemon's 10 s, so the daemon closes first.
+        s.stream
+            .set_read_timeout(Some(Duration::from_secs(20)))
+            .unwrap();
+    }
+    // While they are open, a real client is refused.
+    let mut early = Client::connect().unwrap();
+    assert!(
+        matches!(early.recv().unwrap(), DaemonMsg::Error { code, .. } if code == "too_many_clients")
+    );
+    for s in &mut silent {
+        match s.recv().unwrap() {
+            DaemonMsg::Error { code, .. } => assert_eq!(code, "no_hello"),
+            other => panic!("{other:?}"),
+        }
+    }
+    drop(silent);
+    std::thread::sleep(Duration::from_millis(300));
+    let (_c, w) = Client::hello().unwrap();
+    assert!(matches!(w, DaemonMsg::Welcome { .. }), "{w:?}");
     assert!(d.stop().unwrap().success());
 }

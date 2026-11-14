@@ -345,6 +345,12 @@ impl Core {
                         message: format!("process {} is not running", root.tgid),
                     });
                 } else if self.poller.try_send(PollerCmd::Follow(root)).is_ok() {
+                    // Follow mode limits detection for everyone: logged
+                    // with the requester (journal under systemd).
+                    eprintln!(
+                        "sysscoped: follow pid {} requested by uid {} pid {}",
+                        root.tgid, c.peer.uid, c.peer.pid
+                    );
                     self.follow = Some(root);
                     self.follow_requester = Some(id);
                 } else {
@@ -360,6 +366,10 @@ impl Core {
             }
             ClientMsg::Unfollow {} => {
                 if self.poller.try_send(PollerCmd::Unfollow).is_ok() {
+                    eprintln!(
+                        "sysscoped: unfollow requested by uid {} pid {}",
+                        c.peer.uid, c.peer.pid
+                    );
                     self.follow = None;
                     self.follow_requester = Some(id);
                 } else {
@@ -762,6 +772,13 @@ fn sampler_loop(tx: Sender<Vec<ProcSample>>, stop: Arc<AtomicBool>) {
     }
 }
 
+/// The next deadline of a periodic job that was due at `due`: one period
+/// later, or one period from `now` if that is already past.
+fn next_period(due: Instant, now: Instant, period: Duration) -> Instant {
+    let next = due + period;
+    if next <= now { now + period } else { next }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn core_loop(
     mut core: Core,
@@ -776,12 +793,15 @@ fn core_loop(
     let mut next_baseline_save = Instant::now() + Duration::from_secs(600);
     while !stop.load(Ordering::Relaxed) {
         let now = Instant::now();
+        // Periods missed during a stall are skipped, not caught up one per
+        // loop: catching up would build a burst of snapshots exactly when
+        // the core is already behind (review F8).
         if now >= next_snapshot {
-            next_snapshot += Duration::from_millis(500);
+            next_snapshot = next_period(next_snapshot, now, Duration::from_millis(500));
             core.snapshot();
         }
         if now >= next_tick {
-            next_tick += Duration::from_secs(1);
+            next_tick = next_period(next_tick, now, Duration::from_secs(1));
             core.apply(Input::Tick {
                 ts_ns: crate::sampler::boot_ns(),
             });
@@ -960,6 +980,17 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
 mod tests {
     use super::*;
     use sysscope_proto::{BStr, Event, EventKind, FileStat, Loss, ProcRow, Series, SystemMode};
+
+    /// Review F8: after a 10 s stall the next snapshot is one period away,
+    /// not 20 overdue snapshots in a row.
+    #[test]
+    fn missed_periods_are_skipped() {
+        let p = Duration::from_millis(500);
+        let t0 = Instant::now();
+        assert_eq!(next_period(t0, t0 + Duration::from_millis(10), p), t0 + p);
+        let late = t0 + Duration::from_secs(10);
+        assert_eq!(next_period(t0, late, p), late + p);
+    }
 
     /// Review finding 2: 10240 rows with 512-byte non-UTF-8 names (about
     /// 4x when escaped) still produce a frame under 16 MiB.
