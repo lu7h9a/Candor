@@ -373,6 +373,21 @@ pub fn load_allow(
 mod tests {
     use super::*;
 
+    /// The comment-only files the packages install in /etc/sysscope (plan
+    /// WP30) load and change nothing.
+    #[test]
+    fn packaged_etc_templates_are_no_ops() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packaging/etc");
+        let read = |f: &str| std::fs::read_to_string(root.join(f)).unwrap();
+        let r = Rules::load(Some(&read("rules.toml"))).unwrap();
+        let d = Rules::load(None).unwrap();
+        assert_eq!(format!("{r:?}"), format!("{d:?}"));
+        assert_eq!(
+            load_allow(&r, Some(&read("allow.toml"))).unwrap().len(),
+            load_allow(&d, None).unwrap().len()
+        );
+    }
+
     #[test]
     fn defaults_load() {
         let r = Rules::load(None).unwrap();

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Remove: unit, socket dir and state dir go; /etc/sysscope stays.
+# Purge: /etc/sysscope goes too (plan WP30). Groups and the sandbox user are
+# left in place, as for any package (files they own are gone).
+set -e
+case "$1" in
+remove|purge)
+    rm -rf /run/sysscope /var/lib/sysscope
+    systemctl daemon-reload >/dev/null 2>&1 || true
+    ;;
+esac
+if [ "$1" = "purge" ]; then
+    rm -rf /etc/sysscope
+fi
+exit 0

@@ -137,8 +137,10 @@ fp-eval: release
 	vm/down.sh debian12
 	scripts/fp-eval.sh report
 
+# Plan WP30: .deb, .rpm, tarball and Arch PKGBUILD, built in an ubuntu2204
+# guest (oldest supported glibc); output in target/packages.
 package:
-	@echo "make package: not implemented yet (WP30)"; exit 1
+	vm/package.sh
 
 gate: lint test test-root bench vm-test
 	@echo "GATE PASSED"

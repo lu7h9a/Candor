@@ -1,0 +1,14 @@
+post_install() {
+    systemd-sysusers /usr/lib/sysusers.d/sysscope.conf || true
+    cat /usr/share/doc/sysscope/postinstall-message.txt
+}
+post_upgrade() {
+    systemd-sysusers /usr/lib/sysusers.d/sysscope.conf || true
+}
+pre_remove() {
+    systemctl disable --now sysscoped.service >/dev/null 2>&1 || true
+}
+post_remove() {
+    rm -rf /run/sysscope /var/lib/sysscope
+    systemctl daemon-reload >/dev/null 2>&1 || true
+}

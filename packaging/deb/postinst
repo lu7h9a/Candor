@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+if [ "$1" = "configure" ]; then
+    systemd-sysusers /usr/lib/sysusers.d/sysscope.conf || true
+    systemctl daemon-reload >/dev/null 2>&1 || true
+    cat /usr/share/doc/sysscope/postinstall-message.txt
+fi
+exit 0

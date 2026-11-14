@@ -1,0 +1,11 @@
+# /etc/sysscope/rules.toml - local overrides of SysScope's detection rules.
+# The defaults are built into sysscoped and are updated with the package;
+# anything set here is merged on top of them, key by key. Restart the
+# daemon after a change: sudo systemctl restart sysscoped
+#
+# Example: switch off a rule, or change one threshold.
+# [rules.R006]
+# disabled = true
+#
+# [rules.R005]
+# window_s = 20

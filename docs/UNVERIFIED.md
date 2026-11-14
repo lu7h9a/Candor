@@ -13,3 +13,5 @@
 | Fedora 45 itests | WP31 | all 30 passed once (kernel 7.2.11) before the gate fixes; re-run in WP31 | make vm-matrix |
 | GUI CPU and look on a real GPU and real desktop | WP21 | only Xvfb + llvmpipe here; GUI threads 6-7 %, whole process ~33 % with software rendering | owner runs sysscope-gui on the desktop (human check, WP34) |
 | Home directories reloaded when /etc/passwd changes (review F16) | WP29 | needs a write to /etc/passwd, outside the allowed write paths on the host | a VM test that adds a user while the daemon runs and checks R001's `~/` for that user |
+| Package signatures (.deb, .rpm) | WP30 | signing needs the owner's key (E9); rpmlint reports no-signature | owner signs at release (WP33) |
+| Man pages for the four binaries | WP30 | not written yet (lintian/rpmlint warnings) | WP32 docs |

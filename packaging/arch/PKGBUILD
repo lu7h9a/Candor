@@ -1,0 +1,21 @@
+# Maintainer: SysScope <https://github.com/lu7h9a/sysscope>
+# Built from the release tarball (packaging/build.sh writes pkgver and
+# sha256sums). Plan WP30, D21: the service is installed, never enabled.
+pkgname=sysscope
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc="Process monitor that explains what programs do (eBPF)"
+arch=('x86_64')
+url="https://github.com/lu7h9a/sysscope"
+license=('MIT')
+depends=('systemd' 'libelf' 'zlib' 'zstd')
+optdepends=('bubblewrap: Glasshouse sandbox')
+backup=('etc/sysscope/rules.toml' 'etc/sysscope/allow.toml' 'etc/sysscope/sysscoped.toml')
+install=sysscope.install
+source=("sysscope-${pkgver}-x86_64.tar.gz")
+sha256sums=('@SHA256@')
+options=('!strip' '!debug')
+
+package() {
+    cp -a "${srcdir}/sysscope-${pkgver}-x86_64/root/." "${pkgdir}/"
+}

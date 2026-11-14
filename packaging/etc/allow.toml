@@ -1,0 +1,10 @@
+# /etc/sysscope/allow.toml - local allowlist entries, added to the built-in
+# list. An entry only applies when the program's executable is root-owned and
+# not writable by others (so a copy in your home cannot use it).
+#
+# Example:
+# [[allow]]
+# rule = "R001"
+# exe = "/usr/bin/restic"
+# subject = "ssh_keys"
+# reason = "nightly backup reads the SSH keys"
