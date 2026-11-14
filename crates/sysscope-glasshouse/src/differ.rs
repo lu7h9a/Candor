@@ -41,6 +41,12 @@ pub struct DiffInput {
     pub manifest: Manifest,
     /// Other files that existed before the run.
     pub baseline: Vec<BaselineEntry>,
+    /// When decoys and baseline were recorded (wall-clock ns since the
+    /// epoch). A file born later is new even if the filesystem reused the
+    /// inode number of a deleted decoy or baseline file (WP31: inode reuse
+    /// on ext4 made a deleted decoy look "modified, renamed").
+    #[serde(default)]
+    pub prepared_ns: Option<u64>,
 }
 
 /// The differ's caps.
@@ -82,6 +88,8 @@ pub struct DiffOutput {
 #[derive(Clone, Debug)]
 struct Found {
     rel: Vec<u8>,
+    /// Birth time (statx btime, wall-clock ns) if the filesystem reports it.
+    born_ns: Option<u64>,
     /// Other names of the same inode (hard links), at most a few.
     alt: Vec<Vec<u8>>,
     kind: &'static str,
@@ -150,6 +158,21 @@ fn open_beneath(
         }
         other => other,
     }
+}
+
+/// Birth time of `name` beneath `dir` (statx btime, not following a
+/// symlink), or None if the filesystem does not report it.
+fn born_ns(dir: &OwnedFd, name: &std::ffi::CStr) -> Option<u64> {
+    use rustix::fs::{StatxFlags, statx};
+    let x = statx(dir, name, AtFlags::SYMLINK_NOFOLLOW, StatxFlags::BTIME).ok()?;
+    if !StatxFlags::from_bits_retain(x.stx_mask).contains(StatxFlags::BTIME) {
+        return None;
+    }
+    let secs = u64::try_from(x.stx_btime.tv_sec).ok()?;
+    Some(
+        secs.saturating_mul(1_000_000_000)
+            .saturating_add(u64::from(x.stx_btime.tv_nsec)),
+    )
 }
 
 /// Hashes up to `max` bytes of a regular file beneath `dir`. None if it
@@ -402,6 +425,7 @@ fn walk(
                         st.st_ino,
                         Found {
                             rel: rel_of(&comps, Some(nb)),
+                            born_ns: born_ns(&dir, name),
                             alt: Vec::new(),
                             kind: "file",
                             size: st.st_size as u64,
@@ -416,6 +440,7 @@ fn walk(
                         st.st_ino,
                         Found {
                             rel: rel_of(&comps, Some(nb)),
+                            born_ns: born_ns(&dir, name),
                             alt: Vec::new(),
                             kind: kind_of(other),
                             size: st.st_size as u64,
@@ -515,7 +540,25 @@ fn status_of(d: &DecoyEntry, found: &BTreeMap<u64, Found>, complete: bool) -> De
 /// Compares the run directory with the manifest and baseline.
 pub fn diff(run: &std::path::Path, input: &DiffInput, lim: Limits) -> DiffOutput {
     let mut out = DiffOutput::default();
-    let (found, complete) = walk(run, lim, &mut out.notes);
+    let (all, complete) = walk(run, lim, &mut out.notes);
+    // Files born after the decoys and baseline were recorded are new, even
+    // at an inode number a decoy or baseline file had (inode reuse).
+    let fresh = |f: &Found| {
+        input
+            .prepared_ns
+            .zip(f.born_ns)
+            .is_some_and(|(prepared, born)| born > prepared)
+    };
+    let fresh_inos: std::collections::BTreeSet<u64> = all
+        .iter()
+        .filter(|(_, f)| fresh(f))
+        .map(|(i, _)| *i)
+        .collect();
+    let found: BTreeMap<u64, Found> = all
+        .iter()
+        .filter(|(i, _)| !fresh_inos.contains(i))
+        .map(|(i, f)| (*i, f.clone()))
+        .collect();
     let decoy_inos: std::collections::BTreeSet<u64> =
         input.manifest.decoys.iter().map(|d| d.ino).collect();
     out.decoys = input
@@ -565,8 +608,8 @@ pub fn diff(run: &std::path::Path, input: &DiffInput, lim: Limits) -> DiffOutput
             _ => {}
         }
     }
-    for (ino, f) in &found {
-        if decoy_inos.contains(ino) || baseline.contains_key(ino) {
+    for (ino, f) in &all {
+        if (decoy_inos.contains(ino) || baseline.contains_key(ino)) && !fresh_inos.contains(ino) {
             continue;
         }
         out.created.push(CreatedFile {
@@ -627,6 +670,13 @@ pub fn baseline(run: &std::path::Path, manifest: &Manifest) -> Vec<BaselineEntry
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn now_ns() -> Option<u64> {
+        let d = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .ok()?;
+        u64::try_from(d.as_nanos()).ok()
+    }
     use crate::decoys;
 
     fn tmp(tag: &str) -> std::path::PathBuf {
@@ -651,6 +701,7 @@ mod tests {
         let input = DiffInput {
             baseline: baseline(&d, &m),
             manifest: m,
+            prepared_ns: now_ns(),
         };
         assert_eq!(input.baseline.len(), 1);
         let o = diff(&d, &input, Limits::default());
@@ -664,6 +715,45 @@ mod tests {
         let _ = std::fs::remove_dir_all(&d);
     }
 
+    /// A file born after the decoys were recorded is new even at a decoy's
+    /// inode number (simulated: prepared_ns before the decoys were made,
+    /// so every decoy file looks newer than the record and none matches).
+    #[test]
+    fn files_born_after_the_record_never_match_a_decoy_inode() {
+        let d = tmp("reuse");
+        let before = now_ns().map(|n| n.saturating_sub(1_000_000_000));
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        let m = decoys::generate(&d, Some(3)).unwrap();
+        let born = std::fs::metadata(d.join(&m.decoys[0].path))
+            .ok()
+            .and_then(|x| x.created().ok());
+        if born.is_none() {
+            eprintln!("skipped: this filesystem reports no birth time");
+            let _ = std::fs::remove_dir_all(&d);
+            return;
+        }
+        let input = DiffInput {
+            baseline: Vec::new(),
+            manifest: m,
+            prepared_ns: before,
+        };
+        let o = diff(&d, &input, Limits::default());
+        // Every decoy in the writable home is "deleted" and its file is
+        // reported as created: identity needs inode AND birth before the record.
+        let home: Vec<_> = o
+            .decoys
+            .iter()
+            .filter(|s| s.path.as_bytes().starts_with(b"/home/"))
+            .collect();
+        assert!(!home.is_empty());
+        assert!(
+            home.iter().all(|s| s.states == vec![DecoyState::Deleted]),
+            "{home:?}"
+        );
+        assert!(o.created.len() >= home.len(), "{:?}", o.created);
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
     #[test]
     fn ransomware_like_changes_are_classified() {
         let d = tmp("ransom");
@@ -672,6 +762,7 @@ mod tests {
         let input = DiffInput {
             baseline: baseline(&d, &m),
             manifest: m,
+            prepared_ns: now_ns(),
         };
         let h = d.join("home");
         // Encrypt in place, then rename (same inode).
@@ -740,6 +831,7 @@ mod tests {
         let input = DiffInput {
             baseline: Vec::new(),
             manifest: m,
+            prepared_ns: now_ns(),
         };
         let h = d.join("home");
         // 3000 files with 255-byte non-UTF-8 names (5x larger when escaped).
@@ -820,6 +912,7 @@ mod tests {
         let input = DiffInput {
             baseline: Vec::new(),
             manifest: m,
+            prepared_ns: now_ns(),
         };
         for i in 0..50 {
             std::fs::write(d.join(format!("home/junk{i}")), "x").unwrap();
@@ -857,6 +950,7 @@ mod tests {
             &DiffInput {
                 baseline: Vec::new(),
                 manifest: m2,
+                prepared_ns: now_ns(),
             },
             Limits::default(),
         );

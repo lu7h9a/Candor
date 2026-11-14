@@ -831,7 +831,22 @@ fn run_in(
         });
         let baseline: Vec<differ::BaselineEntry> =
             serde_json::from_slice(&std::fs::read(run.join("baseline.json"))?)?;
-        let d = run_differ(run, &differ::DiffInput { manifest, baseline })?;
+        // baseline.json is written right after the decoys and baseline are
+        // recorded, before the sample starts (outside its view): its mtime
+        // is the moment a file must be born after to count as new.
+        let prepared_ns = std::fs::metadata(run.join("baseline.json"))
+            .and_then(|m| m.modified())
+            .ok()
+            .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+            .and_then(|d| u64::try_from(d.as_nanos()).ok());
+        let d = run_differ(
+            run,
+            &differ::DiffInput {
+                manifest,
+                baseline,
+                prepared_ns,
+            },
+        )?;
         notes.extend(d.notes);
         let _ = status;
         let mut said = Vec::new();
