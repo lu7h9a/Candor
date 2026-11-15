@@ -244,7 +244,7 @@ def main():
     if peak > T["rss_mib"]:
         fails.append(f"RSS {peak:.0f} MiB (limit {T['rss_mib']} MiB)")
     kernel = os.uname().release
-    o = ["# Overhead benchmarks (plan WP14)", "",
+    o = ["# Overhead benchmarks", "",
          f"Host: kernel {kernel}, {os.cpu_count()} CPUs, governor `{gov}`; builds pinned to CPUs {PCORES}, "
          f"micro loops to CPU {MICRO_CPU}; {ROUNDS} rounds per benchmark, "
          "modes alternating within each round; times are medians; overhead = median of the per-round "
