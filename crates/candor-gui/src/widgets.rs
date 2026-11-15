@@ -57,7 +57,7 @@ pub fn status_dot(ui: &mut Ui, sev: Severity) -> Response {
     let (rect, r) = ui.allocate_exact_size(Vec2::splat(space::DOT), Sense::hover());
     if sev != Severity::None {
         ui.painter()
-            .circle_filled(rect.center(), space::DOT / 2.0, sev.color());
+            .circle_filled(rect.center(), space::DOT_R, sev.color());
         let words = sev.words();
         r.widget_info(|| WidgetInfo::labeled(Role::Image, true, words));
     }
@@ -82,7 +82,10 @@ pub fn card_compact<R>(ui: &mut Ui, add: impl FnOnce(&mut Ui) -> R) -> R {
     egui::Frame::new()
         .fill(color::SURFACE)
         .corner_radius(CornerRadius::same(radius::CARD))
-        .inner_margin(Margin::symmetric(space::XL as i8, (space::L + space::XS) as i8))
+        .inner_margin(Margin::symmetric(
+            space::XL as i8,
+            (space::L + space::XS) as i8,
+        ))
         .show(ui, |ui| {
             ui.set_width(ui.available_width());
             add(ui)
@@ -109,7 +112,7 @@ pub fn sparkline(ui: &Ui, rect: Rect, values: &[f32], c: Color32) {
         .map(|(i, v)| {
             let x = rect.left() + rect.width() * i as f32 / n;
             // Flat series sit in the middle; others use the full height.
-            let y = if max - min < f32::EPSILON {
+            let y = if (max - min).abs() < f32::EPSILON {
                 rect.center().y
             } else {
                 rect.bottom() - rect.height() * (v - min) / span
@@ -161,7 +164,11 @@ pub fn line_chart(ui: &mut Ui, values: &[f32], fmt: &dyn Fn(f32) -> String, aria
         rect.min + vec2(space::XXXL, space::S),
         rect.max - vec2(0.0, space::XL),
     );
-    let max = values.iter().copied().fold(0.0_f32, f32::max).max(f32::EPSILON);
+    let max = values
+        .iter()
+        .copied()
+        .fold(0.0_f32, f32::max)
+        .max(f32::EPSILON);
     for frac in [0.0_f32, 0.5, 1.0] {
         let y = plot.bottom() - plot.height() * frac;
         p.line_segment(
@@ -231,6 +238,14 @@ pub fn line_chart(ui: &mut Ui, values: &[f32], fmt: &dyn Fn(f32) -> String, aria
 /// Returns the index clicked this frame, if any.
 pub fn segmented(ui: &mut Ui, items: &[(&str, bool, &'static str)]) -> Option<usize> {
     let mut clicked = None;
+    // In a right-to-left row the items are added in reverse so they still
+    // read left to right.
+    let rtl = ui.layout().main_dir() == egui::Direction::RightToLeft;
+    let order: Vec<usize> = if rtl {
+        (0..items.len()).rev().collect()
+    } else {
+        (0..items.len()).collect()
+    };
     egui::Frame::new()
         .fill(color::SURFACE)
         .corner_radius(CornerRadius::same(radius::CONTROL))
@@ -238,7 +253,10 @@ pub fn segmented(ui: &mut Ui, items: &[(&str, bool, &'static str)]) -> Option<us
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = space::XS;
-                for (i, (text, on, id)) in items.iter().enumerate() {
+                for i in order {
+                    let Some((text, on, id)) = items.get(i) else {
+                        continue;
+                    };
                     let (fill, fg) = if *on {
                         (color::SURFACE_RAISED, color::TEXT_STRONG)
                     } else {
@@ -408,4 +426,16 @@ pub fn bytes(b: u64) -> String {
     } else {
         format!("{v:.1} {unit}")
     }
+}
+
+/// A small magnifier icon (search fields).
+pub fn search_icon(ui: &mut Ui) {
+    let (rect, _) = ui.allocate_exact_size(Vec2::splat(space::L), Sense::hover());
+    let c = rect.center() - vec2(space::ICON_SHIFT, space::ICON_SHIFT);
+    let stroke = Stroke::new(space::LINE, color::TEXT_DIM);
+    ui.painter().circle_stroke(c, space::ICON_R, stroke);
+    ui.painter().line_segment(
+        [c + vec2(space::XS, space::XS), c + vec2(space::S, space::S)],
+        stroke,
+    );
 }

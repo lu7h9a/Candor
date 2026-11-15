@@ -17,6 +17,8 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 pub const MAX_ALERTS: usize = 256;
 /// Detail replies kept.
 pub const MAX_DETAILS: usize = 16;
+/// Glasshouse runs listed under "Earlier runs".
+pub const MAX_GH_HISTORY: usize = 20;
 
 /// State of the connection to the daemon.
 #[derive(Clone, Debug, PartialEq)]
@@ -96,9 +98,36 @@ pub enum Tab {
     Maps,
     /// Findings.
     Findings,
+    /// The access map (spec section 6).
+    Map,
+    /// The raw event list.
+    Events,
+}
+
+/// The three views of the detail page (spec 5.2). The older tabs live
+/// inside them: Overview holds the charts and findings, Events holds the
+/// event list and the files, connections, syscalls, children and memory
+/// maps lists.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum DetailView {
+    /// Charts, "what it did", findings.
+    Overview,
+    /// Access map.
+    Map,
+    /// Lists.
+    Events,
 }
 
 impl Tab {
+    /// Which detail view shows this tab.
+    pub fn view(self) -> DetailView {
+        match self {
+            Tab::Overview | Tab::Findings => DetailView::Overview,
+            Tab::Map => DetailView::Map,
+            _ => DetailView::Events,
+        }
+    }
+
     /// Stable name used in labels and --tab.
     pub fn name(self) -> &'static str {
         match self {
@@ -109,11 +138,13 @@ impl Tab {
             Tab::Children => "children",
             Tab::Maps => "maps",
             Tab::Findings => "findings",
+            Tab::Map => "map",
+            Tab::Events => "events",
         }
     }
 
     /// All tabs in display order.
-    pub fn all() -> [Tab; 7] {
+    pub fn all() -> [Tab; 9] {
         [
             Tab::Overview,
             Tab::Files,
@@ -122,6 +153,8 @@ impl Tab {
             Tab::Children,
             Tab::Maps,
             Tab::Findings,
+            Tab::Map,
+            Tab::Events,
         ]
     }
 
@@ -138,7 +171,29 @@ pub enum Page {
     Processes,
     /// Glasshouse sandbox runs.
     Glasshouse,
+    /// All findings, newest first.
+    Findings,
 }
+
+/// Kinds of event in the Events view filter chips.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EventKindFilter {
+    /// Every event.
+    All,
+    /// Programs started.
+    Exec,
+    /// Files opened, renamed, deleted.
+    File,
+    /// Connections and listening sockets.
+    Network,
+    /// Everything else.
+    Other,
+}
+
+/// Points of history kept for the stat cards and row sparklines.
+pub const HISTORY: usize = 60;
+/// Processes whose CPU history is kept for the row sparklines.
+pub const MAX_ROW_HISTORY: usize = 4096;
 
 /// A directory listing for the in-window file picker (filled by the app).
 #[derive(Clone, Debug, PartialEq)]
@@ -174,14 +229,42 @@ pub struct GhView {
     pub report: Option<Box<GhReport>>,
     /// Open file picker.
     pub browse: Option<Browse>,
+    /// The form holds the bundled example instead of a file path.
+    pub example: bool,
+    /// Runs made in this session, newest first (name, finished, report).
+    pub history: Vec<GhRunSummary>,
+    /// Show the start form even though a report exists ("Run again").
+    pub show_start: bool,
+    /// The report shown (index into `history`), if not the latest.
+    pub open_run: Option<usize>,
+    /// When the current run was started (elapsed time while running).
+    pub run_started: Option<std::time::Instant>,
 }
+
+/// One earlier Glasshouse run of this session.
+#[derive(Clone, Debug, PartialEq)]
+pub struct GhRunSummary {
+    /// Sample name (escaped).
+    pub name: String,
+    /// The report.
+    pub report: Box<GhReport>,
+}
+
+/// The README's example: reads the decoy SSH key, writes a note.
+pub const GH_EXAMPLE: &[u8] =
+    b"#!/bin/sh\ncat ~/.ssh/id_ed25519 > /dev/null\necho hi > ~/Documents/note.txt\n";
+/// The example's file name.
+pub const GH_EXAMPLE_NAME: &str = "try.sh";
+
+/// Stop-after choices offered on the Glasshouse form (seconds).
+pub const GH_TIMEOUTS: [u32; 3] = [30, 120, 600];
 
 impl Default for GhView {
     fn default() -> Self {
         GhView {
             path: String::new(),
             args: String::new(),
-            timeout_s: 60,
+            timeout_s: 30,
             offered: false,
             run_id: String::new(),
             state: None,
@@ -189,6 +272,11 @@ impl Default for GhView {
             decoys: Vec::new(),
             report: None,
             browse: None,
+            example: false,
+            history: Vec::new(),
+            show_start: false,
+            open_run: None,
+            run_started: None,
         }
     }
 }
@@ -201,6 +289,36 @@ impl GhView {
             Some(GhState::Uploading | GhState::Starting | GhState::Running)
         )
     }
+
+    /// The report to show: the one opened from the list, else the latest.
+    pub fn shown_report(&self) -> Option<&GhReport> {
+        match self.open_run {
+            Some(i) => self.history.get(i).map(|h| &*h.report),
+            None => self.report.as_deref(),
+        }
+    }
+
+    /// Which of the three states the page shows (spec 7).
+    pub fn stage(&self) -> GhStage {
+        if self.running() {
+            GhStage::Running
+        } else if !self.show_start && self.shown_report().is_some() {
+            GhStage::Report
+        } else {
+            GhStage::Start
+        }
+    }
+}
+
+/// The three states of the Glasshouse page.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum GhStage {
+    /// The form.
+    Start,
+    /// A run in progress.
+    Running,
+    /// A finished run's report.
+    Report,
 }
 
 /// What the user did.
@@ -264,6 +382,40 @@ pub enum Action {
     ActKillText(String),
     /// Act: kill, only if the typed text is the pid.
     ActKill(ProcKey),
+    /// Open the detail page of a process.
+    Open(ProcKey),
+    /// Back one level (detail -> list; Glasshouse report -> start).
+    Back,
+    /// Move the table cursor up (-1) or down (+1).
+    Cursor(i32),
+    /// Show or hide an optional column.
+    ToggleColumn(Column),
+    /// While the pointer is over the table, rows keep their order.
+    HoldOrder(bool),
+    /// Findings page: show one rule only (None = all).
+    FindingsRule(Option<String>),
+    /// Events view: filter by kind.
+    EventKinds(EventKindFilter),
+    /// Expand or collapse the evidence of a finding (by finding id).
+    ToggleEvidence(u64),
+    /// Glasshouse: fill the form with the bundled example.
+    GhExample,
+    /// Glasshouse: choose the stop-after time.
+    GhSetStop(u32),
+    /// Glasshouse: back to the form from a report.
+    GhRunAgain,
+    /// Glasshouse: open an earlier run's report.
+    GhOpenRun(usize),
+    /// Glasshouse: a file was dropped on the window.
+    GhDropped(String),
+    /// Hide personal details (home, user, host) in paths shown.
+    ToggleRedact,
+    /// Open or close the settings menu's status details.
+    ToggleMenu,
+    /// Map: an interaction (handled by the map state).
+    Map(crate::map::MapAction),
+    /// Glasshouse: show the report's map (true) or the report (false).
+    GhMap(bool),
 }
 
 /// One row as displayed (already escaped, with tree depth).
@@ -293,7 +445,7 @@ pub struct Model {
     /// Sequence number of the displayed snapshot.
     pub seq: u64,
     /// While paused, the newest snapshot that arrived (shown on resume).
-    pending: Option<(Vec<ProcRow>, Mode, Loss, u64)>,
+    pending: Option<(Vec<ProcRow>, Mode, Loss, u64, u64)>,
     /// Snapshots skipped while paused.
     pub skipped: u64,
     /// Display frozen.
@@ -336,6 +488,49 @@ pub struct Model {
     pub act_kill_text: String,
     /// Act: the last process paused from this window (offers undo).
     pub act_paused: Option<ProcKey>,
+    /// The detail page of the selected process is open.
+    pub detail_open: bool,
+    /// Optional columns switched on (Threads, Opens, Children, User).
+    pub extra_cols: BTreeSet<ColumnId>,
+    /// Row order held while the pointer is over the table.
+    pub hold: bool,
+    held_order: Vec<ProcKey>,
+    /// CPU % of the whole machine, one point per snapshot.
+    pub sys_cpu: VecDeque<f32>,
+    /// Memory of all processes (bytes), one point per snapshot.
+    pub sys_mem: VecDeque<f32>,
+    /// Events per second, one point per snapshot.
+    pub sys_eps: VecDeque<f32>,
+    last_events: Option<(u64, u64)>,
+    /// CPU history per process for the row sparklines (bounded).
+    pub cpu_hist: BTreeMap<ProcKey, VecDeque<f32>>,
+    ncpu: f32,
+    /// Findings page filter.
+    pub findings_rule: Option<String>,
+    /// Events view filter.
+    pub event_kinds: EventKindFilter,
+    /// Findings whose evidence is expanded.
+    pub expanded: BTreeSet<u64>,
+    /// Hide home, user and host names in paths shown (as exports do).
+    pub redact: bool,
+    /// The top-right menu is open.
+    pub menu_open: bool,
+    /// The access map's state.
+    pub map: crate::map::MapState,
+    /// The Glasshouse report shows its map instead of the report.
+    pub gh_map: bool,
+    /// Bumped when a detail reply arrives (the map rebuilds on change).
+    details_version: u64,
+}
+
+/// Optional table columns (`Column` values that are not shown by default).
+pub type ColumnId = u8;
+
+impl Column {
+    /// Stable id for the column picker.
+    pub fn id(self) -> ColumnId {
+        self as u8
+    }
 }
 
 impl Default for Model {
@@ -393,7 +588,7 @@ impl Model {
             skipped: 0,
             paused: false,
             tree: false,
-            sort: (Column::Cpu, true),
+            sort: (Column::Score, true),
             filter: String::new(),
             selected: None,
             tab: Tab::Overview,
@@ -411,6 +606,26 @@ impl Model {
             gh: GhView::default(),
             act_kill_text: String::new(),
             act_paused: None,
+            detail_open: false,
+            extra_cols: BTreeSet::new(),
+            hold: false,
+            held_order: Vec::new(),
+            sys_cpu: VecDeque::new(),
+            sys_mem: VecDeque::new(),
+            sys_eps: VecDeque::new(),
+            last_events: None,
+            cpu_hist: BTreeMap::new(),
+            ncpu: std::thread::available_parallelism()
+                .map(|n| n.get() as f32)
+                .unwrap_or(1.0),
+            findings_rule: None,
+            event_kinds: EventKindFilter::All,
+            expanded: BTreeSet::new(),
+            redact: false,
+            menu_open: false,
+            map: crate::map::MapState::default(),
+            gh_map: false,
+            details_version: 0,
         }
     }
 
@@ -420,7 +635,18 @@ impl Model {
     }
 
     fn refresh(&mut self) {
-        self.visible = self.visible_rows();
+        let mut v = self.visible_rows();
+        if self.hold && !self.tree {
+            // Keep the order the user is pointing at; new rows go last.
+            let pos: BTreeMap<ProcKey, usize> = self
+                .held_order
+                .iter()
+                .enumerate()
+                .map(|(i, k)| (*k, i))
+                .collect();
+            v.sort_by_key(|r| pos.get(&r.row.key).copied().unwrap_or(usize::MAX));
+        }
+        self.visible = v;
         self.multi_user_cached = self.multi_user();
     }
 
@@ -494,6 +720,7 @@ impl Model {
                 procs,
                 mode,
                 loss,
+                ts_ns,
                 ..
             } => {
                 if self.paused {
@@ -501,9 +728,9 @@ impl Model {
                     if self.pending.is_some() {
                         self.skipped += 1;
                     }
-                    self.pending = Some((procs, mode, loss, seq));
+                    self.pending = Some((procs, mode, loss, seq, ts_ns));
                 } else {
-                    self.show(procs, mode, loss, seq);
+                    self.show(procs, mode, loss, seq, ts_ns);
                 }
             }
             DaemonMsg::Alert { finding } => {
@@ -524,6 +751,7 @@ impl Model {
                         }
                     }
                     self.details.insert(k, d);
+                    self.details_version += 1;
                 }
             }
             DaemonMsg::ActResult { message, .. } => self.notice = Some(safe_str(&message)),
@@ -545,7 +773,17 @@ impl Model {
             DaemonMsg::GhReport { report } => {
                 self.gh.run_id = safe_str(&report.run_id);
                 self.gh.decoys = report.decoys.clone();
+                self.gh.history.insert(
+                    0,
+                    GhRunSummary {
+                        name: safe(&report.sample),
+                        report: Box::new(report.clone()),
+                    },
+                );
+                self.gh.history.truncate(MAX_GH_HISTORY);
                 self.gh.report = Some(Box::new(report));
+                self.gh.show_start = false;
+                self.gh.open_run = None;
             }
             DaemonMsg::Error { code, message } => {
                 if self.gh.running()
@@ -564,7 +802,8 @@ impl Model {
         }
     }
 
-    fn show(&mut self, procs: Vec<ProcRow>, mode: Mode, loss: Loss, seq: u64) {
+    fn show(&mut self, procs: Vec<ProcRow>, mode: Mode, loss: Loss, seq: u64, ts: u64) {
+        self.record_history(&procs, ts);
         self.rows = procs;
         self.mode = mode;
         self.loss = loss;
@@ -574,6 +813,7 @@ impl Model {
             && !self.rows.iter().any(|r| r.key == k)
         {
             self.selected = None;
+            self.detail_open = false;
             self.details.remove(&k);
         }
         self.refresh();
@@ -602,9 +842,9 @@ impl Model {
             Action::TogglePause => {
                 self.paused = !self.paused;
                 if !self.paused
-                    && let Some((p, m, l, s)) = self.pending.take()
+                    && let Some((p, m, l, s, t)) = self.pending.take()
                 {
-                    self.show(p, m, l, s);
+                    self.show(p, m, l, s, t);
                 }
             }
             Action::ToggleTree => self.tree = !self.tree,
@@ -616,10 +856,20 @@ impl Model {
                     .filter(|r| r.key.tgid == pid)
                     .map(|r| r.key)
                     .max();
+                self.detail_open = k.is_some();
+                if k.is_some() {
+                    self.page = Page::Processes;
+                }
                 return self.select(k);
             }
             Action::ShowTab(t) => {
                 self.tab = t;
+                if t == Tab::Map {
+                    if let Some(k) = self.selected {
+                        self.map.set_center(k);
+                    }
+                    return self.map_requests();
+                }
                 if t == Tab::Maps
                     && let Some(k) = self.selected
                 {
@@ -633,6 +883,8 @@ impl Model {
                 if let Some(f) = self.alerts.get(i) {
                     let k = f.proc;
                     self.tab = Tab::Findings;
+                    self.page = Page::Processes;
+                    self.detail_open = true;
                     return self.select(Some(k));
                 }
             }
@@ -648,10 +900,14 @@ impl Model {
             Action::Unfollow => return vec![ClientMsg::Unfollow {}],
             Action::Export => {}
             Action::ShowPage(p) => self.page = p,
-            Action::GhSetPath(p) => self.gh.path = p,
+            Action::GhSetPath(p) => {
+                self.gh.path = p;
+                self.gh.example = false;
+            }
             Action::GhSetArgs(a) => self.gh.args = a,
             Action::GhSetTimeout(t) => self.gh.timeout_s = t.clamp(1, 600),
             Action::GhPick(p) => {
+                self.gh.example = false;
                 self.gh.path = p;
                 self.gh.browse = None;
             }
@@ -682,8 +938,367 @@ impl Model {
                     return vec![ClientMsg::GhCancel {}];
                 }
             }
+            Action::Open(k) => {
+                self.detail_open = true;
+                self.page = Page::Processes;
+                if self.tab == Tab::Findings {
+                    self.tab = Tab::Overview;
+                }
+                let mut out = self.select(Some(k));
+                if self.tab == Tab::Map {
+                    out.extend(self.map_requests());
+                }
+                return out;
+            }
+            Action::Back => {
+                if self.page == Page::Glasshouse {
+                    if self.gh.stage() == GhStage::Report {
+                        self.gh.show_start = true;
+                        self.gh.open_run = None;
+                    }
+                } else if self.detail_open {
+                    self.detail_open = false;
+                } else if self.page == Page::Findings {
+                    self.page = Page::Processes;
+                }
+            }
+            Action::Cursor(d) => {
+                let keys: Vec<ProcKey> = self.visible.iter().map(|v| v.row.key).collect();
+                if keys.is_empty() {
+                    return Vec::new();
+                }
+                let at = self
+                    .selected
+                    .and_then(|k| keys.iter().position(|x| *x == k));
+                let next = match at {
+                    None => 0,
+                    Some(i) => (i as i64 + i64::from(d)).clamp(0, keys.len() as i64 - 1) as usize,
+                };
+                // The cursor only highlights; Enter opens (no detail request yet).
+                self.selected = keys.get(next).copied();
+            }
+            Action::ToggleColumn(c) => {
+                if !self.extra_cols.remove(&c.id()) {
+                    self.extra_cols.insert(c.id());
+                }
+            }
+            Action::HoldOrder(h) => {
+                self.hold = h;
+                if h {
+                    self.held_order = self.visible.iter().map(|v| v.row.key).collect();
+                } else {
+                    self.held_order.clear();
+                    self.refresh();
+                }
+            }
+            Action::FindingsRule(r) => self.findings_rule = r,
+            Action::EventKinds(k) => self.event_kinds = k,
+            Action::ToggleEvidence(id) => {
+                if !self.expanded.remove(&id) {
+                    self.expanded.insert(id);
+                }
+            }
+            Action::GhExample => {
+                self.gh.example = true;
+                self.gh.path = GH_EXAMPLE_NAME.into();
+                self.gh.args.clear();
+                self.gh.browse = None;
+            }
+            Action::GhSetStop(t) => self.gh.timeout_s = t.clamp(1, 600),
+            Action::GhRunAgain => {
+                self.gh.show_start = true;
+                self.gh.open_run = None;
+                self.gh_map = false;
+            }
+            Action::GhOpenRun(i) => {
+                if i < self.gh.history.len() {
+                    self.gh.open_run = Some(i);
+                    self.gh.show_start = false;
+                }
+            }
+            Action::GhDropped(p) => {
+                self.gh.path = p;
+                self.gh.example = false;
+                self.gh.browse = None;
+                self.page = Page::Glasshouse;
+            }
+            Action::ToggleRedact => {
+                self.redact = !self.redact;
+                self.map.invalidate();
+            }
+            Action::ToggleMenu => self.menu_open = !self.menu_open,
+            Action::GhMap(on) => {
+                self.gh_map = on;
+                if on {
+                    self.map.center = None;
+                }
+            }
+            Action::Map(a) => {
+                let recentre = self.map.on_action(a);
+                if let Some(k) = recentre {
+                    self.selected = Some(k);
+                    let mut out = vec![ClientMsg::GetDetail {
+                        proc: k,
+                        maps: false,
+                    }];
+                    out.extend(self.map_requests());
+                    return out;
+                }
+            }
         }
         Vec::new()
+    }
+
+    /// True when a map is on screen (it then needs `map_tick` each frame).
+    pub fn map_visible(&self) -> bool {
+        (self.page == Page::Processes && self.detail_open && self.tab == Tab::Map)
+            || (self.page == Page::Glasshouse && self.gh_map && self.gh.shown_report().is_some())
+    }
+
+    /// Rebuilds the map's graph when its data changed, then runs a bounded
+    /// number of layout steps. Called once per frame while a map is shown.
+    pub fn map_tick(&mut self) {
+        if !self.map_visible() {
+            return;
+        }
+        use crate::map::{self, ProcInfo};
+        let red = self.redact;
+        let shown = |raw: &str| -> String {
+            if !red {
+                return raw.to_string();
+            }
+            let home = std::env::var("HOME").unwrap_or_default();
+            let user = std::env::var("USER").unwrap_or_default();
+            let host = std::fs::read_to_string("/proc/sys/kernel/hostname").unwrap_or_default();
+            candor_core::redact::Redactor::new(&home, &user, host.trim(), false).text(raw)
+        };
+        if self.page == Page::Glasshouse {
+            let Some(r) = self.gh.shown_report() else {
+                return;
+            };
+            let events = &r.timeline;
+            let Some(center) = events
+                .iter()
+                .find(|e| matches!(e.kind, candor_proto::EventKind::Exec { .. }))
+                .or(events.first())
+                .map(|e| e.proc)
+            else {
+                return;
+            };
+            let mut procs: BTreeMap<ProcKey, ProcInfo> = BTreeMap::new();
+            for e in events {
+                match &e.kind {
+                    candor_proto::EventKind::Exec { exe, .. } => {
+                        procs
+                            .entry(e.proc)
+                            .or_insert(ProcInfo {
+                                name: String::new(),
+                                parent: None,
+                            })
+                            .name = safe(exe);
+                    }
+                    candor_proto::EventKind::Fork { child } => {
+                        procs
+                            .entry(*child)
+                            .or_insert(ProcInfo {
+                                name: String::new(),
+                                parent: None,
+                            })
+                            .parent = Some(e.proc);
+                    }
+                    _ => {}
+                }
+            }
+            for i in procs.values_mut() {
+                if i.name.is_empty() {
+                    i.name = safe(&r.sample);
+                }
+            }
+            let sig = r.started_ts ^ (r.timeline.len() as u64) ^ u64::from(red);
+            self.map.set_center(center);
+            let touches = map::touches_from_events(events);
+            let flags = map::flagged_objects(&r.findings);
+            self.map.sync(sig, |o| {
+                map::build(center, &procs, &touches, &flags, o, &shown)
+            });
+        } else {
+            let Some(center) = self.selected else { return };
+            self.map.set_center(center);
+            let mut procs: BTreeMap<ProcKey, ProcInfo> = BTreeMap::new();
+            for r in &self.rows {
+                procs.insert(
+                    r.key,
+                    ProcInfo {
+                        name: display_name(r),
+                        parent: r.parent,
+                    },
+                );
+            }
+            let mut touches = Vec::new();
+            let mut findings: Vec<Finding> = Vec::new();
+            let tree: Vec<ProcKey> = std::iter::once(center)
+                .chain(self.descendants(center))
+                .collect();
+            let mut without = 0;
+            for k in &tree {
+                match self.details.get(k) {
+                    Some(d) => {
+                        touches.extend(map::touches_from_detail(d));
+                        if let DaemonMsg::Detail { findings: f, .. } = d {
+                            findings.extend(f.iter().cloned());
+                        }
+                    }
+                    None => without += 1,
+                }
+            }
+            for f in &self.alerts {
+                if tree.contains(&f.proc) && !findings.iter().any(|x| x.id == f.id) {
+                    findings.push(f.clone());
+                }
+            }
+            let flags = map::flagged_objects(&findings);
+            let sig = self.details_version
+                ^ (u64::from(center.tgid) << 32)
+                ^ ((self.rows.len() as u64) << 48);
+            self.map.sync(sig, |o| {
+                let mut g = map::build(center, &procs, &touches, &flags, o, &shown);
+                g.without_detail = without;
+                g
+            });
+        }
+        for _ in 0..map::STEPS_PER_FRAME {
+            self.map.step();
+        }
+    }
+
+    /// Events behind the map's nodes: recent events of the processes in
+    /// the map, or the Glasshouse timeline.
+    pub fn map_events(&self) -> Vec<&candor_proto::Event> {
+        if self.page == Page::Glasshouse {
+            return self
+                .gh
+                .shown_report()
+                .map(|r| r.timeline.iter().collect())
+                .unwrap_or_default();
+        }
+        self.details
+            .values()
+            .filter_map(|d| match d {
+                DaemonMsg::Detail { recent, .. } => Some(recent.iter()),
+                _ => None,
+            })
+            .flatten()
+            .collect()
+    }
+
+    /// Wall-clock offset for times shown (0 in a replay).
+    pub fn boot_to_wall(&self) -> u64 {
+        match &self.conn {
+            ConnState::Connected {
+                boot_to_wall_ns, ..
+            } => *boot_to_wall_ns,
+            _ => 0,
+        }
+    }
+
+    /// Detail requests for the map: the centre process and its descendants
+    /// (bounded by the detail cache).
+    pub fn map_requests(&self) -> Vec<ClientMsg> {
+        let Some(c) = self.selected else {
+            return Vec::new();
+        };
+        self.descendants(c)
+            .into_iter()
+            .take(MAX_DETAILS - 1)
+            .map(|k| ClientMsg::GetDetail {
+                proc: k,
+                maps: false,
+            })
+            .collect()
+    }
+
+    /// Descendants of `k` in the current rows, breadth first.
+    pub fn descendants(&self, k: ProcKey) -> Vec<ProcKey> {
+        let mut kids: BTreeMap<ProcKey, Vec<ProcKey>> = BTreeMap::new();
+        for r in &self.rows {
+            if let Some(p) = r.parent
+                && p != r.key
+            {
+                kids.entry(p).or_default().push(r.key);
+            }
+        }
+        let mut out = Vec::new();
+        let mut seen = BTreeSet::from([k]);
+        let mut q = VecDeque::from([k]);
+        while let Some(x) = q.pop_front() {
+            for c in kids.get(&x).into_iter().flatten() {
+                if seen.insert(*c) {
+                    out.push(*c);
+                    q.push_back(*c);
+                }
+            }
+        }
+        out
+    }
+
+    /// Cached detail of any process.
+    pub fn detail_of(&self, k: ProcKey) -> Option<&DaemonMsg> {
+        self.details.get(&k)
+    }
+
+    /// A path or name as it should be shown: escaped, and with home, user
+    /// and host replaced when "hide personal details" is on.
+    pub fn shown(&self, raw: &str) -> String {
+        if !self.redact {
+            return raw.to_string();
+        }
+        let home = std::env::var("HOME").unwrap_or_default();
+        let user = std::env::var("USER").unwrap_or_default();
+        let host = std::fs::read_to_string("/proc/sys/kernel/hostname").unwrap_or_default();
+        candor_core::redact::Redactor::new(&home, &user, host.trim(), false).text(raw)
+    }
+
+    fn record_history(&mut self, procs: &[ProcRow], ts: u64) {
+        let push = |q: &mut VecDeque<f32>, v: f32| {
+            if q.len() >= HISTORY {
+                q.pop_front();
+            }
+            q.push_back(v);
+        };
+        let live = procs.iter().filter(|r| r.exited_ts.is_none());
+        let cpu: f32 = live.clone().map(|r| r.cpu_pct).sum::<f32>() / self.ncpu.max(1.0);
+        let mem: u64 = live.clone().map(|r| r.rss).fold(0u64, u64::saturating_add);
+        let events: u64 = procs.iter().fold(0u64, |a, r| {
+            a.saturating_add(r.n_exec)
+                .saturating_add(r.n_open)
+                .saturating_add(r.n_conn)
+        });
+        let eps = match self.last_events {
+            Some((t0, e0)) if ts > t0 => {
+                events.saturating_sub(e0) as f32 / ((ts - t0) as f32 / 1e9)
+            }
+            _ => 0.0,
+        };
+        self.last_events = Some((ts, events));
+        push(&mut self.sys_cpu, cpu.clamp(0.0, 100.0));
+        push(&mut self.sys_mem, mem as f32);
+        push(&mut self.sys_eps, eps);
+        for r in procs {
+            if !self.cpu_hist.contains_key(&r.key) && self.cpu_hist.len() >= MAX_ROW_HISTORY {
+                continue;
+            }
+            push(self.cpu_hist.entry(r.key).or_default(), r.cpu_pct);
+        }
+        let present: BTreeSet<ProcKey> = procs.iter().map(|r| r.key).collect();
+        self.cpu_hist.retain(|k, _| present.contains(k));
+    }
+
+    /// Findings shown on the Findings page, newest first, filtered by rule.
+    pub fn findings_shown(&self) -> Vec<&Finding> {
+        self.alerts
+            .iter()
+            .filter(|f| self.findings_rule.as_ref().is_none_or(|r| *r == f.rule))
+            .collect()
     }
 
     fn select(&mut self, k: Option<ProcKey>) -> Vec<ClientMsg> {
@@ -722,7 +1337,9 @@ impl Model {
             Column::Opens => x.n_open.cmp(&y.n_open),
             Column::Conns => x.n_conn.cmp(&y.n_conn),
             Column::Children => x.n_child.cmp(&y.n_child),
-            Column::Score => (x.score, x.tree_score).cmp(&(y.score, y.tree_score)),
+            Column::Score => (x.score, x.tree_score)
+                .cmp(&(y.score, y.tree_score))
+                .then_with(|| x.cpu_pct.total_cmp(&y.cpu_pct)),
         };
         // Ties keep a stable order by key so rows do not jump around.
         let o = if self.sort.1 { o.reverse() } else { o };
@@ -954,7 +1571,17 @@ mod tests {
     fn sort_is_stable_and_toggles() {
         let mut m = Model::new();
         m.apply(snap(1, sample()));
-        // CPU descending by default; ties (10, 11 at 5.0) ordered by key.
+        // Score descending, then CPU, by default (redesign spec 5.1); with
+        // all scores 0 that is CPU descending, ties (10, 11 at 5.0) by key.
+        assert_eq!(pids(&m), vec![12, 10, 11, 1, 20]);
+        // A scored row comes first whatever its CPU.
+        let mut scored = sample();
+        scored[4].score = 40;
+        m.apply(snap(1, scored));
+        assert_eq!(pids(&m), vec![20, 12, 10, 11, 1]);
+        m.apply(snap(1, sample()));
+        // CPU: first click descending, second ascending.
+        m.on_action(Action::Sort(Column::Cpu));
         assert_eq!(pids(&m), vec![12, 10, 11, 1, 20]);
         m.on_action(Action::Sort(Column::Cpu));
         assert_eq!(pids(&m), vec![20, 1, 10, 11, 12]);

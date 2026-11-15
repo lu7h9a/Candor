@@ -33,6 +33,8 @@ pub struct App {
     sys_watch_sent: bool,
     /// Fonts and visuals installed (first frame).
     themed: bool,
+    /// Last time the map's details were asked for again.
+    map_refreshed: std::time::Instant,
 }
 
 impl App {
@@ -52,6 +54,7 @@ impl App {
             timed_requested: 0,
             sys_watch_sent: false,
             themed: false,
+            map_refreshed: std::time::Instant::now(),
         }
     }
 
@@ -145,7 +148,10 @@ impl App {
     }
 
     fn send(&mut self, req: candor_proto::ClientMsg) {
-        if self.source.tx.try_send(req).is_err() {
+        // A replay has no daemon: requests go nowhere, and that is not news.
+        if self.source.tx.try_send(req).is_err()
+            && !matches!(self.model.conn, crate::model::ConnState::Replay(_))
+        {
             self.model.notice = Some("Too many requests waiting for the daemon; try again.".into());
         }
     }
@@ -157,8 +163,48 @@ impl App {
             crate::theme::install(ui.ctx());
         }
         self.pump();
+        // Files dropped on the window go to the Glasshouse form.
+        let dropped: Vec<String> = ui.ctx().input(|i| {
+            i.raw
+                .dropped_files
+                .iter()
+                .map(|f| f.path().display().to_string())
+                .filter(|p| !p.is_empty())
+                .collect()
+        });
+        if let Some(p) = dropped.into_iter().next() {
+            self.act(Action::GhDropped(p));
+        }
+        // The map's layout runs here, a few bounded steps per frame.
+        self.model.map_tick();
+        if self.model.map_visible() {
+            self.refresh_map_details();
+            if self.model.map.moving() {
+                ui.ctx().request_repaint();
+            }
+        }
         for a in crate::ui::draw(ui, &self.model) {
             self.act(a);
+        }
+    }
+
+    /// While a process map is open, asks again for the details of the
+    /// processes in it every 2 s, so new files and connections appear.
+    fn refresh_map_details(&mut self) {
+        if self.model.page != crate::model::Page::Processes {
+            return;
+        }
+        if self.map_refreshed.elapsed() < Duration::from_secs(2) {
+            return;
+        }
+        self.map_refreshed = std::time::Instant::now();
+        let Some(k) = self.model.selected else { return };
+        self.send(candor_proto::ClientMsg::GetDetail {
+            proc: k,
+            maps: false,
+        });
+        for req in self.model.map_requests() {
+            self.send(req);
         }
     }
 
@@ -195,6 +241,12 @@ impl App {
     /// GUI reads the file as the user; the daemon only gets bytes (D25).
     fn gh_run(&mut self) {
         use candor_proto::{BStr, ClientMsg, GhState};
+        if self.model.gh.example {
+            return self.gh_upload(
+                BStr::from(crate::model::GH_EXAMPLE_NAME),
+                crate::model::GH_EXAMPLE.to_vec(),
+            );
+        }
         let path = PathBuf::from(self.model.gh.path.trim());
         let meta = match std::fs::metadata(&path) {
             Ok(m) if m.is_file() && m.len() > 0 && m.len() <= 256 * 1024 * 1024 => m,
@@ -227,6 +279,9 @@ impl App {
         self.model.gh.message = format!("uploading {size} bytes");
         self.model.gh.report = None;
         self.model.gh.decoys.clear();
+        self.model.gh.run_started = Some(std::time::Instant::now());
+        self.model.gh.show_start = false;
+        self.model.gh_map = false;
         std::thread::spawn(move || {
             let send = |m: ClientMsg| tx.send_timeout(m, Duration::from_secs(30)).is_ok();
             let Ok(mut f) = std::fs::File::open(&path) else {
@@ -256,9 +311,49 @@ impl App {
         });
     }
 
+    /// Uploads bytes held in memory (the bundled example) and runs them.
+    fn gh_upload(&mut self, name: candor_proto::BStr, bytes: Vec<u8>) {
+        use candor_proto::{ClientMsg, GhState};
+        let args: Vec<candor_proto::BStr> = self
+            .model
+            .gh
+            .args
+            .split_whitespace()
+            .map(candor_proto::BStr::from)
+            .collect();
+        let timeout_s = self.model.gh.timeout_s;
+        self.model.gh.state = Some(GhState::Uploading);
+        self.model.gh.message = format!("uploading {} bytes", bytes.len());
+        self.model.gh.report = None;
+        self.model.gh.decoys.clear();
+        self.model.gh.run_started = Some(std::time::Instant::now());
+        self.model.gh.show_start = false;
+        self.model.gh_map = false;
+        let tx = self.source.tx.clone();
+        std::thread::spawn(move || {
+            let send = |m: ClientMsg| tx.send_timeout(m, Duration::from_secs(30)).is_ok();
+            if !send(ClientMsg::GhUploadBegin {
+                name,
+                size: bytes.len() as u64,
+            }) {
+                return;
+            }
+            for (seq, chunk) in bytes.chunks(64 * 1024).enumerate() {
+                let b64 = candor_proto::b64::encode(chunk);
+                if !send(ClientMsg::GhUploadChunk {
+                    seq: seq as u32,
+                    b64,
+                }) {
+                    return;
+                }
+            }
+            send(ClientMsg::GhRun { args, timeout_s });
+        });
+    }
+
     /// Writes the report as text and JSON into the home directory.
     fn gh_export(&mut self) {
-        let Some(r) = self.model.gh.report.as_deref() else {
+        let Some(r) = self.model.gh.shown_report() else {
             return;
         };
         let home = PathBuf::from(std::env::var("HOME").unwrap_or_default());

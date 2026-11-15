@@ -85,6 +85,111 @@ pub fn counts(r: &GhReport) -> Counts {
 }
 
 /// The whole report as plain text, safe to print to a terminal.
+/// True for a decoy that stands for a secret (keys, tokens, passwords):
+/// a read of one is shown in the alert colour.
+pub fn is_secret(path: &str) -> bool {
+    const MARKS: [&str; 9] = [
+        "/.ssh/",
+        "/.gnupg/",
+        "/.aws/",
+        "/.kube/",
+        "/.docker/config",
+        "password",
+        "credential",
+        "/.netrc",
+        "id_",
+    ];
+    let p = path.to_lowercase();
+    MARKS.iter().any(|m| p.contains(m))
+}
+
+fn join_words(parts: &[String], last: &str) -> String {
+    match parts {
+        [] => String::new(),
+        [a] => a.clone(),
+        [rest @ .., z] => format!("{} {last} {z}", rest.join(", ")),
+    }
+}
+
+fn n_things(n: usize, one: &str, many: &str) -> String {
+    match n {
+        1 => format!("one {one}"),
+        n => format!("{n} {many}"),
+    }
+}
+
+/// The report in one or two plain sentences, from its counts (spec 7.3):
+/// "It read a decoy SSH key and created one file. It did not delete
+/// anything or try to reach the network."
+pub fn summary_sentence(r: &GhReport) -> String {
+    let c = counts(r);
+    let read_secret = r
+        .decoys
+        .iter()
+        .any(|d| d.states.contains(&DecoyState::Read) && is_secret(&safe(&d.path)));
+    let ssh = r
+        .decoys
+        .iter()
+        .any(|d| d.states.contains(&DecoyState::Read) && safe(&d.path).contains("/.ssh/"));
+    let mut did = Vec::new();
+    let mut didnt = Vec::new();
+    if c.read > 0 {
+        let what = if c.read == 1 && ssh {
+            "a decoy SSH key".to_string()
+        } else if c.read == 1 && read_secret {
+            "a decoy secret".to_string()
+        } else if read_secret {
+            format!("{} decoy files including secrets", c.read)
+        } else {
+            n_things(c.read, "decoy file", "decoy files")
+        };
+        did.push(format!("read {what}"));
+    } else {
+        didnt.push("read any decoy".to_string());
+    }
+    let changed = c.modified + c.renamed;
+    if changed > 0 {
+        did.push(format!(
+            "changed {}",
+            n_things(changed, "decoy file", "decoy files")
+        ));
+    } else {
+        didnt.push("change any decoy".to_string());
+    }
+    if c.created > 0 {
+        did.push(format!("created {}", n_things(c.created, "file", "files")));
+    }
+    if c.deleted > 0 {
+        did.push(format!("deleted {}", n_things(c.deleted, "file", "files")));
+    } else {
+        didnt.push("delete anything".to_string());
+    }
+    if c.connects > 0 {
+        let n = c.connects as usize;
+        did.push(format!(
+            "tried to reach the network {}",
+            if n == 1 {
+                "once".to_string()
+            } else {
+                format!("{n} times")
+            }
+        ));
+    } else {
+        didnt.push("try to reach the network".to_string());
+    }
+    let mut out = String::new();
+    if !did.is_empty() {
+        out.push_str(&format!("It {}.", join_words(&did, "and")));
+    }
+    if !didnt.is_empty() {
+        if !out.is_empty() {
+            out.push(' ');
+        }
+        out.push_str(&format!("It did not {}.", join_words(&didnt, "or")));
+    }
+    out
+}
+
 pub fn render_text(r: &GhReport) -> String {
     let mut o = String::new();
     let c = counts(r);
@@ -278,5 +383,131 @@ mod tests {
         assert!(t.ends_with(&format!("{LIMITATION}\n")));
         // The created file's newline does not start a new report line.
         assert!(!t.lines().any(|l| l.starts_with("EADME")));
+    }
+}
+
+#[cfg(test)]
+mod summary_tests {
+    use super::*;
+    use candor_proto::{BStr, ConnStat, CreatedFile, Family, Loss, SockType};
+
+    fn decoy(path: &str, states: &[DecoyState]) -> DecoyStatus {
+        DecoyStatus {
+            path: BStr::from(path),
+            dev: 1,
+            ino: 1,
+            states: states.to_vec(),
+            new_path: None,
+            size_before: 10,
+            size_after: Some(10),
+            entropy_before: 4.0,
+            entropy_after: Some(4.0),
+        }
+    }
+
+    fn report(decoys: Vec<DecoyStatus>, created: usize, connects: u64) -> GhReport {
+        GhReport {
+            run_id: "r".into(),
+            sample: BStr::from("try.sh"),
+            args: vec![],
+            timeout_s: 30,
+            started_ts: 0,
+            ended_ts: 1,
+            exit_code: Some(0),
+            timed_out: false,
+            decoys,
+            created: (0..created)
+                .map(|i| CreatedFile {
+                    path: BStr::from(format!("/home/u/n{i}").as_str()),
+                    size: 1,
+                    entropy: 1.0,
+                    preview: None,
+                    kind: "text".into(),
+                })
+                .collect(),
+            timeline: vec![],
+            connections: if connects > 0 {
+                vec![ConnStat {
+                    family: Family::Inet,
+                    addr: "10.0.0.1".into(),
+                    port: 443,
+                    sock: SockType::Stream,
+                    count: connects,
+                    last_ts: 1,
+                }]
+            } else {
+                vec![]
+            },
+            children: vec![],
+            findings: vec![],
+            loss: Loss::default(),
+            limitation: String::new(),
+            notes: vec![],
+        }
+    }
+
+    #[test]
+    fn the_spec_example() {
+        let r = report(
+            vec![
+                decoy("/home/u/.ssh/id_ed25519", &[DecoyState::Read]),
+                decoy("/home/u/Documents/a.txt", &[DecoyState::Untouched]),
+            ],
+            1,
+            0,
+        );
+        assert_eq!(
+            summary_sentence(&r),
+            "It read a decoy SSH key and created one file. It did not change any decoy, delete anything or try to reach the network."
+        );
+    }
+
+    #[test]
+    fn nothing_touched() {
+        let r = report(vec![decoy("/home/u/a", &[DecoyState::Untouched])], 0, 0);
+        assert_eq!(
+            summary_sentence(&r),
+            "It did not read any decoy, change any decoy, delete anything or try to reach the network."
+        );
+    }
+
+    #[test]
+    fn everything_with_plurals() {
+        let r = report(
+            vec![
+                decoy(
+                    "/home/u/Documents/a",
+                    &[DecoyState::Read, DecoyState::Modified],
+                ),
+                decoy(
+                    "/home/u/Documents/b",
+                    &[DecoyState::Read, DecoyState::Deleted],
+                ),
+                decoy("/home/u/Photos/c", &[DecoyState::Renamed]),
+            ],
+            2,
+            3,
+        );
+        assert_eq!(
+            summary_sentence(&r),
+            "It read 2 decoy files, changed 2 decoy files, created 2 files, deleted one file and tried to reach the network 3 times."
+        );
+    }
+
+    #[test]
+    fn secrets_are_named() {
+        assert!(is_secret("/home/u/.ssh/id_rsa") && is_secret("/home/u/.aws/credentials"));
+        assert!(!is_secret("/home/u/Documents/report.txt"));
+        let r = report(
+            vec![
+                decoy("/home/u/.aws/credentials", &[DecoyState::Read]),
+                decoy("/home/u/Photos/p.jpg", &[DecoyState::Read]),
+            ],
+            0,
+            1,
+        );
+        assert!(summary_sentence(&r).starts_with(
+            "It read 2 decoy files including secrets and tried to reach the network once."
+        ));
     }
 }

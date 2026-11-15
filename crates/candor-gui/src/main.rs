@@ -8,7 +8,7 @@
 //! Debug flags: --replay FILE [--pace recorded|max|MS], --screenshot PNG
 //! --after-frames N, --select PID, --tab NAME, --socket PATH, --paused,
 //! --shot-at SECONDS:FILE (repeatable; exits after the last one),
-//! --page processes|glasshouse.
+//! --page processes|findings|glasshouse.
 #![forbid(unsafe_code)]
 
 use candor_gui::app::App;
@@ -86,7 +86,8 @@ fn main() {
             "--page" => initial.push(Action::ShowPage(match val().as_str() {
                 "processes" => Page::Processes,
                 "glasshouse" => Page::Glasshouse,
-                _ => fail("--page processes|glasshouse"),
+                "findings" => Page::Findings,
+                _ => fail("--page processes|findings|glasshouse"),
             })),
             "--shot-at" => {
                 let v = val();

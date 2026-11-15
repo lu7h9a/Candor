@@ -5,6 +5,8 @@
 
 pub mod app;
 pub mod ghui;
+pub mod map;
+pub mod mapview;
 pub mod model;
 pub mod net;
 pub mod theme;

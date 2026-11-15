@@ -8,7 +8,9 @@
 //! means a finding, amber (`CAUTION`) means "worth a look" or a warning.
 //! Nothing else is coloured, and colour is never the only signal.
 
-use egui::{Color32, CornerRadius, FontData, FontDefinitions, FontFamily, FontId, RichText, Stroke};
+use egui::{
+    Color32, CornerRadius, FontData, FontDefinitions, FontFamily, FontId, RichText, Stroke,
+};
 use std::sync::Arc;
 
 /// Colour tokens.
@@ -46,6 +48,11 @@ pub mod color {
     pub const EDGE: Color32 = Color32::from_rgb(0x3A, 0x46, 0x4C);
     /// Nothing drawn (used for hit areas and empty slots).
     pub const NONE: Color32 = Color32::TRANSPARENT;
+
+    /// Opacity of dimmed elements (hover, search).
+    pub const DIM_ALPHA: f32 = 0.25;
+    /// Opacity of elements outside the time window.
+    pub const OUT_OF_WINDOW_ALPHA: f32 = 0.15;
 
     /// `c` at `alpha` (0..=1) opacity: dimming in the map.
     pub fn faded(c: Color32, alpha: f32) -> Color32 {
@@ -105,6 +112,10 @@ pub mod space {
     pub const CONTROL_SMALL: f32 = 36.0;
     /// Status dot diameter.
     pub const DOT: f32 = 8.0;
+    /// Status dot radius.
+    pub const DOT_R: f32 = 4.0;
+    /// Offset of the magnifier's lens from its box centre.
+    pub const ICON_SHIFT: f32 = 2.0;
     /// Stat card sparkline.
     pub const SPARK_W: f32 = 120.0;
     /// Stat card sparkline.
@@ -133,6 +144,40 @@ pub mod space {
     pub const FIELD_W: f32 = 520.0;
     /// Width at which cards wrap to one column.
     pub const NARROW: f32 = 900.0;
+    /// Gap between a label and its value (6).
+    pub const LABEL_GAP: f32 = 6.0;
+    /// Gap after a status dot; vertical padding of flow boxes (10).
+    pub const DOT_GAP: f32 = 10.0;
+    /// Magnifier icon radius.
+    pub const ICON_R: f32 = 4.5;
+    /// Legend dot radius.
+    pub const LEGEND_R: f32 = 5.0;
+    /// The small status dot on the menu button.
+    pub const MENU_DOT_R: f32 = 3.0;
+    /// A numeric table column, and small text fields.
+    pub const COL_W: f32 = 120.0;
+    /// The CPU column (sparkline and value).
+    pub const CPU_COL_W: f32 = 160.0;
+    /// Narrowest the Process column gets.
+    pub const NAME_COL_MIN: f32 = 240.0;
+    /// Space above a centred message.
+    pub const MESSAGE_TOP: f32 = 80.0;
+    /// Width of a centred message.
+    pub const MESSAGE_W: f32 = 600.0;
+    /// Room kept for buttons beside a banner's text.
+    pub const BANNER_ACTIONS: f32 = 120.0;
+    /// Height of the Glasshouse file picker list.
+    pub const PICKER_H: f32 = 260.0;
+    /// Map side panel minimum height.
+    pub const SIDE_MIN_H: f32 = 456.0;
+    /// Map dot radius: smallest.
+    pub const NODE_R_MIN: f32 = 4.0;
+    /// Map dot radius: growth per log of the event count.
+    pub const NODE_R_GROWTH: f32 = 3.0;
+    /// Map dot radius: largest.
+    pub const NODE_R_MAX: f32 = 18.0;
+    /// Gap between a group dot and its outer ring.
+    pub const GROUP_RING: f32 = 3.0;
 }
 
 /// Corner radii.
@@ -225,7 +270,10 @@ fn apply(s: &mut egui::Style) {
         (TextStyle::Small, FontId::proportional(size::LABEL)),
         (TextStyle::Body, FontId::proportional(size::BODY)),
         (TextStyle::Button, FontId::new(size::BODY, font::medium())),
-        (TextStyle::Heading, FontId::new(size::TITLE, font::semibold())),
+        (
+            TextStyle::Heading,
+            FontId::new(size::TITLE, font::semibold()),
+        ),
         (TextStyle::Monospace, FontId::monospace(size::SMALL)),
     ]
     .into();

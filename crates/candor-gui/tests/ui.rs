@@ -54,14 +54,48 @@ fn every_required_element_has_its_label() {
             "missing element {label:?}"
         );
     }
-    // Detail tabs appear once a process is selected.
+    // The detail page opens once a process is selected. Its three views
+    // (redesign spec 5.2) and the findings section are on the page itself.
     h.state_mut()
         .act(candor_gui::model::Action::SelectPid(1600));
     h.run_steps(3);
+    for label in [
+        "detail-overview",
+        "detail-map",
+        "detail-events",
+        "detail-findings",
+        "back",
+    ] {
+        assert!(h.query_by_label(label).is_some(), "missing {label}");
+    }
+    // The older lists (files, network, syscalls, children, memory maps)
+    // live in the Events view.
+    h.get_by_label("detail-events").click();
+    h.run_steps(3);
     for t in Tab::all() {
-        let label = format!("detail-{}", t.name());
+        if matches!(t, Tab::Overview | Tab::Findings | Tab::Map) {
+            continue; // checked above
+        }
+        let label = if t == Tab::Events {
+            "detail-list".to_string()
+        } else {
+            format!("detail-{}", t.name())
+        };
         assert!(h.query_by_label(&label).is_some(), "missing {label}");
     }
+    // The map view draws its canvas.
+    h.get_by_label("detail-map").click();
+    h.run_steps(5);
+    assert!(
+        h.query_by_label("access-map").is_some(),
+        "missing access-map"
+    );
+    assert_eq!(h.state().model.map.center.map(|k| k.tgid), Some(1600));
+    assert!(!h.state().model.map.graph.nodes.is_empty());
+    // Esc goes back to the list.
+    h.key_press(egui::Key::Escape);
+    h.run_steps(2);
+    assert!(!h.state().model.detail_open);
 }
 
 #[test]
@@ -82,10 +116,13 @@ fn search_sort_pause_tab_and_alert_click_change_the_model() {
     h.get_by_label("pause").click();
     h.run_steps(2);
     assert!(h.state().model.paused);
-    // Alert click selects the process and opens Findings.
+    // Alert click selects the process and opens Findings. Alerts are on
+    // the Findings page (redesign spec 8).
     h.state_mut().model.filter.clear();
     h.run_steps(1);
     let first_alert = h.state().model.alerts[0].proc;
+    h.get_by_label("alerts").click();
+    h.run_steps(2);
     h.get_by_label_contains("R001 Credential file read").click();
     h.run_steps(2);
     let alert_proc = h
@@ -102,7 +139,10 @@ fn search_sort_pause_tab_and_alert_click_change_the_model() {
         "first alert was {first_alert:?}"
     );
     assert_eq!(h.state().model.tab, Tab::Findings);
-    // Tab switch.
+    assert!(h.state().model.detail_open);
+    // Tab switch (the files list is in the Events view).
+    h.get_by_label("detail-events").click();
+    h.run_steps(2);
     h.get_by_label("detail-files").click();
     h.run_steps(2);
     assert_eq!(h.state().model.tab, Tab::Files);
@@ -136,18 +176,16 @@ fn glasshouse_page_shows_the_report() {
     h.get_by_label("Glasshouse").click();
     h.run_steps(3);
     assert_eq!(h.state().model.page, candor_gui::model::Page::Glasshouse);
+    // The report state (redesign spec 7.3).
     for label in [
-        "gh-path",
-        "gh-browse",
-        "gh-args",
-        "gh-timeout",
-        "gh-run",
-        "gh-cancel",
         "gh-status",
         "gh-decoys",
         "gh-report",
         "gh-timeline",
         "gh-export",
+        "gh-run-again",
+        "gh-map",
+        "gh-loss",
     ] {
         assert!(
             h.query_by_label(label).is_some(),
@@ -174,7 +212,42 @@ fn glasshouse_page_shows_the_report() {
         .filter(|d| d.states != vec![candor_proto::DecoyState::Untouched])
         .count();
     assert_eq!((touched, h.state().model.gh.decoys.len()), (32, 42));
+    // "Run again" shows the start form (spec 7.1), with the limitation.
+    h.get_by_label("gh-run-again").click();
+    h.run_steps(3);
+    for label in [
+        "gh-path",
+        "gh-browse",
+        "gh-args",
+        "gh-timeout",
+        "gh-run",
+        "gh-example",
+        "gh-status",
+        "gh-unavailable",
+    ] {
+        assert!(
+            h.query_by_label(label).is_some(),
+            "missing element {label:?}"
+        );
+    }
+    assert!(
+        h.query_by_label_contains("not a malware containment system")
+            .is_some()
+    );
+    // "Try an example" fills the form with the bundled script.
+    h.get_by_label("gh-example").click();
+    h.run_steps(2);
+    assert!(h.state().model.gh.example);
+    assert_eq!(h.state().model.gh.path, "try.sh");
+    // While running, the form is replaced by Stop and the live counters.
+    h.state_mut().model.gh.state = Some(candor_proto::GhState::Running);
+    h.run_steps(2);
+    assert!(h.query_by_label("gh-cancel").is_some(), "missing gh-cancel");
+    h.state_mut().model.gh.state = Some(candor_proto::GhState::Finished);
+    h.state_mut().model.gh.show_start = true;
+    h.run_steps(2);
     // A replay has no daemon: running is not offered.
+    h.state_mut().model.gh.example = false;
     h.state_mut().model.gh.path = "/bin/true".into();
     h.run_steps(2);
     h.get_by_label("gh-run").click();
