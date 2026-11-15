@@ -1,4 +1,4 @@
-# Packaging (plan WP30)
+# Packaging
 
 `make package` builds every package inside a fresh ubuntu2204 guest, the
 oldest supported glibc (`vm/package.sh` runs `packaging/build.sh` there) and
@@ -42,9 +42,16 @@ Result, 2026-11-14 (0.0.1): all OK on debian12, ubuntu2204, ubuntu2404, fedora (
 lintian: 0 errors. Warnings:
 - `initial-upload-closes-no-bugs`: not a Debian archive upload.
 - `maintainer-script-calls-systemctl`: prerm stops the service directly; there is no debhelper.
-- `no-manual-page` for the four binaries: man pages are planned with the docs (WP33).
 
-rpmlint: 1 error, `no-signature`. Packages are signed with the owner's key at release time (WP32 release automation); this needs a credential, so it is the owner's step (escalation E9). Warnings:
-- `no-manual-page-for-binary` x4 (as above).
+rpmlint: 1 error, `no-signature`. Packages are signed with the maintainer's key at release time; the release workflow does not hold that key. Warnings:
+- `manpage-not-compressed bz2` x4: the man pages are gzip-compressed, as Debian and Arch expect; this rpmlint profile prefers bz2.
 - `invalid-license MIT`: the license is MIT (SPDX identifier `MIT`); the rpmlint in the Ubuntu build guest does not accept it with its default configuration.
 - `dangerous-command-in-%postun rm`: it removes `/run/candor` and `/var/lib/candor` only, on erase.
+
+## Upgrades
+
+Upgrading the package does not restart a running `candord`: the old
+daemon keeps running until you run `sudo systemctl restart candord`. A
+GUI or CLI from the new version can still talk to the old daemon only if
+the protocol version matches; otherwise the daemon refuses the connection
+with a message naming both versions.

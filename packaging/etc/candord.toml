@@ -1,3 +1,7 @@
 # /etc/candor/candord.toml - daemon settings.
 #
 # syscalls = "count"   # per-process syscall counts; "off" saves CPU
+#
+# Experimental act mode: lets root and members of candor-act pause, resume
+# or kill processes they could signal themselves (logged). Off by default.
+# enable_act = true

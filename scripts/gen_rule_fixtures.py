@@ -92,6 +92,10 @@ def r001():
     write("R001", "pos-root-reads-user-key", c, [("R001", "ssh_keys", 510, 0.9)], {510: 54})
     c = Case(); c.proc(520, "/home/bob/bin/tool", home="/home/bob"); c.open_(520, "/home/alice/.netrc", ino=1001)
     write("R001", "pos-cross-user-netrc", c, [("R001", "netrc", 520, 0.9)], {520: 54})
+    # git never reads private keys itself (ssh does): a trusted git reading
+    # one is flagged (final review: `git hash-object ~/.ssh/id_*` was silent).
+    c = Case(); c.proc(P, "/usr/bin/git", trusted=True, system_dir=True); c.open_(P, "/home/u/.ssh/id_ed25519")
+    write("R001", "pos-git-reads-private-key", c, [("R001", "ssh_keys", P, 0.5)], {P: 30})
     c = Case(); c.proc(P, TOOL); c.open_(P, "/home/u/.mozilla/firefox/abc.default/logins.json")
     write("R001", "pos-browser-logins", c, [("R001", "browser_creds", P, 0.9)], {P: 54})
     c = Case(); c.proc(P, TOOL); c.open_(P, "/home/u/.ssh/id_ed25519.pub")

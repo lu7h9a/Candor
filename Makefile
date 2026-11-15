@@ -79,6 +79,7 @@ test-root: release wl
 		$(CARGO) test -p candor-itest --release -- --test-threads=1
 
 lint: sysroot
+	scripts/check-claims.sh
 	$(CARGO) fmt --all -- --check
 	$(CARGO) clippy --workspace --all-targets -- -D warnings
 	@bpf_files=$$(find $(BPF_DIR) -name '*.c' -o -name '*.h' 2>/dev/null | grep -v '/vmlinux/' || true); \

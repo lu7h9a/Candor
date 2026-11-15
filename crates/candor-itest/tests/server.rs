@@ -496,3 +496,43 @@ print(json.loads(body)["code"])
     ));
     assert!(d.stop().unwrap().success());
 }
+
+/// Follow mode ends by itself once every followed process has exited, so a
+/// client that followed a short-lived program cannot leave everyone
+/// unwatched (final review finding).
+#[test]
+fn follow_ends_when_the_followed_tree_has_exited() {
+    let d = Daemon::start(&[]).unwrap();
+    let w = PausedWl::start(&["sleep", "1500"]).unwrap();
+    let (mut c, _) = Client::hello().unwrap();
+    subscribe(&mut c, EventSub::Simple(EventSubMode::None));
+    let key: ProcKey = loop {
+        if let DaemonMsg::Snapshot { procs, .. } = c.recv().unwrap()
+            && let Some(r) = procs.iter().find(|r| r.key.tgid == w.pid())
+        {
+            break r.key;
+        }
+    };
+    c.send(&ClientMsg::Follow { root: key }).unwrap();
+    c.recv_until(|m| matches!(m, DaemonMsg::ActResult { .. }))
+        .unwrap();
+    // Let it run its 1.5 s and exit.
+    let _ = w.release().unwrap();
+    let deadline = Instant::now() + Duration::from_secs(10);
+    let mut back = false;
+    while Instant::now() < deadline {
+        if let Ok(DaemonMsg::Snapshot { mode, .. }) = c.recv()
+            && matches!(mode, candor_proto::Mode::System(_))
+        {
+            back = true;
+            break;
+        }
+    }
+    assert!(back, "still following after the tree exited");
+    assert!(
+        d.stderr_text().contains("follow mode ended"),
+        "{}",
+        d.stderr_text()
+    );
+    assert!(d.stop().unwrap().success());
+}

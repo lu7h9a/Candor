@@ -2,10 +2,13 @@ Candor is installed but not running (it is never enabled by default).
 
 Candor's daemon watches the processes of EVERY user on this computer:
 the programs they start, files they open and connections they make.
+Use it only on computers you own or are responsible for.
 
   Start it now and at every boot:   sudo systemctl enable --now candord
   Let your user use the GUI/CLI:    sudo usermod -aG candor "$USER"
-  Also allow follow mode and act:   sudo usermod -aG candor-act "$USER"
+  Also allow follow mode:           sudo usermod -aG candor-act "$USER"
+  Act mode (pause/kill) is off until enable_act = true is set in
+  /etc/candor/candord.toml.
   (log out and back in after usermod)
 
 Then run `candor-gui` or `candor status`.

@@ -31,13 +31,31 @@ pub struct DaemonConfig {
     /// "count" (default) or "off".
     #[serde(default = "default_syscalls")]
     pub syscalls: String,
+    /// Allow the experimental act mode (same as --enable-act).
+    #[serde(default)]
+    pub enable_act: bool,
 }
 
 fn default_syscalls() -> String {
     "count".into()
 }
 
+/// Reads a file of /etc/candor, but only if root owns it and nobody else may
+/// write it: otherwise a user (or malware running as one) could turn
+/// detection off. Such a file is ignored with a warning and the built-in
+/// defaults apply (final review finding; THREAT_MODEL boundary B6).
 fn read_optional(path: &str) -> Result<Option<String>> {
+    use std::os::unix::fs::MetadataExt;
+    if let Ok(m) = std::fs::metadata(path)
+        && (m.uid() != 0 || m.mode() & 0o022 != 0)
+    {
+        eprintln!(
+            "candord: ignoring {path}: it must be owned by root and writable only by root (owner uid {}, mode {:o}); built-in defaults apply",
+            m.uid(),
+            m.mode() & 0o7777
+        );
+        return Ok(None);
+    }
     match std::fs::read_to_string(path) {
         Ok(t) => Ok(Some(t)),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
@@ -54,6 +72,7 @@ pub fn load_config(
         Some(t) => toml::from_str(&t).context("/etc/candor/candord.toml")?,
         None => DaemonConfig {
             syscalls: default_syscalls(),
+            enable_act: false,
         },
     };
     if cfg.syscalls != "count" && cfg.syscalls != "off" {
@@ -217,6 +236,14 @@ impl Core {
                     })
                     .collect();
                 self.apply(Input::SysTotals { ts_ns, totals });
+            }
+            PollerMsg::FollowEnded => {
+                if let Some(root) = self.follow.take() {
+                    eprintln!(
+                        "candord: follow mode ended: every process of pid {}'s tree has exited; tracing everything again",
+                        root.tgid
+                    );
+                }
             }
             PollerMsg::FollowResult(res) => {
                 let msg = match res {
@@ -987,6 +1014,8 @@ fn core_loop(
 /// Runs the daemon until SIGINT/SIGTERM.
 pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     let (cfg, rules, allow) = load_config(opts.rules_file.as_deref())?;
+    let mut opts = opts;
+    opts.enable_act = opts.enable_act || cfg.enable_act;
     let mut load = opts.load;
     load.syscalls = load.syscalls && cfg.syscalls == "count";
     let spec = if opts.dev {
@@ -1032,7 +1061,9 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     }
     // Glasshouse is offered only where a real sandbox start works (the
     // helper's probe; it never changes a system setting).
-    match crate::glasshouse::available() {
+    let gh_check = crate::glasshouse::available();
+    let gh_offered = gh_check.is_ok();
+    match gh_check {
         Ok(()) => features.push("glasshouse".into()),
         Err(why) => {
             eprintln!("candord: Glasshouse not available: {why}");
@@ -1073,7 +1104,8 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
     let (smp_tx, smp_rx) = crossbeam_channel::bounded::<Vec<ProcSample>>(64);
     let (cli_tx, cli_rx) = crossbeam_channel::bounded::<ClientCmd>(1024);
     crate::glasshouse::sweep();
-    let (gh, gh_rx) = crate::glasshouse::Glasshouse::new();
+    let (mut gh, gh_rx) = crate::glasshouse::Glasshouse::new();
+    gh.offered = gh_offered;
     let core = Core {
         gh,
         last_loss: candor_proto::Loss::default(),
@@ -1140,6 +1172,29 @@ pub fn run(opts: RunOpts, stop: Arc<AtomicBool>) -> Result<()> {
 mod tests {
     use super::*;
     use candor_proto::{BStr, Event, EventKind, FileStat, Loss, ProcRow, Series, SystemMode};
+
+    /// A config file that root does not own (or others may write) is
+    /// ignored, so a user cannot switch detection off through it.
+    #[test]
+    fn untrusted_config_files_are_ignored() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = std::env::temp_dir().join(format!("candor-cfg-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let f = dir.join("rules.toml");
+        std::fs::write(&f, "[rules.R001]\ndisabled = true\n").unwrap();
+        let p = f.to_str().unwrap();
+        let root = rustix::process::geteuid().is_root();
+        // Owned by the test user (not root): ignored. As root: group-writable.
+        if root {
+            std::fs::set_permissions(&f, std::fs::Permissions::from_mode(0o664)).unwrap();
+        }
+        assert_eq!(read_optional(p).unwrap(), None);
+        if root {
+            std::fs::set_permissions(&f, std::fs::Permissions::from_mode(0o644)).unwrap();
+            assert!(read_optional(p).unwrap().is_some());
+        }
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     /// Review F8: after a 10 s stall the next snapshot is one period away,
     /// not 20 overdue snapshots in a row.

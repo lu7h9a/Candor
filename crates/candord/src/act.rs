@@ -159,10 +159,13 @@ pub fn protected(r: Requester, target: ProcKey, st: &Stat) -> Option<String> {
         }
         p = s.ppid;
     }
-    if let Some(me) = stat_of(r.pid)
-        && me.session == st.session
-        && SESSION_CRITICAL.contains(&st.comm.as_str())
-    {
+    // Display servers, compositors and session managers: protected in the
+    // requester's session, and whenever the requester owns them (a display
+    // manager may start the user's compositor in another session; final
+    // review finding).
+    let same_session = stat_of(r.pid).is_some_and(|me| me.session == st.session);
+    let owned = uids_of(target.tgid).is_some_and(|(real, _)| real == r.uid);
+    if SESSION_CRITICAL.contains(&st.comm.as_str()) && (same_session || owned) {
         return Some(format!(
             "{} is the display server, session manager or GUI of your session",
             st.comm

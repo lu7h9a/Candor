@@ -55,7 +55,11 @@ cases (see below).
     (meant for development and fixtures): every event, to that file.
   - **Exports**, when you run `candor export` and save the output yourself.
 - The daemon's log (the systemd journal) records who connected, and who used
-  follow or act mode (user id and process id). It does not record events.
+  follow or act mode (user id and process id). It does not record events,
+  with two exceptions: when checking a program's executable takes too long,
+  the log names that process and its executable path; and a malformed message
+  from the Glasshouse helper is logged with the parser's error, which can
+  quote part of it.
 
 Uninstalling deletes `/run/candor` and `/var/lib/candor`.
 
@@ -72,7 +76,7 @@ The installed package adds nobody to these groups; you choose who to add.
 
 ## Exports and sharing
 
-`candor export` and saved reports are **redacted by default**:
+`candor export` is **redacted by default**:
 - your home folder becomes `~`, other users' homes `~user1`, `~user2`…;
 - your username and hostname become `<user>` and `<host>`;
 - values of secret-looking options (`--password`, `--token`, `--secret`,
@@ -84,3 +88,8 @@ The installed package adds nobody to these groups; you choose who to add.
 
 Redaction is best effort: read an export before you share it. `--raw` turns
 redaction off.
+
+Glasshouse reports saved under `/var/lib/candor/reports` are **not
+redacted**. They hold the sample's file names and command lines as the
+sample wrote them; control and bidi characters are escaped, nothing is
+removed. Read a report before you share it.

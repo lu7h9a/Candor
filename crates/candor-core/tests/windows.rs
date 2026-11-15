@@ -7,7 +7,7 @@
     clippy::indexing_slicing
 )]
 
-use candor_core::limits::WINDOW_ENTRIES;
+use candor_core::limits::{BEACON_POINTS, WINDOW_ENTRIES};
 use candor_core::{Engine, Input};
 use candor_proto::{BStr, Event, EventKind, Family, ProcKey, SockType};
 
@@ -119,4 +119,20 @@ fn alert_state_is_pruned_with_evicted_processes() {
     // Exited processes beyond MAX_EXITED_PROCS were evicted; so was their alert state.
     assert!(e.detector.alerted_len() <= candor_core::limits::MAX_EXITED_PROCS);
     assert!(e.detector.alerted_len() > 0);
+}
+
+#[test]
+fn beacon_points_per_destination_are_capped() {
+    let mut e = Engine::with_defaults().unwrap();
+    for i in 0..(BEACON_POINTS as u64 + 1000) {
+        let kind = EventKind::Connect {
+            family: Family::Inet,
+            addr: "10.1.2.3".into(),
+            port: 443,
+            sock: SockType::Stream,
+        };
+        e.apply(&ev(i, i * 1_000_000_000, kind));
+    }
+    assert_eq!(e.windows().beacon_keys(), 1);
+    assert_eq!(e.windows().beacon_points_max(), BEACON_POINTS);
 }

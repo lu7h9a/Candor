@@ -7,6 +7,23 @@ in the workspace `Cargo.toml`.
 
 ## [Unreleased]
 
+### Changed
+- Follow mode ends by itself once every process of the followed tree has
+  exited.
+- Act mode can be switched on in `/etc/candor/candord.toml`
+  (`enable_act = true`).
+- A trusted `git` reading an SSH private key is now reported (R001, lower
+  confidence) instead of allowlisted.
+
+### Security
+- `/etc/candor` files not owned by root, or writable by other users, are
+  ignored.
+- The tarball installer installs root-owned files whoever unpacked it.
+- Act mode never pauses or kills a display server or session manager you
+  own, in any session.
+- Glasshouse refuses runs when it was reported unavailable at start, and
+  checks the helper again before each run.
+
 ## [0.0.1] - 2026-11-15
 
 The first build to have packages. This is a pre-release.

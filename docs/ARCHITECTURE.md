@@ -28,7 +28,7 @@ Two privilege domains (invariant I1):
 ## Kernel side
 
 eBPF programs, loaded with CO-RE (compiled once, adapted to each kernel's BTF
-at load time). They only observe (I2):
+at load time). They only observe:
 
 | Program | Hook | Emits |
 |---|---|---|
@@ -62,8 +62,8 @@ Maps:
 | `sys_count`, `sys_lat`, `sys_start` | LRU hashes | syscall counts and follow-mode latency | 65,536 / 16,384 / 16,384 |
 | `scratch` | per-CPU array | buffer for paths too large for the BPF stack | 1 |
 
-Process identity everywhere is (tgid, start time), never a bare pid (I4), and
-file identity is (device, inode). Paths are display data (I5).
+Process identity everywhere is (tgid, start time), never a bare pid, and
+file identity is (device, inode). Paths are display data.
 
 ## Daemon threads
 
@@ -79,7 +79,7 @@ clients <-- writer thread <-- per-client queues <-- [core] <-- commands (channel
   engine). There are no locks around state; other threads send messages.
 - **The poller** decodes ring-buffer records. When the core falls behind, the
   poller blocks, the ring buffer fills, and the kernel counts the drops: there
-  is exactly one place where events are lost, and it is counted (I3).
+  is exactly one place where events are lost, and it is counted.
 - **Executable and script checks** run on a small pool with a deadline, so a
   hung filesystem cannot stall detection. A check that times out answers
   "not trusted".
@@ -102,20 +102,20 @@ clients <-- writer thread <-- per-client queues <-- [core] <-- commands (channel
   - alerts: 256, likewise;
   - replies: 64.
   
-  A client that does not read for 5 seconds is disconnected.
+  A client that leaves one write stalled for 5 seconds is disconnected.
 - Clients send bytes, never paths: the daemon does not open a path a client
-  names (I12).
+  names.
 
 ## Detection
 
-`candor-core` is pure: no I/O, no clock, no threads (I7). Time comes only
+`candor-core` is pure: no I/O, no clock, no threads. Time comes only
 from event timestamps, so a recording replays to the same findings
 (`candor replay`).
 
 - Rules are Rust functions over the state. Their thresholds, path classes and
   texts live in `rules.toml`, and the allowlist in `allow.toml`; both are
   built in and can be overridden from `/etc/candor/`.
-- Each finding carries the ids of the events that justify it (I9).
+- Each finding carries the ids of the events that justify it.
 - A process's score combines its findings with a noisy-OR (0–100) and
   halves every 10 minutes. Bands: suspicious from 30, high from 60.
 - An allowlist entry applies only when the executable (and, for an

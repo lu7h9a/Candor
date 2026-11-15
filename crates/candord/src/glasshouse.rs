@@ -149,6 +149,9 @@ pub struct Glasshouse {
     counter: u64,
     helper: PathBuf,
     box_uid: Option<u32>,
+    /// Set by the daemon when the startup check offered Glasshouse; uploads
+    /// and runs are refused otherwise (final review finding).
+    pub offered: bool,
 }
 
 /// Adds a process to the box set unless the cap is reached.
@@ -346,7 +349,7 @@ impl Glasshouse {
         let helper = std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.join("candor-glasshouse")))
-            .unwrap_or_else(|| PathBuf::from("/usr/libexec/candor/candor-glasshouse"));
+            .unwrap_or_else(|| PathBuf::from("/usr/bin/candor-glasshouse"));
         (
             Glasshouse {
                 run: None,
@@ -354,6 +357,7 @@ impl Glasshouse {
                 counter: 0,
                 helper,
                 box_uid: user_id("candor-box"),
+                offered: false,
             },
             rx,
         )
@@ -365,6 +369,12 @@ impl Glasshouse {
 
     /// GhUploadBegin.
     pub fn begin(&mut self, id: u64, name: &BStr, size: u64) -> Vec<DaemonMsg> {
+        if !self.offered {
+            return vec![err(
+                "unavailable",
+                "Glasshouse is not available on this system (see `candor status`)",
+            )];
+        }
         if let Some(r) = &self.run {
             return vec![err(
                 "busy",
@@ -476,6 +486,13 @@ impl Glasshouse {
 
     /// GhRun: writes the job file and starts the helper.
     pub fn start(&mut self, id: u64, args: &[BStr], timeout_s: u32, loss: Loss) -> Vec<DaemonMsg> {
+        // The helper runs as root: checked again right before each run.
+        if !self.offered {
+            return vec![err(
+                "unavailable",
+                "Glasshouse is not available on this system",
+            )];
+        }
         let helper = self.helper.clone();
         let tx = self.tx.clone();
         let Some(run) = self.run.as_mut().filter(|r| r.owner == id) else {
@@ -486,6 +503,9 @@ impl Glasshouse {
                 "bad_request",
                 "the sample is not completely uploaded, or the run already started",
             )];
+        }
+        if let Err(why) = helper_trusted(&helper) {
+            return vec![err("unavailable", why)];
         }
         if !(1..=600).contains(&timeout_s) {
             return vec![err("bad_request", "timeout must be 1 to 600 seconds")];
@@ -1321,6 +1341,16 @@ mod tests {
     #[test]
     fn upload_checks_order_size_and_ownership() {
         let (mut g, _rx) = Glasshouse::new();
+        // Not offered at startup: uploads and runs are refused outright.
+        assert!(matches!(
+            g.begin(1, &BStr::from("x"), 10).first(),
+            Some(DaemonMsg::Error { code, .. }) if code == "unavailable"
+        ));
+        assert!(matches!(
+            g.start(1, &[], 60, Loss::default()).first(),
+            Some(DaemonMsg::Error { code, .. }) if code == "unavailable"
+        ));
+        g.offered = true;
         // Uploads need /var/lib/candor; outside the VM/host install only
         // the refusals that happen before any file is created are testable.
         assert!(matches!(

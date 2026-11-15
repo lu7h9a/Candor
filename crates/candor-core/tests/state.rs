@@ -9,7 +9,7 @@
 
 use candor_core::limits::*;
 use candor_core::{Input, ProcSample, State};
-use candor_proto::{BStr, DaemonMsg, Event, EventKind, Family, ProcKey, SockType};
+use candor_proto::{BStr, DaemonMsg, Event, EventKind, Family, ProcKey, SockType, SysStat};
 use proptest::prelude::*;
 use std::collections::{HashMap, HashSet};
 
@@ -373,4 +373,33 @@ fn a_forked_child_inherits_the_parents_verified_facts() {
     let c = s.get(&child).unwrap();
     assert!(c.exe_trusted && c.exe_system);
     assert_eq!(c.exe.as_bytes(), b"/usr/lib/systemd/systemd");
+}
+
+#[test]
+fn per_process_syscall_table_is_capped() {
+    let mut s = State::new();
+    let p = key(5);
+    s.apply_event(&ev(1, 1, p, open("/etc/hosts", 1)));
+    let stat = |nr: u32| SysStat {
+        nr,
+        name: format!("sys{nr}"),
+        count: 1,
+        lat_count: 0,
+        lat_total_ns: 0,
+        lat_max_ns: 0,
+    };
+    let totals = (0..(PER_PROC_SYSCALLS as u32 + 1000))
+        .map(|nr| (p, stat(nr)))
+        .collect();
+    s.apply(&Input::SysTotals { ts_ns: 2, totals });
+    assert_eq!(s.get(&p).unwrap().syscalls.len(), PER_PROC_SYSCALLS);
+    // A number already in the table is still updated at the cap.
+    let mut again = stat(0);
+    again.count = 7;
+    s.apply(&Input::SysTotals {
+        ts_ns: 3,
+        totals: vec![(p, again)],
+    });
+    assert_eq!(s.get(&p).unwrap().syscalls[&0].count, 7);
+    assert_eq!(s.get(&p).unwrap().syscalls.len(), PER_PROC_SYSCALLS);
 }

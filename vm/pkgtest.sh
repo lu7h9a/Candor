@@ -30,6 +30,8 @@ snap > /tmp/before
 case "$d" in
 tarball)
     rm -rf /root/tb && mkdir /root/tb && tar -C /root/tb -xzf candor-*-x86_64.tar.gz
+    # As if a normal user had unpacked it: install.sh must still install root-owned files.
+    chown -R 65534:65534 /root/tb
     /root/tb/candor-*/install.sh > /tmp/install.log 2>&1 || { cat /tmp/install.log; exit 1; } ;;
 debian12|ubuntu*)
     DEBIAN_FRONTEND=noninteractive apt-get install -y -qq ./candor_*_amd64.deb > /tmp/install.log 2>&1 || { cat /tmp/install.log; exit 1; } ;;
@@ -42,6 +44,10 @@ arch)
     su builder -c 'cd /home/builder/pkg && makepkg -f --nodeps' > /tmp/makepkg.log 2>&1 || { cat /tmp/makepkg.log; exit 1; }
     pacman -U --noconfirm /home/builder/pkg/candor-*.pkg.tar.* > /tmp/install.log 2>&1 || { cat /tmp/install.log; exit 1; } ;;
 esac
+if [ "$d" = tarball ]; then
+    bad=$(find /usr/bin/candor* /usr/lib/systemd/system/candord* /usr/lib/sysusers.d/candor* /usr/share/doc/candor /usr/share/man/man*/candor* /etc/candor \! -user root 2>/dev/null || true)
+    [ -z "$bad" ] && echo "OK   tarball files owned by root" || { echo "FAIL tarball files not owned by root:"; echo "$bad"; }
+fi
 grep -q "watches the processes of EVERY user" /tmp/install.log && echo "OK   post-install message shown" || { echo "FAIL post-install message"; cat /tmp/install.log; }
 systemctl is-enabled candord.service >/dev/null 2>&1 && echo "FAIL service enabled by default" || echo "OK   service not enabled by default"
 getent group candor >/dev/null && getent group candor-act >/dev/null && getent passwd candor-box >/dev/null && echo "OK   groups and sandbox user" || echo "FAIL sysusers"

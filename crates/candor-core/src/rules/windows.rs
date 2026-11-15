@@ -174,6 +174,11 @@ impl WindowState {
         self.r006.len()
     }
 
+    /// Most timestamps kept for any one R006 destination (for tests).
+    pub fn beacon_points_max(&self) -> usize {
+        self.r006.values().map(|b| b.times.len()).max().unwrap_or(0)
+    }
+
     /// Entries in a process's R005 and R007 windows (for tests).
     pub fn window_lens(&self, k: &ProcKey) -> (usize, usize) {
         (

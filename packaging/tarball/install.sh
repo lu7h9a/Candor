@@ -12,9 +12,12 @@ find . ! -type d | while read -r f; do
     case "$f" in
     ./etc/candor/*) [ -e "/$f" ] && continue ;;
     esac
-    cp -a "$f" "/$f"
+    # Root-owned whatever unpacked the tarball: a user-owned unit, sysusers
+    # file or /etc/candor file would let that user change what runs as root
+    # or switch detection off (final review finding).
+    cp -a --no-preserve=ownership "$f" "/$f"
+    chown root:root "/$f"
 done
-chown -R root:root /usr/bin/candord /usr/bin/candor /usr/bin/candor-gui /usr/bin/candor-glasshouse
 systemd-sysusers /usr/lib/sysusers.d/candor.conf || true
 systemctl daemon-reload >/dev/null 2>&1 || true
 cat /usr/share/doc/candor/postinstall-message.txt

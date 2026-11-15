@@ -392,7 +392,7 @@ mod tests {
     fn defaults_load() {
         let r = Rules::load(None).unwrap();
         assert_eq!(r.rule("R001").unwrap().weight, 0.6);
-        assert_eq!(load_allow(&r, None).unwrap().len(), 44);
+        assert_eq!(load_allow(&r, None).unwrap().len(), 43);
     }
 
     #[test]

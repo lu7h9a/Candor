@@ -50,6 +50,8 @@ pub enum PollerMsg {
     },
     /// Result of a follow/unfollow request.
     FollowResult(Result<String, String>),
+    /// Follow mode ended by itself: every followed process had exited.
+    FollowEnded,
     /// A `GhBox` command is in effect (the box may be released).
     GhReady,
 }
@@ -247,6 +249,16 @@ impl<'obj> Collector<'obj> {
         }
     }
 
+    /// True while the kernel gate is in follow mode.
+    pub fn following(&self) -> bool {
+        self.cfg.mode == abi::MODE_FOLLOW
+    }
+
+    /// True if no process is left in the kernel's followed set.
+    pub fn followed_set_empty(&self) -> bool {
+        self.skel.maps.followed_tgid.keys().next().is_none()
+    }
+
     /// Back to system-wide tracing; clears the followed set.
     pub fn unfollow(&mut self) -> Result<()> {
         self.cfg.mode = abi::MODE_SYSTEM;
@@ -370,6 +382,7 @@ pub fn run_poller(
     let mut last_budget: BTreeMap<ProcKey, u64> = BTreeMap::new();
     let mut next_tick = Instant::now();
     let mut tick_count = 0u64;
+    let mut follow_empty_ticks = 0u32;
     while !stop.load(Ordering::Relaxed) {
         match rb.poll(Duration::from_millis(100)) {
             Ok(()) => {}
@@ -429,6 +442,23 @@ pub fn run_poller(
         }
         if Instant::now() >= next_tick {
             next_tick += Duration::from_secs(1);
+            // Follow mode ends by itself once every followed process has
+            // exited (two checks in a row): otherwise a GUI that followed a
+            // short-lived program, then closed, left every user unwatched
+            // (final review finding). The kernel map is the truth: it also
+            // holds daemonised children that left the tree.
+            if col.following() && col.followed_set_empty() {
+                follow_empty_ticks += 1;
+                if follow_empty_ticks >= 2 {
+                    if let Err(e) = col.unfollow() {
+                        eprintln!("candord: ending follow mode: {e:#}");
+                    }
+                    let _ = tx.send(PollerMsg::FollowEnded);
+                    follow_empty_ticks = 0;
+                }
+            } else {
+                follow_empty_ticks = 0;
+            }
             let ts_ns = crate::sampler::boot_ns();
             if tick_count.is_multiple_of(10) {
                 mounts.borrow_mut().reload();

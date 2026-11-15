@@ -32,7 +32,7 @@ Ubuntu:
 ```bash
 sudo apt-get install -y ./candor_0.0.1-1_amd64.deb
 sudo systemctl enable --now candord
-sudo usermod -aG candor,candor-act "$USER"
+sudo usermod -aG candor "$USER"
 candor --version
 sudo candor status
 sudo candor top --sort score -n 10
@@ -43,7 +43,10 @@ with `candor-gui`.
 
 The package installs the service but never starts it by itself. **The daemon
 sees the processes of every user on the computer**, and so does anyone in the
-`candor` group. Add only people you would show that to.
+`candor` group. Add only people you would show that to, and run Candor
+only on computers you own or are responsible for: it records what other
+people's programs do, and watching others without their knowledge may be
+unlawful where you live.
 
 Other systems:
 
@@ -78,7 +81,17 @@ candor export --format json > snapshot.json    personal details redacted by defa
 ```
 
 Following needs root or the `candor-act` group, because while it is on,
-Candor ignores every other process for everyone.
+Candor ignores every other process for everyone:
+
+```text
+sudo usermod -aG candor-act "$USER"     then log out and back in
+```
+
+The same group also allows pausing, resuming and killing your own processes
+from Candor (act mode). Act mode is experimental and off until root turns it
+on with `enable_act = true` in `/etc/candor/candord.toml` and restarts
+`candord`. Display servers and session managers you own are never paused or
+killed.
 
 ## Glasshouse
 
@@ -95,9 +108,9 @@ there and says why. Candor does not change that setting.
 ```text
             your desktop                                   root
   +-------------------------+                 +--------------------------------+
-  | candor-gui / candor |  Unix socket    | candord                      |
-  | (unprivileged)          | <-------------> |  rules + scoring (candor-core)|
-  +-------------------------+  group candor |  process table, history        |
+  | candor-gui / candor     |  Unix socket    | candord                        |
+  | (unprivileged)          | <-------------> |  rules + scoring (candor-core) |
+  +-------------------------+  group candor   |  process table, history        |
                                               |  /proc sampler (1 Hz)          |
                                               +---------------^----------------+
                                                               | ring buffer

@@ -21,12 +21,12 @@ the same points.
 - **Inbound connections**: connections other computers make to yours (accept),
   and UDP traffic sent without a connect call. Outbound connects and
   listening sockets are seen.
-- **Attempts the kernel refused.** If a program tries to open a file it has
-  no permission for, the attempt is not seen; only opens that succeed reach
-  the probe.
+- **Most refused attempts.** If a program tries to open a file and the file
+  permissions refuse it, the attempt is not seen: the probe sits after the
+  permission check.
 - **What is read or written.** File contents and network data are never
   captured, by design. Bytes read and written per file are not measured
-  either (planned, not built).
+  either.
 - **Long command lines and paths.** Only the first 256 bytes of a command
   line are kept. Paths longer than 512 bytes are cut, and marked as cut.
 
