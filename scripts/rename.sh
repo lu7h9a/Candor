@@ -33,7 +33,9 @@ find . \( "${prune[@]}" \) -prune -o -type f -print0 |
     while IFS= read -r -d '' f; do
         case "$f" in
         *.gz)
-            zgrep -qi "$old" "$f" || continue
+            # Read the whole stream: `zgrep -q` stops at the first match, and on
+            # some gzip versions the resulting SIGPIPE makes it report "no match".
+            [ "$(zcat "$f" | grep -ci "$old" || true)" -gt 0 ] || continue
             zcat "$f" | sed "${subst[@]}" | gzip -9n > "$f.tmp" && mv "$f.tmp" "$f"
             continue ;;
         esac
@@ -48,5 +50,9 @@ find . \( "${prune[@]}" \) -prune -o -depth -name "*$old*" -print |
         mv "$p" "$d/${b//$old/$new}"
     done
 left=$(grep -rIil "$old" --exclude-dir=.git --exclude-dir=target --exclude-dir=corpus . || true)
+for f in $(find . \( "${prune[@]}" \) -prune -o -type f -name '*.gz' -print); do
+    [ "$(zcat "$f" | grep -ci "$old" || true)" -gt 0 ] && left="$left${left:+
+}$f"
+done
 if [ -n "$left" ]; then echo "still mention $old:"; echo "$left"; exit 1; fi
 echo "renamed to $new ($display) in $dir"
