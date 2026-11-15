@@ -7,4 +7,6 @@ pub mod app;
 pub mod ghui;
 pub mod model;
 pub mod net;
+pub mod theme;
 pub mod ui;
+pub mod widgets;

@@ -31,6 +31,8 @@ pub struct App {
     timed_requested: usize,
     /// What the daemon was last told about the Syscalls view (WatchSyscalls).
     sys_watch_sent: bool,
+    /// Fonts and visuals installed (first frame).
+    themed: bool,
 }
 
 impl App {
@@ -49,6 +51,7 @@ impl App {
             timed_done: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
             timed_requested: 0,
             sys_watch_sent: false,
+            themed: false,
         }
     }
 
@@ -149,6 +152,10 @@ impl App {
 
     /// One frame: pump, draw, act.
     pub fn frame(&mut self, ui: &mut egui::Ui) {
+        if !self.themed {
+            self.themed = true;
+            crate::theme::install(ui.ctx());
+        }
         self.pump();
         for a in crate::ui::draw(ui, &self.model) {
             self.act(a);
