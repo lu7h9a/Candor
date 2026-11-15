@@ -9,6 +9,37 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bc62ac97cc33321f50863d514c3bc38a453947a8f9e781137e47c7401020aed"
 
 [[package]]
+name = "candor-core"
+version = "0.0.1"
+dependencies = [
+ "candor-proto",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
+name = "candor-fuzz"
+version = "0.0.0"
+dependencies = [
+ "candor-core",
+ "candor-proto",
+ "libfuzzer-sys",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "candor-proto"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "cc"
 version = "1.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -194,37 +225,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "candor-core"
-version = "0.0.1"
-dependencies = [
- "serde",
- "serde_json",
- "candor-proto",
- "thiserror",
- "toml",
-]
-
-[[package]]
-name = "candor-fuzz"
-version = "0.0.0"
-dependencies = [
- "libfuzzer-sys",
- "serde_json",
- "candor-core",
- "candor-proto",
- "thiserror",
-]
-
-[[package]]
-name = "candor-proto"
-version = "0.0.1"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror",
 ]
 
 [[package]]
