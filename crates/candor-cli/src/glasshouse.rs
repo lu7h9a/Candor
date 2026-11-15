@@ -5,6 +5,7 @@
 //! daemon sends back about the sample is escaped before it is printed.
 
 use crate::conn::{CliError, Conn};
+use candor_core::display::safe;
 use candor_core::display::safe_str;
 use candor_core::ghreport::{LIMITATION, render_text};
 use candor_proto::{BStr, ClientMsg, DaemonMsg, GhState};
@@ -60,7 +61,12 @@ pub fn show(rest: &[String]) -> Result<(), CliError> {
 }
 
 /// Runs a sample and prints the report (text, or JSON with --json).
-pub fn run(c: &mut Conn, rest: &[String], json: bool) -> Result<(), CliError> {
+pub fn run(
+    c: &mut Conn,
+    rest: &[String],
+    json: bool,
+    st: crate::style::Style,
+) -> Result<(), CliError> {
     let (timeout_s, file, args) = parse(rest)?;
     let offered = matches!(&c.welcome, DaemonMsg::Welcome { features, .. } if features.iter().any(|f| f == "glasshouse"));
     if !offered {
@@ -185,6 +191,38 @@ pub fn run(c: &mut Conn, rest: &[String], json: bool) -> Result<(), CliError> {
         println!("{}", crate::out::json(&r));
     } else {
         print!("{}", render_text(&r));
+        // The same summary as the GUI report (redesign spec 7.3 and 9).
+        let n = candor_core::ghreport::counts(&r);
+        println!();
+        println!(
+            "{}",
+            st.bright(&candor_core::ghreport::summary_sentence(&r))
+        );
+        let count = |label: &str, v: u64, secret: bool| {
+            let t = format!("{label} {v}");
+            if secret {
+                st.alert(&t)
+            } else if v > 0 {
+                st.bright(&t)
+            } else {
+                st.dim(&t)
+            }
+        };
+        let secret_read = r.decoys.iter().any(|d| {
+            d.states.contains(&candor_proto::DecoyState::Read)
+                && candor_core::ghreport::is_secret(&safe(&d.path))
+        });
+        println!(
+            "{} · {} · {} · {}",
+            count("Read", n.read as u64, secret_read),
+            count(
+                "Changed",
+                (n.modified + n.renamed + n.created) as u64,
+                false
+            ),
+            count("Deleted", n.deleted as u64, false),
+            count("Connection attempts", n.connects, false)
+        );
     }
     Ok(())
 }

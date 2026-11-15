@@ -13,6 +13,7 @@ mod conn;
 mod export;
 mod glasshouse;
 mod out;
+mod style;
 
 use candor_core::Engine;
 use candor_core::redact::Redactor;
@@ -21,7 +22,7 @@ use conn::{CliError, Conn};
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-const USAGE: &str = "usage: candor [--socket PATH] [--json] COMMAND
+const USAGE: &str = "usage: candor [--socket PATH] [--json] [--color=auto|always|never] COMMAND
 commands:
   status                      daemon, mode, process count, losses
   top [--sort cpu|mem|score] [-n N]   process table
@@ -44,6 +45,7 @@ exit codes: 0 ok, 1 error, 2 usage, 3 daemon not running, 4 permission denied, 5
 struct Args {
     socket: Option<PathBuf>,
     json: bool,
+    style: style::Style,
     rest: Vec<String>,
 }
 
@@ -51,8 +53,10 @@ fn parse() -> Result<Args, CliError> {
     let mut a = Args {
         socket: None,
         json: false,
+        style: style::Style { color: false },
         rest: Vec::new(),
     };
+    let mut when = style::When::Auto;
     let mut it = std::env::args().skip(1);
     while let Some(s) = it.next() {
         match s.as_str() {
@@ -64,6 +68,17 @@ fn parse() -> Result<Args, CliError> {
                 )
             }
             "--json" => a.json = true,
+            "--color" => {
+                let v = it.next().unwrap_or_default();
+                when = style::When::parse(&v).ok_or(CliError::Usage(
+                    "--color needs auto, always or never".into(),
+                ))?;
+            }
+            c if c.starts_with("--color=") => {
+                when = style::When::parse(c.trim_start_matches("--color=")).ok_or(
+                    CliError::Usage("--color needs auto, always or never".into()),
+                )?;
+            }
             "--version" | "-V" => {
                 println!(
                     "candor {} (commit {}, protocol {})",
@@ -80,6 +95,7 @@ fn parse() -> Result<Args, CliError> {
             _ => a.rest.push(s),
         }
     }
+    a.style = style::Style::from_env(when);
     Ok(a)
 }
 
@@ -178,7 +194,7 @@ fn run(a: Args) -> Result<(), CliError> {
     }
     if cmd == "glasshouse" {
         let mut c = Conn::open(a.socket.as_ref())?;
-        return glasshouse::run(&mut c, &rest, a.json);
+        return glasshouse::run(&mut c, &rest, a.json, a.style);
     }
     if cmd.is_empty() {
         return Err(CliError::Usage(USAGE.into()));
@@ -205,7 +221,8 @@ fn run(a: Args) -> Result<(), CliError> {
             }
         }
         "top" => {
-            let mut rows = rows_of(&snapshot(&mut c)?);
+            let snap_msg = snapshot(&mut c)?;
+            let mut rows = rows_of(&snap_msg);
             match opt(&rest, "--sort").as_deref().unwrap_or("cpu") {
                 "mem" => rows.sort_by_key(|r| std::cmp::Reverse(r.rss)),
                 "score" => rows.sort_by_key(|r| std::cmp::Reverse((r.score, r.tree_score))),
@@ -217,7 +234,18 @@ fn run(a: Args) -> Result<(), CliError> {
                 let shown: Vec<&ProcRow> = rows.iter().take(n).collect();
                 println!("{}", out::json(&shown));
             } else {
-                print!("{}", out::table(&rows, n));
+                print!("{}", out::table(&rows, n, a.style));
+                let lost = match &snap_msg {
+                    DaemonMsg::Snapshot { loss, .. } => loss
+                        .ringbuf
+                        .saturating_add(loss.budget)
+                        .saturating_add(loss.scratch)
+                        .saturating_add(loss.decode)
+                        .saturating_add(loss.untracked)
+                        .saturating_add(loss.missed),
+                    _ => 0,
+                };
+                println!("{}", out::footer(&rows, lost, a.style));
             }
         }
         "tree" => {
@@ -402,7 +430,13 @@ fn run(a: Args) -> Result<(), CliError> {
             if a.json {
                 println!("{}", out::json(&findings));
             } else {
-                print_findings(&findings, &rows, wall);
+                if findings.is_empty() {
+                    println!("no findings");
+                }
+                for f in &findings {
+                    let row = rows.iter().find(|r| r.key == f.proc);
+                    println!("{}", out::finding_short(f, row, a.style));
+                }
             }
         }
         "export" => {
