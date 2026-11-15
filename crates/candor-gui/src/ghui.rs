@@ -116,6 +116,9 @@ fn start(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             r.widget_info(|| {
                 egui::WidgetInfo::labeled(Role::Label, true, format!("gh-unavailable: {why}"))
             });
+            if let Some(help) = m.gh_unavailable.as_deref().and_then(unavailable_help) {
+                ui.add(egui::Label::new(theme::dim(help)).wrap());
+            }
             ui.label(theme::dim(
                 "Candor does not change system settings to make it work.",
             ));
@@ -645,4 +648,25 @@ fn before_after(ui: &mut Ui, r: &GhReport) {
                 });
         }
     });
+}
+
+/// Plain words for the reasons the daemon gives most often.
+fn unavailable_help(reason: &str) -> Option<&'static str> {
+    if reason.contains("not root-owned") || reason.contains("writable by others") {
+        Some(
+            "Why: the daemon runs as root and starts this helper to build the sandbox. If the helper file belonged to you, or anyone could change it, a program could swap it and have root run its own code. So the daemon only uses a helper owned by root. You are running a development build from your own folder, so the helper is yours. Installed packages put it in /usr/bin, owned by root, and then Glasshouse works.",
+        )
+    } else if reason.contains("apparmor_restrict_unprivileged_userns")
+        || reason.contains("RTM_NEWADDR")
+    {
+        Some(
+            "Why: this system's security policy (AppArmor on Ubuntu 24.04) does not let unprivileged programs create the namespaces the sandbox needs. That is a deliberate setting of the system, and Candor leaves it alone.",
+        )
+    } else if reason.contains("bwrap") && reason.contains("not found") {
+        Some(
+            "Why: Glasshouse needs bubblewrap (the bwrap command). Install the bubblewrap package.",
+        )
+    } else {
+        None
+    }
 }

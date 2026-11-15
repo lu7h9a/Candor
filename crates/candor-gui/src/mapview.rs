@@ -7,13 +7,20 @@ use crate::map::{Kind, LABEL_ZOOM, MapAction, Node, NodeId, P};
 use crate::model::{Action, Model, Tab};
 use crate::theme::{self, color, space};
 use crate::widgets::{self, Severity, tag};
+use candor_core::display::safe;
 use egui::{Align2, Color32, Key, Pos2, Rect, Role, Sense, Stroke, Ui, vec2};
 
 /// Zoom change per scroll pixel (interaction, not style).
 const ZOOM_PER_SCROLL: f32 = 0.0015;
 
 fn radius(n: &Node) -> f32 {
-    (space::NODE_R_MIN + space::NODE_R_GROWTH * ((1 + n.count) as f32).ln()).min(space::NODE_R_MAX)
+    let r = (space::NODE_R_MIN + space::NODE_R_GROWTH * ((1 + n.count) as f32).ln())
+        .min(space::NODE_R_MAX);
+    if n.kind == Kind::Process {
+        r.max(space::NODE_PROC_MIN_R)
+    } else {
+        r
+    }
 }
 
 fn act(a: MapAction) -> Action {
@@ -125,22 +132,82 @@ pub fn show(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
 fn legend(ui: &mut Ui) {
     ui.horizontal_wrapped(|ui| {
         ui.spacing_mut().item_spacing.x = space::M;
-        let item = |ui: &mut Ui, fill: Color32, ring: Option<Color32>, text: &str| {
+        let item = |ui: &mut Ui, fill: Color32, square: bool, ring: Option<Color32>, text: &str| {
             let (rect, _) = ui.allocate_exact_size(vec2(space::M, space::M), Sense::hover());
-            ui.painter().circle_filled(rect.center(), space::LEGEND_R, fill);
+            if square {
+                ui.painter().rect_filled(
+                    Rect::from_center_size(rect.center(), vec2(space::LEGEND_R, space::LEGEND_R) * 2.0),
+                    space::ICON_SHIFT,
+                    fill,
+                );
+            } else {
+                ui.painter().circle_filled(rect.center(), space::LEGEND_R, fill);
+            }
             if let Some(c) = ring {
                 ui.painter()
                     .circle_stroke(rect.center(), space::LEGEND_R, Stroke::new(space::LINE, c));
             }
             ui.label(theme::label(text));
         };
-        item(ui, color::NODE_PROCESS, None, "Process");
-        item(ui, color::NODE_FILE, None, "File or folder");
-        item(ui, color::BG, Some(color::ACCENT), "Network");
-        item(ui, color::NODE_MINOR, None, "Little activity");
-        item(ui, color::ALERT, Some(color::ALERT), "Tied to a finding");
-        ui.label(theme::label("·  Bigger dot = more activity  ·  drag to pan, scroll to zoom, double-click a process to centre it"));
+        item(ui, color::NODE_PROCESS, true, None, "Process (middle)");
+        item(ui, color::NODE_FILE, false, None, "File (inner ring)");
+        item(ui, color::NODE_FOLDER, false, Some(color::NODE_FOLDER), "Folder or group");
+        item(ui, color::NODE_NETWORK, false, None, "Connection (outer ring)");
+        item(ui, color::ALERT, false, Some(color::ALERT), "Tied to a finding");
+        ui.label(theme::label(
+            "·  Bigger = more activity, faint = little activity  ·  drag to pan, scroll to zoom, double-click a process to centre it",
+        ));
     });
+    ui.horizontal_wrapped(|ui| {
+        ui.spacing_mut().item_spacing.x = space::M;
+        ui.label(theme::label("Lines:"));
+        use crate::map::Act;
+        for (a, text) in [
+            (Act::Started, "started"),
+            (Act::Read, "read"),
+            (Act::Wrote, "wrote or changed"),
+            (Act::Renamed, "renamed"),
+            (Act::Deleted, "deleted"),
+            (Act::Connected, "connected or listening"),
+            (Act::Ptrace, "attached (ptrace)"),
+        ] {
+            let (rect, _) = ui.allocate_exact_size(vec2(space::L, space::M), Sense::hover());
+            ui.painter().line_segment(
+                [rect.left_center(), rect.right_center()],
+                Stroke::new(space::LINE, act_color(a)),
+            );
+            ui.label(theme::label(text));
+        }
+        let (rect, _) = ui.allocate_exact_size(vec2(space::L, space::M), Sense::hover());
+        ui.painter().line_segment(
+            [rect.left_center(), rect.right_center()],
+            Stroke::new(space::LINE, color::ALERT),
+        );
+        ui.label(theme::label("tied to a finding"));
+    });
+}
+
+/// The colour of a line: what was done.
+fn act_color(a: crate::map::Act) -> Color32 {
+    use crate::map::Act;
+    match a {
+        Act::Started => color::ACT_STARTED,
+        Act::Read => color::ACT_READ,
+        Act::Wrote => color::ACT_WROTE,
+        Act::Renamed => color::ACT_RENAMED,
+        Act::Deleted => color::ACT_DELETED,
+        Act::Connected | Act::Listening => color::ACT_NETWORK,
+        Act::Ptrace => color::ACT_PTRACE,
+    }
+}
+
+/// The fill colour of a kind of node.
+fn kind_color(k: Kind) -> Color32 {
+    match k {
+        Kind::Process => color::NODE_PROCESS,
+        Kind::File => color::NODE_FILE,
+        Kind::Network => color::NODE_NETWORK,
+    }
 }
 
 fn canvas(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
@@ -199,6 +266,22 @@ fn canvas(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     let zoom = fit * if mp.zoom > 0.0 { mp.zoom } else { 1.0 };
     let origin = rect.center() + vec2(mp.pan.x, mp.pan.y) - vec2(mid.x, mid.y) * zoom;
     let to_screen = |q: P| origin + vec2(q.x, q.y) * zoom;
+    // Faint guide circles: processes in the middle, files on the inner
+    // ring, connections on the outer ring.
+    for (r, label) in [
+        (mp.file_ring.max(crate::map::FILE_RING), "files"),
+        (mp.net_ring.max(crate::map::NET_RING), "connections"),
+    ] {
+        let rr = r * zoom;
+        p.circle_stroke(origin, rr, Stroke::new(space::HAIR, color::RING));
+        p.text(
+            origin + vec2(0.0, -rr - space::XS),
+            Align2::CENTER_BOTTOM,
+            label,
+            theme::axis_font(),
+            color::faded(color::TEXT_DIM, color::RING_LABEL_ALPHA),
+        );
+    }
     // Hit test.
     let pointer = resp.hover_pos();
     let hit = |pos: Pos2| -> Option<&NodeId> {
@@ -306,9 +389,19 @@ fn canvas(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             continue;
         };
         let al = alpha(na).min(alpha(nb));
-        let c = if e.flagged { color::ALERT } else { color::EDGE };
+        // Lines take the colour of what was done; a line tied to a finding
+        // is red and thicker.
+        let c = if e.flagged {
+            color::ALERT
+        } else {
+            act_color(e.act)
+        };
+        let width = if e.flagged { space::LINE } else { space::HAIR };
         let (sa, sb) = (to_screen(a), to_screen(b));
-        p.line_segment([sa, sb], Stroke::new(space::HAIR, color::faded(c, al)));
+        p.line_segment(
+            [sa, sb],
+            Stroke::new(width, color::faded(c, al * color::EDGE_ALPHA)),
+        );
         let near = mp
             .hover
             .as_ref()
@@ -328,7 +421,7 @@ fn canvas(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                     if e.flagged {
                         color::ALERT
                     } else {
-                        color::TEXT_DIM
+                        act_color(e.act)
                     },
                     al,
                 ),
@@ -346,50 +439,58 @@ fn canvas(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         let a = alpha(n);
         let r = radius(n) * zoom.clamp(0.6, 2.0);
         let minor = n.kind != Kind::Process && n.count <= 1 && !n.flagged;
+        let group = matches!(n.id, NodeId::Dir(_) | NodeId::System | NodeId::More(_));
         let fill = if n.flagged {
             color::ALERT
-        } else if minor {
-            color::NODE_MINOR
+        } else if minor && !group {
+            color::faded(kind_color(n.kind), color::MINOR_ALPHA)
+        } else if group {
+            color::NODE_FOLDER
         } else {
-            match n.kind {
-                Kind::Process => color::NODE_PROCESS,
-                Kind::File => color::NODE_FILE,
-                Kind::Network => color::BG,
+            kind_color(n.kind)
+        };
+        let fill = color::faded(fill, a);
+        // Processes are squares; files and connections are circles.
+        let square = n.kind == Kind::Process;
+        if square {
+            p.rect_filled(Rect::from_center_size(c, vec2(r, r) * 2.0), space::XS, fill);
+        } else {
+            p.circle_filled(c, r, fill);
+        }
+        let ring_at = |extra: f32, stroke: Stroke| {
+            if square {
+                p.rect_stroke(
+                    Rect::from_center_size(c, vec2(r + extra, r + extra) * 2.0),
+                    space::XS,
+                    stroke,
+                    egui::StrokeKind::Outside,
+                );
+            } else {
+                p.circle_stroke(c, r + extra, stroke);
             }
         };
-        p.circle_filled(c, r, color::faded(fill, a));
-        if n.kind == Kind::Network && !n.flagged {
-            p.circle_stroke(
-                c,
-                r,
-                Stroke::new(space::LINE, color::faded(color::ACCENT, a)),
-            );
-        }
-        if matches!(n.id, NodeId::Dir(_) | NodeId::System | NodeId::More(_)) {
-            p.circle_stroke(
-                c,
-                r + space::GROUP_RING,
-                Stroke::new(space::HAIR, color::faded(color::EDGE, a)),
+        if group {
+            ring_at(
+                space::GROUP_RING,
+                Stroke::new(space::HAIR, color::faded(color::NODE_FOLDER, a)),
             );
         }
         if n.flagged {
-            p.circle_stroke(
-                c,
-                r + space::XS,
+            ring_at(
+                space::XS,
                 Stroke::new(space::HAIR, color::faded(color::ALERT, a)),
             );
         }
         if Some(&n.id) == centre.as_ref() {
-            p.circle_stroke(
-                c,
-                r + space::XS,
+            ring_at(
+                space::XS,
                 Stroke::new(space::CHART_LINE, color::faded(color::ACCENT, a)),
             );
         }
         if mp.selected.as_ref() == Some(&n.id) {
-            p.circle_stroke(c, r + space::S, Stroke::new(space::LINE, color::ACCENT));
+            ring_at(space::S, Stroke::new(space::LINE, color::ACCENT));
         } else if mp.focus.as_ref() == Some(&n.id) {
-            p.circle_stroke(c, r + space::S, Stroke::new(space::HAIR, color::TEXT_DIM));
+            ring_at(space::S, Stroke::new(space::HAIR, color::TEXT_DIM));
         }
         let important = Some(&n.id) == centre.as_ref()
             || n.flagged
@@ -423,7 +524,7 @@ fn canvas(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     let _ = Rect::NOTHING;
 }
 
-fn fmt_time(m: &Model, ts: u64) -> String {
+pub(crate) fn fmt_time(m: &Model, ts: u64) -> String {
     if ts == 0 {
         return "unknown".into();
     }
@@ -524,6 +625,7 @@ fn side_panel(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         };
         ui.label(theme::label("Kind"));
         ui.label(theme::body(kind));
+        node_facts(ui, m, &sel.id, acts);
         if sel.members > 1 {
             ui.label(theme::dim(format!("{} objects", sel.members)));
         }
@@ -602,4 +704,108 @@ fn side_panel(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             }
         }
     });
+}
+
+/// One "label: value" line in the side panel.
+fn fact(ui: &mut Ui, label: &str, value: String) {
+    ui.horizontal_wrapped(|ui| {
+        ui.label(theme::label(label));
+        ui.label(theme::mono(value));
+    });
+}
+
+/// More about the clicked node: the process's own numbers, or the file's
+/// record from the daemon.
+fn node_facts(ui: &mut Ui, m: &Model, id: &NodeId, acts: &mut Vec<Action>) {
+    match id {
+        NodeId::Proc(k) => {
+            let Some(r) = m.rows.iter().find(|r| r.key == *k) else {
+                ui.label(theme::dim(
+                    "This process is no longer in the process table.",
+                ));
+                return;
+            };
+            widgets::hairline(ui);
+            fact(ui, "Program", m.shown(&candor_core::display::exe_shown(r)));
+            fact(ui, "PID", k.tgid.to_string());
+            fact(ui, "User id", r.uid.to_string());
+            if let Some(p) = r.parent {
+                let pname = m
+                    .rows
+                    .iter()
+                    .find(|x| x.key == p)
+                    .map(|x| m.shown(&candor_core::display::exe_shown(x)))
+                    .unwrap_or_else(|| "not in the table".into());
+                fact(ui, "Started by", format!("{pname} ({})", p.tgid));
+            }
+            fact(ui, "CPU", format!("{:.1}%", r.cpu_pct));
+            fact(ui, "Memory", widgets::bytes(r.rss));
+            fact(ui, "Threads", r.threads.to_string());
+            fact(ui, "Files opened", r.n_open.to_string());
+            fact(ui, "Connections", r.n_conn.to_string());
+            fact(ui, "Programs started", r.n_child.to_string());
+            let sev = Severity::of_score(r.score);
+            if r.score > 0 {
+                ui.horizontal(|ui| {
+                    ui.label(theme::label("Score"));
+                    ui.label(theme::score(r.score.to_string(), sev.color()));
+                    ui.label(theme::label(sev.words()));
+                });
+            }
+            if r.exited_ts.is_some() {
+                ui.label(theme::dim("It has exited."));
+            }
+            if m.page == crate::model::Page::Processes
+                && widgets::text_button(ui, "Open this process").clicked()
+            {
+                acts.push(Action::Open(*k));
+            }
+        }
+        NodeId::File(path) => {
+            // The daemon's per-file record, from any process in the map.
+            let stat = m.map_files().into_iter().find(|f| safe(&f.path) == *path);
+            widgets::hairline(ui);
+            match stat {
+                Some(f) => {
+                    fact(ui, "Opened", format!("{} times", f.opens));
+                    fact(
+                        ui,
+                        "For",
+                        match (f.read, f.write) {
+                            (true, true) => "reading and writing".into(),
+                            (false, true) => "writing".into(),
+                            _ => "reading".to_string(),
+                        },
+                    );
+                    fact(ui, "Last opened", fmt_time(m, f.last_ts));
+                    fact(ui, "Inode", format!("{} on device {:x}", f.ino, f.dev));
+                    if f.rbytes > 0 || f.wbytes > 0 {
+                        fact(
+                            ui,
+                            "Bytes",
+                            format!("{} read, {} written", f.rbytes, f.wbytes),
+                        );
+                    }
+                }
+                None => {
+                    ui.label(theme::dim(
+                        "Seen in the event list; the daemon keeps no per-file record for it.",
+                    ));
+                }
+            }
+            if let Some(d) = m.gh_decoy(path) {
+                fact(ui, "Decoy", candor_core::ghreport::states_text(d));
+            }
+        }
+        NodeId::Net(addr) | NodeId::Listen(addr) => {
+            widgets::hairline(ui);
+            fact(ui, "Address", addr.clone());
+            ui.label(theme::dim(if matches!(id, NodeId::Listen(_)) {
+                "A port this process listened on for incoming connections."
+            } else {
+                "A destination this process connected to."
+            }));
+        }
+        _ => {}
+    }
 }

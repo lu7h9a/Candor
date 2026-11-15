@@ -37,6 +37,14 @@ pub struct App {
     map_refreshed: std::time::Instant,
     /// --frame-stats: time spent in each frame (printed at exit).
     frame_stats: Option<Vec<Duration>>,
+    /// Result of a group join running in the background.
+    join_result: Arc<std::sync::Mutex<Option<String>>>,
+    /// Last time group membership was checked.
+    access_checked: Option<std::time::Instant>,
+    /// Minimise the window on the first frame (--minimised).
+    start_minimised: bool,
+    /// Where settings live ($XDG_CONFIG_HOME); None: settings not saved.
+    config: Option<PathBuf>,
 }
 
 impl App {
@@ -58,6 +66,51 @@ impl App {
             themed: false,
             map_refreshed: std::time::Instant::now(),
             frame_stats: None,
+            join_result: Arc::new(std::sync::Mutex::new(None)),
+            access_checked: None,
+            start_minimised: false,
+            config: None,
+        }
+    }
+
+    /// Reads and keeps the user's settings from `config` (the window uses
+    /// `settings::config_home()`; tests pass a scratch directory or none).
+    pub fn with_config(mut self, config: Option<PathBuf>) -> App {
+        if let Some(base) = &config {
+            self.model.settings = crate::settings::load(base);
+            self.model.autostart = crate::settings::autostart_enabled(base);
+        }
+        self.config = config;
+        self
+    }
+
+    /// Minimise on the first frame (--minimised, used by start at login).
+    pub fn minimised(mut self, on: bool) -> App {
+        self.start_minimised = on;
+        self
+    }
+
+    fn set_autostart(&mut self, on: bool) {
+        let Some(base) = self.config.clone() else {
+            return;
+        };
+        self.model.notice = Some(
+            match crate::settings::set_autostart(&base, on, self.model.settings.start_minimised) {
+                Ok(()) if on => "Candor will open when you log in.".into(),
+                Ok(()) => "Candor will no longer open when you log in.".into(),
+                Err(e) => format!("Could not change start at login: {e}"),
+            },
+        );
+        self.model.autostart = crate::settings::autostart_enabled(&base);
+    }
+
+    fn set_start_minimised(&mut self, on: bool) {
+        let Some(base) = self.config.clone() else {
+            return;
+        };
+        self.model.settings.start_minimised = on;
+        if let Err(e) = crate::settings::save(&base, &self.model.settings) {
+            self.model.notice = Some(format!("Could not save the setting: {e}"));
         }
     }
 
@@ -149,6 +202,9 @@ impl App {
             Action::GhBrowse(dir) => return self.browse(dir),
             Action::GhRun => return self.gh_run(),
             Action::GhExport => return self.gh_export(),
+            Action::JoinGroup(g) => return self.join_group(g),
+            Action::SetAutostart(on) => return self.set_autostart(on),
+            Action::SetStartMinimised(on) => return self.set_start_minimised(on),
             _ => {}
         }
         for req in self.model.on_action(a) {
@@ -170,8 +226,13 @@ impl App {
         if !self.themed {
             self.themed = true;
             crate::theme::install(ui.ctx());
+            if self.start_minimised {
+                ui.ctx()
+                    .send_viewport_cmd(egui::ViewportCommand::Minimized(true));
+            }
         }
         self.pump();
+        self.refresh_access();
         // Files dropped on the window go to the Glasshouse form.
         let dropped: Vec<String> = ui.ctx().input(|i| {
             i.raw
@@ -215,6 +276,50 @@ impl App {
         for req in self.model.map_requests() {
             self.send(req);
         }
+    }
+
+    /// Asks the system to add this user to `group` (pkexec shows its own
+    /// password dialog), in the background so the window stays responsive.
+    fn join_group(&mut self, group: &'static str) {
+        if self.model.joining {
+            return;
+        }
+        self.model.joining = true;
+        self.model.notice = Some(format!(
+            "Asking your system to add you to {group}: enter your password in the system's dialog."
+        ));
+        let out = Arc::clone(&self.join_result);
+        std::thread::spawn(move || {
+            let msg = match crate::access::join(group) {
+                Ok(()) => {
+                    format!("You are now in {group}. Log out and back in for it to take effect.")
+                }
+                Err(e) => format!("Could not add you to {group}: {e}"),
+            };
+            if let Ok(mut g) = out.lock() {
+                *g = Some(msg);
+            }
+        });
+    }
+
+    /// Group membership, checked every few seconds (cheap file reads).
+    fn refresh_access(&mut self) {
+        if let Ok(mut g) = self.join_result.lock()
+            && let Some(msg) = g.take()
+        {
+            self.model.notice = Some(msg);
+            self.model.joining = false;
+            self.access_checked = None;
+        }
+        if self
+            .access_checked
+            .is_some_and(|t| t.elapsed() < Duration::from_secs(5))
+        {
+            return;
+        }
+        self.access_checked = Some(std::time::Instant::now());
+        self.model.act_access = crate::access::state("candor-act");
+        self.model.view_access = crate::access::state("candor");
     }
 
     /// Lists a directory for the Glasshouse picker (names escaped,

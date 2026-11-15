@@ -390,6 +390,10 @@ pub enum Action {
     Cursor(i32),
     /// Show or hide an optional column.
     ToggleColumn(Column),
+    /// Tree mode: show or hide a process's children.
+    ToggleOpen(ProcKey),
+    /// Tree mode: open every process (true) or close them all (false).
+    OpenAll(bool),
     /// While the pointer is over the table, rows keep their order.
     HoldOrder(bool),
     /// Findings page: show one rule only (None = all).
@@ -416,6 +420,12 @@ pub enum Action {
     Map(crate::map::MapAction),
     /// Glasshouse: show the report's map (true) or the report (false).
     GhMap(bool),
+    /// Ask the system to add this user to a group (handled by the app).
+    JoinGroup(&'static str),
+    /// Start at login on/off (handled by the app: writes the entry).
+    SetAutostart(bool),
+    /// Start minimised on/off (handled by the app: saves the settings).
+    SetStartMinimised(bool),
 }
 
 /// One row as displayed (already escaped, with tree depth).
@@ -429,6 +439,10 @@ pub struct RowView {
     pub depth: usize,
     /// Band text: "", "low", "suspicious", "high" (never colour alone).
     pub band: &'static str,
+    /// Tree mode: processes under this one (children and their children).
+    pub below: usize,
+    /// Tree mode: its children are shown.
+    pub open: bool,
 }
 
 /// The whole view state.
@@ -490,6 +504,9 @@ pub struct Model {
     pub act_paused: Option<ProcKey>,
     /// The detail page of the selected process is open.
     pub detail_open: bool,
+    /// Tree mode: processes whose children are shown. Everything starts
+    /// collapsed and stays the way the user left it across updates.
+    pub tree_open: BTreeSet<ProcKey>,
     /// Optional columns switched on (Threads, Opens, Children, User).
     pub extra_cols: BTreeSet<ColumnId>,
     /// Row order held while the pointer is over the table.
@@ -519,6 +536,16 @@ pub struct Model {
     pub map: crate::map::MapState,
     /// The Glasshouse report shows its map instead of the report.
     pub gh_map: bool,
+    /// May this user follow processes (group candor-act)?
+    pub act_access: crate::access::GroupState,
+    /// May this user read the daemon at all (group candor)?
+    pub view_access: crate::access::GroupState,
+    /// A join request is running (the system's password dialog is open).
+    pub joining: bool,
+    /// Start at login is on (the autostart entry exists).
+    pub autostart: bool,
+    /// Window settings (start minimised).
+    pub settings: crate::settings::Settings,
     /// Bumped when a detail reply arrives (the map rebuilds on change).
     details_version: u64,
 }
@@ -575,6 +602,19 @@ fn display_name(r: &ProcRow) -> String {
     }
 }
 
+/// The real uid of this window's process (memory maps are only sent for
+/// processes of this uid).
+pub fn my_uid() -> Option<u32> {
+    std::fs::read_to_string("/proc/self/status")
+        .ok()?
+        .lines()
+        .find_map(|l| l.strip_prefix("Uid:"))?
+        .split_whitespace()
+        .next()?
+        .parse()
+        .ok()
+}
+
 impl Model {
     /// An empty model, connecting.
     pub fn new() -> Model {
@@ -607,6 +647,7 @@ impl Model {
             act_kill_text: String::new(),
             act_paused: None,
             detail_open: false,
+            tree_open: BTreeSet::new(),
             extra_cols: BTreeSet::new(),
             hold: false,
             held_order: Vec::new(),
@@ -625,6 +666,11 @@ impl Model {
             menu_open: false,
             map: crate::map::MapState::default(),
             gh_map: false,
+            act_access: crate::access::GroupState::NoGroup,
+            view_access: crate::access::GroupState::NoGroup,
+            joining: false,
+            autostart: false,
+            settings: crate::settings::Settings::default(),
             details_version: 0,
         }
     }
@@ -826,7 +872,14 @@ impl Model {
 
     /// Applies a user action; returns requests to send to the daemon.
     pub fn on_action(&mut self, a: Action) -> Vec<ClientMsg> {
-        let view_change = matches!(a, Action::Sort(_) | Action::Filter(_) | Action::ToggleTree);
+        let view_change = matches!(
+            a,
+            Action::Sort(_)
+                | Action::Filter(_)
+                | Action::ToggleTree
+                | Action::ToggleOpen(_)
+                | Action::OpenAll(_)
+        );
         let out = self.on_action_inner(a);
         if view_change {
             self.refresh();
@@ -982,6 +1035,15 @@ impl Model {
                 // The cursor only highlights; Enter opens (no detail request yet).
                 self.selected = keys.get(next).copied();
             }
+            Action::ToggleOpen(k) => {
+                if !self.tree_open.remove(&k) {
+                    self.tree_open.insert(k);
+                }
+            }
+            Action::OpenAll(true) => {
+                self.tree_open = self.rows.iter().filter_map(|r| r.parent).collect();
+            }
+            Action::OpenAll(false) => self.tree_open.clear(),
             Action::ToggleColumn(c) => {
                 if !self.extra_cols.remove(&c.id()) {
                     self.extra_cols.insert(c.id());
@@ -1032,6 +1094,7 @@ impl Model {
                 self.map.invalidate();
             }
             Action::ToggleMenu => self.menu_open = !self.menu_open,
+            Action::JoinGroup(_) | Action::SetAutostart(_) | Action::SetStartMinimised(_) => {}
             Action::GhMap(on) => {
                 self.gh_map = on;
                 if on {
@@ -1210,6 +1273,30 @@ impl Model {
             .collect()
     }
 
+    /// Per-file records of the processes in the map (from their details).
+    pub fn map_files(&self) -> Vec<&candor_proto::FileStat> {
+        self.details
+            .values()
+            .filter_map(|d| match d {
+                DaemonMsg::Detail { files, .. } => Some(files.iter()),
+                _ => None,
+            })
+            .flatten()
+            .collect()
+    }
+
+    /// The Glasshouse decoy at an (escaped) path, in the report shown.
+    pub fn gh_decoy(&self, path: &str) -> Option<&candor_proto::DecoyStatus> {
+        if self.page != Page::Glasshouse {
+            return None;
+        }
+        self.gh
+            .shown_report()?
+            .decoys
+            .iter()
+            .find(|d| safe(&d.path) == path)
+    }
+
     /// Wall-clock offset for times shown (0 in a replay).
     pub fn boot_to_wall(&self) -> u64 {
         match &self.conn {
@@ -1375,6 +1462,8 @@ impl Model {
                 row: r.clone(),
                 depth: 0,
                 band: band(r.score),
+                below: 0,
+                open: false,
             })
             .filter(|v| self.matches(&v.row, &v.name))
             .collect();
@@ -1398,6 +1487,31 @@ impl Model {
             }
         }
         roots.sort_by(|a, b| self.cmp(a, b));
+        // How many processes sit below each one (for the "N below" hint).
+        fn count_below(
+            k: ProcKey,
+            children: &BTreeMap<ProcKey, Vec<&RowView>>,
+            memo: &mut BTreeMap<ProcKey, usize>,
+            guard: &mut BTreeSet<ProcKey>,
+        ) -> usize {
+            if let Some(n) = memo.get(&k) {
+                return *n;
+            }
+            if !guard.insert(k) {
+                return 0; // defensive: never loop on bad parent links
+            }
+            let n = children.get(&k).map_or(0, |kids| {
+                kids.iter()
+                    .map(|c| 1 + count_below(c.row.key, children, memo, guard))
+                    .sum()
+            });
+            memo.insert(k, n);
+            n
+        }
+        let mut memo = BTreeMap::new();
+        // While searching, every match is shown (nothing hidden in a
+        // closed branch); otherwise only the branches the user opened.
+        let searching = !self.filter.is_empty();
         let mut out = Vec::new();
         let mut seen = BTreeSet::new();
         let mut stack: Vec<(&RowView, usize)> = roots.into_iter().rev().map(|r| (r, 0)).collect();
@@ -1407,7 +1521,13 @@ impl Model {
             }
             let mut rv = v.clone();
             rv.depth = d;
+            rv.below = count_below(v.row.key, &children, &mut memo, &mut BTreeSet::new());
+            rv.open = searching || self.tree_open.contains(&v.row.key);
+            let open = rv.open;
             out.push(rv);
+            if !open {
+                continue;
+            }
             if let Some(kids) = children.get(&v.row.key) {
                 let mut kids = kids.clone();
                 kids.sort_by(|a, b| self.cmp(a, b));
@@ -1673,14 +1793,43 @@ mod tests {
         let mut m = Model::new();
         m.apply(snap(1, sample()));
         m.on_action(Action::ToggleTree);
-        let v = m.visible_rows();
-        let got: Vec<(u32, usize)> = v.iter().map(|r| (r.row.key.tgid, r.depth)).collect();
-        // 20's parent 99 is missing: it is a root. Children follow parents.
+        // Collapsed by default: only the roots, each saying what is below.
+        let got: Vec<(u32, usize)> = m
+            .visible_rows()
+            .iter()
+            .map(|r| (r.row.key.tgid, r.below))
+            .collect();
+        assert_eq!(got, vec![(1, 3), (20, 0)]);
+        // Opening one level shows the children, still collapsed.
+        m.on_action(Action::ToggleOpen(key(1)));
+        let got: Vec<(u32, usize)> = m
+            .visible_rows()
+            .iter()
+            .map(|r| (r.row.key.tgid, r.depth))
+            .collect();
+        assert_eq!(got, vec![(1, 0), (10, 1), (20, 0)]);
+        // The choice survives a new snapshot.
+        m.apply(snap(2, sample()));
+        assert_eq!(m.visible_rows().len(), 3);
+        // Open everything: children follow parents; 20's parent 99 is
+        // missing, so it is a root.
+        m.on_action(Action::OpenAll(true));
+        let got: Vec<(u32, usize)> = m
+            .visible_rows()
+            .iter()
+            .map(|r| (r.row.key.tgid, r.depth))
+            .collect();
         assert_eq!(got, vec![(1, 0), (10, 1), (12, 2), (11, 2), (20, 0)]);
+        // Searching shows matches even inside closed branches.
+        m.on_action(Action::OpenAll(false));
+        m.on_action(Action::Filter("vim".into()));
+        assert!(m.visible_rows().iter().any(|r| r.row.key.tgid == 11));
+        m.on_action(Action::Filter(String::new()));
         // A self-parented or cyclic row does not loop.
         let mut rows = sample();
         rows.push(row(30, Some(30), "/self", 0.0, 0));
-        m.apply(snap(2, rows));
+        m.apply(snap(3, rows));
+        m.on_action(Action::OpenAll(true));
         assert_eq!(m.visible_rows().len(), 6);
     }
 

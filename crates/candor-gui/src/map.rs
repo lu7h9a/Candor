@@ -25,6 +25,24 @@ pub const FOLDER_MIN: usize = 8;
 pub const STEPS_PER_FRAME: usize = 6;
 /// Below this zoom, only the centre, flagged and hovered nodes are labelled.
 pub const LABEL_ZOOM: f32 = 0.8;
+/// Processes stay inside this radius (map units).
+pub const PROC_RADIUS: f32 = 160.0;
+/// Files and folders sit on this ring, well away from the processes.
+pub const FILE_RING: f32 = 340.0;
+/// Connections and listening sockets sit on the outer ring.
+pub const NET_RING: f32 = 500.0;
+
+/// Temperature kept per step (see `MapState::heat`).
+pub const COOLING: f32 = 0.995;
+/// Below this temperature the layout stops.
+pub const MIN_HEAT: f32 = 0.02;
+/// Temperature after a drag (neighbours follow, then settle again).
+pub const WARM_ON_DRAG: f32 = 0.3;
+
+/// Smallest gap between neighbours on a ring (map units).
+pub const RING_GAP: f32 = 46.0;
+/// Space between the file ring and the connection ring.
+pub const RING_STEP: f32 = 160.0;
 
 /// What a node stands for.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -795,8 +813,18 @@ pub struct MapState {
     /// Build options (filters, grouping).
     pub opts: BuildOpts,
     bodies: BTreeMap<NodeId, Body>,
+    /// Kind of each node (for the rings).
+    kinds: BTreeMap<NodeId, Kind>,
+    /// Radius of the file ring (grows with the number of files).
+    pub file_ring: f32,
+    /// Radius of the connection ring.
+    pub net_ring: f32,
     /// Nodes still moving; empty when settled.
     active: BTreeSet<NodeId>,
+    /// Layout temperature: movement is scaled by it and it cools every
+    /// step, so the layout always comes to rest in bounded time. New data
+    /// or a drag warms it again.
+    heat: f32,
     /// Pan offset (screen pixels) and zoom.
     pub pan: P,
     /// Zoom factor.
@@ -818,6 +846,16 @@ pub struct MapState {
 }
 
 impl MapState {
+    /// The ring a kind of node lives on (processes: none, they stay in the
+    /// middle). Files and connections may only move along their ring.
+    pub fn ring(&self, kind: Kind) -> Option<f32> {
+        match kind {
+            Kind::Process => None,
+            Kind::File => Some(self.file_ring.max(FILE_RING)),
+            Kind::Network => Some(self.net_ring.max(NET_RING)),
+        }
+    }
+
     /// Marks the graph for a rebuild (e.g. redaction changed).
     pub fn invalidate(&mut self) {
         self.dirty = true;
@@ -920,6 +958,14 @@ impl MapState {
                 .collect()
         };
         let n = g.nodes.len().max(1) as f32;
+        // Rings big enough that neighbours keep RING_GAP between them.
+        let tau = std::f32::consts::TAU;
+        let files = g.nodes.iter().filter(|x| x.kind == Kind::File).count() as f32;
+        let nets = g.nodes.iter().filter(|x| x.kind == Kind::Network).count() as f32;
+        self.file_ring = FILE_RING.max(files * RING_GAP / tau);
+        self.net_ring = NET_RING
+            .max(self.file_ring + RING_STEP)
+            .max(nets * RING_GAP / tau);
         for (i, node) in g.nodes.iter().enumerate() {
             if self.bodies.contains_key(&node.id) {
                 continue;
@@ -927,18 +973,26 @@ impl MapState {
             let near = neighbours(&node.id)
                 .into_iter()
                 .find_map(|nb| self.bodies.get(&nb).map(|b| b.pos));
-            // Deterministic spread: golden-angle spiral (no randomness, so
-            // the same data gives the same picture).
+            // Deterministic placement (no randomness: the same data gives
+            // the same picture). Processes start next to a neighbour near
+            // the middle; files and connections start on their own ring at
+            // the angle of the process that touched them.
             let a = i as f32 * 2.399_963;
-            let r = if near.is_some() {
-                40.0
-            } else {
-                30.0 * (i as f32).sqrt()
-            };
-            let base = near.unwrap_or_default();
             let pos = if i == 0 && self.bodies.is_empty() {
                 P::default()
+            } else if let Some(r) = self.ring(node.kind) {
+                let base = near.map_or(a, |b| b.y.atan2(b.x) + (a.sin() * 0.35));
+                P {
+                    x: r * base.cos(),
+                    y: r * base.sin(),
+                }
             } else {
+                let base = near.unwrap_or_default();
+                let r = if near.is_some() {
+                    60.0
+                } else {
+                    40.0 * (i as f32).sqrt()
+                };
                 P {
                     x: base.x + r * a.cos(),
                     y: base.y + r * a.sin(),
@@ -954,11 +1008,13 @@ impl MapState {
                 },
             );
             self.active.insert(node.id.clone());
+            self.heat = 1.0;
             for nb in neighbours(&node.id) {
                 self.active.insert(nb);
             }
             let _ = n;
         }
+        self.kinds = g.nodes.iter().map(|n| (n.id.clone(), n.kind)).collect();
         // Drop bodies of nodes that left the graph.
         let present: BTreeSet<&NodeId> = g.nodes.iter().map(|n| &n.id).collect();
         self.bodies.retain(|id, _| present.contains(id));
@@ -982,10 +1038,23 @@ impl MapState {
         if self.active.is_empty() {
             return;
         }
-        const REPULSE: f32 = 600.0;
+        // Cooling: stop for good once cold.
+        self.heat *= COOLING;
+        if self.heat < MIN_HEAT {
+            for b in self.bodies.values_mut() {
+                b.vel = P::default();
+            }
+            self.active.clear();
+            return;
+        }
+        const REPULSE: f32 = 1600.0;
         const SPRING: f32 = 0.04;
-        const LENGTH: f32 = 70.0;
+        /// Between a process and a file or connection: weak, so the rings
+        /// hold and only the angle follows the process.
+        const SPRING_CROSS: f32 = 0.008;
+        const LENGTH: f32 = 90.0;
         const GRAVITY: f32 = 0.004;
+        const RADIAL: f32 = 0.12;
         const DAMP: f32 = 0.82;
         const REST: f32 = 0.05;
         let ids: Vec<NodeId> = self.active.iter().cloned().collect();
@@ -999,9 +1068,29 @@ impl MapState {
             let Some(p) = self.bodies.get(id).map(|b| b.pos) else {
                 continue;
             };
-            let mut f = P {
-                x: -p.x * GRAVITY,
-                y: -p.y * GRAVITY,
+            let kind = self.kinds.get(id).copied().unwrap_or(Kind::Process);
+            let r = (p.x * p.x + p.y * p.y).sqrt().max(0.01);
+            let mut f = match self.ring(kind) {
+                // Held on its ring: a spring on the radius only.
+                Some(target) => {
+                    let k = -RADIAL * (r - target) / r;
+                    P {
+                        x: k * p.x,
+                        y: k * p.y,
+                    }
+                }
+                // Processes: gentle gravity, and a firm wall at PROC_RADIUS.
+                None => {
+                    let wall = if r > PROC_RADIUS {
+                        RADIAL * (r - PROC_RADIUS) / r
+                    } else {
+                        0.0
+                    };
+                    P {
+                        x: -p.x * (GRAVITY + wall),
+                        y: -p.y * (GRAVITY + wall),
+                    }
+                }
             };
             for (other, q) in &all {
                 if other == id {
@@ -1023,7 +1112,13 @@ impl MapState {
             };
             let (dx, dy) = (b.x - a.x, b.y - a.y);
             let d = (dx * dx + dy * dy).sqrt().max(0.01);
-            let k = SPRING * (d - LENGTH) / d;
+            let cross = self.kinds.get(&e.from) != self.kinds.get(&e.to);
+            let k = if cross {
+                // Pull toward the process's angle only (rings set the radius).
+                SPRING_CROSS * d.min(LENGTH * 4.0) / d
+            } else {
+                SPRING * (d - LENGTH) / d
+            };
             if let Some(f) = force.get_mut(&e.from) {
                 f.x += k * dx;
                 f.y += k * dy;
@@ -1043,17 +1138,40 @@ impl MapState {
                 self.active.remove(&id);
                 continue;
             }
-            b.vel.x = (b.vel.x + f.x) * DAMP;
-            b.vel.y = (b.vel.y + f.y) * DAMP;
+            let kind = self.kinds.get(&id).copied().unwrap_or(Kind::Process);
+            b.vel.x = (b.vel.x + f.x) * DAMP * self.heat;
+            b.vel.y = (b.vel.y + f.y) * DAMP * self.heat;
+            // On a ring only the movement along the ring counts: drop the
+            // part of the velocity that points off it.
+            if kind != Kind::Process {
+                let r = (b.pos.x * b.pos.x + b.pos.y * b.pos.y).sqrt().max(0.01);
+                let (ux, uy) = (b.pos.x / r, b.pos.y / r);
+                let radial = b.vel.x * ux + b.vel.y * uy;
+                b.vel.x -= radial * ux;
+                b.vel.y -= radial * uy;
+            }
             let speed = (b.vel.x * b.vel.x + b.vel.y * b.vel.y).sqrt();
             let max = 20.0;
             if speed > max {
                 b.vel.x *= max / speed;
                 b.vel.y *= max / speed;
             }
+            let before = b.pos;
             b.pos.x += b.vel.x;
             b.pos.y += b.vel.y;
-            if speed < REST {
+            // Hard rules: files and connections stay exactly on their ring;
+            // processes stay inside the middle circle.
+            let r = (b.pos.x * b.pos.x + b.pos.y * b.pos.y).sqrt().max(0.01);
+            let target = match kind {
+                Kind::Process => r.min(PROC_RADIUS),
+                Kind::File => self.file_ring.max(FILE_RING),
+                Kind::Network => self.net_ring.max(NET_RING),
+            };
+            b.pos.x *= target / r;
+            b.pos.y *= target / r;
+            // Settled when it no longer really moves.
+            let moved = ((b.pos.x - before.x).powi(2) + (b.pos.y - before.y).powi(2)).sqrt();
+            if moved < REST {
                 b.vel = P::default();
                 self.active.remove(&id);
             }
@@ -1089,6 +1207,7 @@ impl MapState {
                     b.vel = P::default();
                 }
                 // Its neighbours follow gently.
+                self.heat = self.heat.max(WARM_ON_DRAG);
                 for e in &self.graph.edges {
                     if e.from == id {
                         self.active.insert(e.to.clone());
@@ -1387,6 +1506,66 @@ mod tests {
         // Only the new node's neighbourhood (the centre is fixed, so at most
         // the new node itself) may move.
         assert!(moved <= 2, "{moved} old nodes moved");
+    }
+
+    #[test]
+    fn files_settle_on_their_own_ring_away_from_processes() {
+        let mut t: Vec<Touch> = (0..40)
+            .map(|i| {
+                file(
+                    if i % 2 == 0 { 2 } else { 3 },
+                    &format!("/x/{i}/f"),
+                    Act::Read,
+                    1,
+                )
+            })
+            .collect();
+        t.push(Touch {
+            actor: k(2),
+            object: NodeId::Net("10.0.0.1:443".into()),
+            act: Act::Connected,
+            count: 3,
+            first: Some(1),
+            last: 2,
+            events: vec![],
+        });
+        let mut m = MapState::default();
+        m.set_center(k(2));
+        let g = build_with(&t, &BuildOpts::default());
+        m.sync(1, |_| g.clone());
+        for _ in 0..5000 {
+            if !m.moving() {
+                break;
+            }
+            m.step();
+        }
+        assert!(!m.moving());
+        let radius = |id: &NodeId| {
+            let p = m.pos(id).unwrap();
+            (p.x * p.x + p.y * p.y).sqrt()
+        };
+        let by_kind = |k: Kind| -> Vec<f32> {
+            m.graph
+                .nodes
+                .iter()
+                .filter(|n| n.kind == k)
+                .map(|n| radius(&n.id))
+                .collect()
+        };
+        let procs_max = by_kind(Kind::Process).into_iter().fold(0.0, f32::max);
+        let files = by_kind(Kind::File);
+        let files_min = files.iter().copied().fold(f32::MAX, f32::min);
+        let files_max = files.iter().copied().fold(0.0, f32::max);
+        let net_min = by_kind(Kind::Network).into_iter().fold(f32::MAX, f32::min);
+        // Clear gaps: processes, then files, then connections.
+        assert!(
+            files_min - procs_max > 80.0,
+            "procs {procs_max}, files from {files_min}"
+        );
+        assert!(
+            net_min - files_max > 40.0,
+            "files to {files_max}, network {net_min}"
+        );
     }
 
     #[test]

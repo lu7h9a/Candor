@@ -140,3 +140,35 @@ No assertion is removed or weakened:
 18. **Spec "Show 1 events"**: the button reads "Show 1 event behind this"
     for one event (grammar).
 
+## Owner's changes after the first review (2026-11-15)
+
+The owner asked for these after using the app; they override the spec
+where they differ.
+
+19. **Map shapes and colours.** Processes are squares; files, folders and
+    connections are circles. Kinds are colour coded (processes light, files
+    blue, folders darker blue, connections violet) and lines take the
+    colour of the action (started, read, wrote, renamed, deleted,
+    connected, ptrace). Red stays reserved for findings. This goes beyond
+    the spec's "only teal, red and amber" rule, on purpose; every colour is
+    still a token in theme.rs and the legend names each one.
+20. **Map layout.** Processes stay in the middle, files on a ring around
+    them, connections on an outer ring; files and connections only move
+    along their ring, and rings grow with the number of nodes so neighbours
+    keep a minimum gap. A cooling schedule ends the layout in bounded time.
+21. **Process tree collapsed by default.** Tree view shows top-level
+    processes with "N below"; arrows open a branch, Expand all / Collapse
+    all open everything; the choice survives updates; a search shows every
+    match.
+22. **Joining the follow group from the window.** The menu shows whether
+    the user may follow processes and offers "Add me to candor-act", which
+    runs `pkexec /usr/sbin/usermod -aG candor-act USER`: the system asks
+    for the password, the window never sees it. The permission-denied page
+    offers the same for the `candor` group. There is no "closed" line: the
+    daemon does not record file closes.
+23. **Start at login and start minimised** (menu, Settings): an XDG
+    autostart entry in ~/.config/autostart, and ~/.config/candor/gui.json.
+    A tray icon ("minimise to the tray") needs a StatusNotifierItem library;
+    the one that fits (ksni) is under the Unlicense, which deny.toml does
+    not allow yet. Waiting for the owner's decision.
+

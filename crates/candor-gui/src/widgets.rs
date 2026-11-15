@@ -439,3 +439,39 @@ pub fn search_icon(ui: &mut Ui) {
         stroke,
     );
 }
+
+/// A disclosure triangle (tree rows): pointing right when closed, down
+/// when open. `active` false keeps an empty slot of the same size.
+pub fn disclosure(ui: &mut Ui, active: bool, open: bool) -> Response {
+    let sense = if active {
+        Sense::click()
+    } else {
+        Sense::hover()
+    };
+    let (rect, r) = ui.allocate_exact_size(Vec2::splat(space::L), sense);
+    if active {
+        let c = rect.center();
+        let h = space::XS;
+        let pts = if open {
+            vec![
+                c + vec2(-h, -h / 2.0),
+                c + vec2(h, -h / 2.0),
+                c + vec2(0.0, h),
+            ]
+        } else {
+            vec![
+                c + vec2(-h / 2.0, -h),
+                c + vec2(h, 0.0),
+                c + vec2(-h / 2.0, h),
+            ]
+        };
+        let col = if r.hovered() {
+            color::TEXT_STRONG
+        } else {
+            color::TEXT_DIM
+        };
+        ui.painter()
+            .add(egui::Shape::convex_polygon(pts, col, Stroke::NONE));
+    }
+    r
+}

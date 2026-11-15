@@ -10,6 +10,7 @@
 //! --shot-at SECONDS:FILE (repeatable; exits after the last one),
 //! --page processes|findings|glasshouse, --gh-map (Glasshouse report map),
 //! --size WIDTHxHEIGHT, --frame-stats (frame times printed at exit).
+//! --minimised starts the window minimised (used by start at login).
 #![forbid(unsafe_code)]
 
 use candor_gui::app::App;
@@ -53,6 +54,7 @@ fn main() {
     let mut timed: Vec<(f64, PathBuf)> = Vec::new();
     let mut size = [1400.0_f32, 900.0];
     let mut frame_stats = false;
+    let mut minimised = false;
     let mut sockets = vec![
         PathBuf::from("/run/candor-dev/candor.sock"),
         PathBuf::from("/run/candor/candor.sock"),
@@ -103,7 +105,9 @@ fn main() {
                 ));
             }
             "--gh-map" => initial.push(Action::GhMap(true)),
+            "--tree" => initial.push(Action::ToggleTree),
             "--frame-stats" => frame_stats = true,
+            "--minimised" | "--minimized" => minimised = true,
             "--size" => {
                 let v = val();
                 let (w, h) = v
@@ -127,7 +131,9 @@ fn main() {
     };
     let app = App::new(source, shot.map(|p| (p, after)), initial)
         .with_timed_shots(timed)
-        .with_frame_stats(frame_stats);
+        .with_frame_stats(frame_stats)
+        .with_config(candor_gui::settings::config_home())
+        .minimised(minimised);
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size(size)

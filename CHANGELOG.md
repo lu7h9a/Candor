@@ -28,6 +28,16 @@ in the workspace `Cargo.toml`.
   connections, listening sockets, the processes it started) as a graph,
   with filters, grouping of system files and big folders, a time window,
   search, and a side panel with who touched what and when.
+- Access map: processes as squares in the middle, files on a ring around
+  them, connections on an outer ring; kinds and lines colour coded by what
+  was done, with a legend; clicking a process or file shows its details
+  (inode, opens, user, parent, CPU, memory and more).
+- Process tree collapsed by default, with arrows and Expand all.
+- Menu: "Add me to candor-act" (the system asks for the password), "Open
+  Candor when I log in", "Start minimised".
+- Plain explanations: what each kind of lost event means and which
+  processes lost the most; why memory maps of other users' processes are
+  not shown; why Glasshouse cannot run (with the common reasons).
 - `candor --color=auto|always|never` (and `NO_COLOR`): `top` marks
   findings with a red or amber dot and ends with a summary line,
   `findings` prints each finding as a title and three labelled lines, and

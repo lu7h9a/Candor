@@ -40,8 +40,28 @@ pub mod color {
     pub const CAUTION: Color32 = Color32::from_rgb(0xE8, 0xB4, 0x5A);
     /// Process dots in the map.
     pub const NODE_PROCESS: Color32 = Color32::from_rgb(0xE6, 0xEC, 0xEF);
-    /// File dots in the map.
-    pub const NODE_FILE: Color32 = Color32::from_rgb(0x7C, 0x8A, 0x91);
+    /// File dots in the map (owner's choice: kinds are colour coded).
+    pub const NODE_FILE: Color32 = Color32::from_rgb(0x5B, 0x9B, 0xD5);
+    /// Folder and system-file groups in the map.
+    pub const NODE_FOLDER: Color32 = Color32::from_rgb(0x3D, 0x6F, 0xA0);
+    /// Connections and listening sockets in the map.
+    pub const NODE_NETWORK: Color32 = Color32::from_rgb(0xB4, 0x8E, 0xF0);
+    /// Map lines, coloured by what was done (owner's choice).
+    pub const ACT_STARTED: Color32 = Color32::from_rgb(0xC9, 0xD1, 0xD5);
+    /// A file was read.
+    pub const ACT_READ: Color32 = Color32::from_rgb(0x5B, 0x9B, 0xD5);
+    /// A file was written or modified.
+    pub const ACT_WROTE: Color32 = Color32::from_rgb(0xF2, 0xA6, 0x5A);
+    /// A file was renamed.
+    pub const ACT_RENAMED: Color32 = Color32::from_rgb(0xE0, 0x8F, 0xD0);
+    /// A file was deleted.
+    pub const ACT_DELETED: Color32 = Color32::from_rgb(0xC0, 0x5A, 0x5A);
+    /// A connection was made, or a port listened on.
+    pub const ACT_NETWORK: Color32 = Color32::from_rgb(0xB4, 0x8E, 0xF0);
+    /// One process attached to another with ptrace.
+    pub const ACT_PTRACE: Color32 = Color32::from_rgb(0xE8, 0x6A, 0x9A);
+    /// The faint guide circles of the map's rings.
+    pub const RING: Color32 = Color32::from_rgb(0x1E, 0x25, 0x29);
     /// Low-activity dots.
     pub const NODE_MINOR: Color32 = Color32::from_rgb(0x56, 0x63, 0x6A);
     /// Map lines, flow connectors.
@@ -51,6 +71,12 @@ pub mod color {
 
     /// Opacity of dimmed elements (hover, search).
     pub const DIM_ALPHA: f32 = 0.25;
+    /// Opacity of nodes with very little activity.
+    pub const MINOR_ALPHA: f32 = 0.55;
+    /// Opacity of the ring labels.
+    pub const RING_LABEL_ALPHA: f32 = 0.5;
+    /// Opacity of map lines (crossings stay readable).
+    pub const EDGE_ALPHA: f32 = 0.7;
     /// Opacity of elements outside the time window.
     pub const OUT_OF_WINDOW_ALPHA: f32 = 0.15;
 
@@ -172,6 +198,8 @@ pub mod space {
     pub const SIDE_MIN_H: f32 = 456.0;
     /// Map dot radius: smallest.
     pub const NODE_R_MIN: f32 = 4.0;
+    /// Map: smallest half-size of a process square (easy to see and click).
+    pub const NODE_PROC_MIN_R: f32 = 7.0;
     /// Map dot radius: growth per log of the event count.
     pub const NODE_R_GROWTH: f32 = 3.0;
     /// Map dot radius: largest.

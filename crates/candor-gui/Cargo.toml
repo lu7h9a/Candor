@@ -16,6 +16,7 @@ eframe = { version = "0.37.0", default-features = false, features = ["glow", "de
 egui = "0.37.0"
 egui_extras = "0.37.0"
 png = "0.18.1"
+serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 candor-core = { version = "0.0.1", path = "../candor-core" }
 candor-proto = { version = "0.0.1", path = "../candor-proto" }

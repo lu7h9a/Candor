@@ -40,6 +40,7 @@ shot detail-findings --replay "$FRAMES" --pace max --select 1600 --tab findings
 shot detail-map --replay "$FRAMES" --pace max --select 1600 --tab map
 shot detail-events --replay "$FRAMES" --pace max --select 1600 --tab events
 shot detail-files --replay "$FRAMES" --pace max --select 1100 --tab files
+shot tree --replay "$FRAMES" --pace max --tree
 shot findings --replay "$FRAMES" --pace max --page findings
 shot following --replay "$OUT/follow.frames.jsonl" --pace max
 shot daemon-down --socket /run/candor-none/candor.sock

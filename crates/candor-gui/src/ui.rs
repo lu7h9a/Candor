@@ -78,7 +78,7 @@ pub fn draw(ui: &mut Ui, m: &Model) -> Vec<Action> {
                     ui.spacing_mut().item_spacing.y = space::L;
                     banners(ui, m, &mut acts);
                     if !live(m) && m.rows.is_empty() && m.page != Page::Glasshouse {
-                        conn_state(ui, m);
+                        conn_state(ui, m, &mut acts);
                         return;
                     }
                     match m.page {
@@ -261,7 +261,26 @@ fn menu(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             tag(&r, Role::Label, "feature-unavailable");
         }
         widgets::hairline(ui);
+        ui.label(theme::section("Permissions"));
+        group_access(ui, m, acts);
+        widgets::hairline(ui);
         ui.label(theme::section("Settings"));
+        let mut auto = m.autostart;
+        if ui
+            .checkbox(&mut auto, theme::body("Open Candor when I log in"))
+            .on_hover_text("Adds Candor to your desktop's startup programs (~/.config/autostart). The daemon itself starts at boot separately.")
+            .clicked()
+        {
+            acts.push(Action::SetAutostart(auto));
+        }
+        let mut min = m.settings.start_minimised;
+        if ui
+            .checkbox(&mut min, theme::body("Start minimised"))
+            .on_hover_text("When Candor opens at login, it starts minimised to the taskbar.")
+            .clicked()
+        {
+            acts.push(Action::SetStartMinimised(min));
+        }
         let mut red = m.redact;
         if ui
             .checkbox(&mut red, theme::body("Hide personal details in paths"))
@@ -274,6 +293,49 @@ fn menu(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         ui.label(theme::section("About Candor"));
         ui.add(egui::Label::new(theme::dim(STATEMENT)).wrap());
     });
+}
+
+/// Follow (and act) need the candor-act group: show where the user stands
+/// and offer to join. Joining asks the system for the password.
+fn group_access(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
+    use crate::access::GroupState;
+    match m.act_access {
+        GroupState::Active => {
+            ui.label(theme::body("You may follow processes (group candor-act)."));
+        }
+        GroupState::NeedsRelogin => {
+            ui.label(theme::body(
+                "You are in candor-act. Log out and back in to start using it.",
+            ));
+        }
+        GroupState::NotMember => {
+            ui.label(theme::body(
+                "Following a process needs the candor-act group.",
+            ));
+            let r = widgets::secondary(ui, "Add me to candor-act", !m.joining);
+            tag(&r, Role::Button, "join-act");
+            if r.clicked() {
+                acts.push(Action::JoinGroup("candor-act"));
+            }
+            ui.label(theme::dim(
+                "Your system asks for your password; Candor never sees it. Then log out and back in.",
+            ));
+        }
+        GroupState::NoGroup => {
+            ui.label(theme::dim(
+                "The candor-act group does not exist here: install the Candor package first.",
+            ));
+        }
+    }
+    if crate::model::act_enabled(m) {
+        ui.label(theme::dim(
+            "Act mode (pause, resume, kill) is on in the daemon.",
+        ));
+    } else {
+        ui.label(theme::dim(
+            "Act mode (pause, resume, kill) is off. Root turns it on with enable_act = true in /etc/candor/candord.toml.",
+        ));
+    }
 }
 
 fn status_text(m: &Model) -> String {
@@ -319,11 +381,77 @@ fn banners(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                     }
                 });
             });
+            loss_explained(ui, m);
         });
     }
     if let Some(n) = &m.notice {
         ui.label(theme::dim(n.clone()));
     }
+}
+
+/// What each loss counter means, in plain words, and which processes lost
+/// the most events (their events were cut, not the whole system's).
+fn loss_explained(ui: &mut Ui, m: &Model) {
+    egui::CollapsingHeader::new(theme::dim("What does this mean?"))
+        .id_salt("loss-why")
+        .show(ui, |ui| {
+            ui.spacing_mut().item_spacing.y = space::S;
+            let lines = [
+                (
+                    "Per-process budget",
+                    m.loss.budget,
+                    "Candor's own limit: each process may report about 2000 file and network events a second. Beyond that its extra events are counted here instead of recorded, so one busy program (a build, a backup, a file indexer) cannot flood the daemon or slow the computer. Program starts and exits are never dropped.",
+                ),
+                (
+                    "Ring buffer",
+                    m.loss.ringbuf,
+                    "The kernel-to-daemon queue was full for a moment, usually during a sudden burst.",
+                ),
+                (
+                    "Skipped by the kernel",
+                    m.loss.missed,
+                    "The Linux kernel did not run Candor's probe because the same probe was already running on that CPU. This is a kernel limit, not a Candor setting; it happens more on fully preemptible kernels.",
+                ),
+                (
+                    "Untracked",
+                    m.loss.untracked,
+                    "Events of processes started while Candor's process table was full.",
+                ),
+                (
+                    "Scratch and undecodable",
+                    m.loss.scratch.saturating_add(m.loss.decode),
+                    "Events the probe could not build or the daemon could not read. Normally zero.",
+                ),
+            ];
+            for (name, n, why) in lines {
+                if n == 0 {
+                    continue;
+                }
+                ui.horizontal_wrapped(|ui| {
+                    ui.label(theme::name(name));
+                    ui.label(theme::mono(n.to_string()));
+                });
+                ui.add(egui::Label::new(theme::dim(why)).wrap());
+            }
+            let mut top: Vec<&candor_proto::ProcRow> =
+                m.rows.iter().filter(|r| r.ev_dropped > 0).collect();
+            top.sort_by_key(|r| std::cmp::Reverse(r.ev_dropped));
+            if !top.is_empty() {
+                ui.label(theme::label("Processes that lost the most events"));
+                for r in top.into_iter().take(5) {
+                    let n = m.shown(&candor_core::display::exe_shown(r));
+                    ui.label(theme::mono(format!(
+                        "{}  ({})  {} not recorded",
+                        n.rsplit('/').next().unwrap_or(&n),
+                        r.key.tgid,
+                        r.ev_dropped
+                    )));
+                }
+                ui.label(theme::dim(
+                    "Their other activity, and every other process, is still recorded.",
+                ));
+            }
+        });
 }
 
 fn confirm_follow(ui: &mut Ui, m: &Model, k: candor_proto::ProcKey, acts: &mut Vec<Action>) {
@@ -359,7 +487,7 @@ fn confirm_follow(ui: &mut Ui, m: &Model, k: candor_proto::ProcKey, acts: &mut V
 }
 
 /// The daemon cannot be reached: one centred message and the fix.
-fn conn_state(ui: &mut Ui, m: &Model) {
+fn conn_state(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     ui.add_space(space::MESSAGE_TOP);
     ui.vertical_centered(|ui| {
         ui.set_max_width(space::MESSAGE_W);
@@ -378,7 +506,7 @@ fn conn_state(ui: &mut Ui, m: &Model) {
                     "You may not read the daemon's socket",
                     safe_str(path),
                     vec![
-                        "Join the candor group, then log out and back in:",
+                        "Join the candor group, then log out and back in. Use the button below, or in a terminal:",
                         "sudo usermod -aG candor $USER",
                     ],
                 ),
@@ -410,6 +538,20 @@ fn conn_state(ui: &mut Ui, m: &Model) {
                     ui.label(theme::body(*line));
                 }
                 let _ = i;
+            }
+            if matches!(m.conn, ConnState::PermissionDenied(_)) {
+                match m.view_access {
+                    crate::access::GroupState::NeedsRelogin | crate::access::GroupState::Active => {
+                        ui.label(theme::body("You are in the candor group: log out and back in."));
+                    }
+                    _ => {
+                        let r = widgets::primary(ui, "Add me to the candor group", !m.joining);
+                        tag(&r, Role::Button, "join-candor");
+                        if r.clicked() {
+                            acts.push(Action::JoinGroup("candor"));
+                        }
+                    }
+                }
             }
             if matches!(m.conn, ConnState::DaemonDown(_)) {
                 ui.label(theme::dim(
@@ -525,6 +667,22 @@ fn overview(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                 acts.push(Action::ToggleTree);
             }
             column_picker(ui, m, acts);
+            if m.tree {
+                let all_open = m.visible().iter().all(|v| v.below == 0 || v.open);
+                let r = widgets::secondary(
+                    ui,
+                    if all_open {
+                        "Collapse all"
+                    } else {
+                        "Expand all"
+                    },
+                    true,
+                );
+                tag(&r, Role::Button, "tree-all");
+                if r.clicked() {
+                    acts.push(Action::OpenAll(!all_open));
+                }
+            }
             let r = widgets::secondary(ui, "Export", live(m));
             tag(&r, Role::Button, "export");
             if r.clicked() {
@@ -651,7 +809,7 @@ fn procs(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                     return;
                 };
                 row.set_selected(m.selected == Some(v.row.key));
-                proc_cells(&mut row, v, m, &cols);
+                proc_cells(&mut row, v, m, &cols, acts);
                 let resp = row.response();
                 if resp.clicked() {
                     acts.push(Action::Open(v.row.key));
@@ -691,6 +849,7 @@ fn proc_cells(
     v: &RowView,
     m: &Model,
     cols: &[(&str, Column)],
+    acts: &mut Vec<Action>,
 ) {
     let r = &v.row;
     let sev = Severity::of_score(r.score);
@@ -712,6 +871,17 @@ fn proc_cells(
                             ui.add_space(indent);
                         }
                         ui.spacing_mut().item_spacing.x = space::DOT_GAP;
+                        if m.tree {
+                            // The arrow opens or closes this branch; rows
+                            // without children keep the slot so names align.
+                            let r = widgets::disclosure(ui, v.below > 0, v.open);
+                            if v.below > 0 {
+                                tag(&r, Role::Button, "tree-toggle");
+                                if r.clicked() {
+                                    acts.push(Action::ToggleOpen(v.row.key));
+                                }
+                            }
+                        }
                         widgets::status_dot(ui, sev);
                         let name = m.shown(&v.name);
                         let short = name.rsplit('/').next().unwrap_or(&name).to_string();
@@ -726,6 +896,9 @@ fn proc_cells(
                         ui.label(theme::mono_dim(r.key.tgid.to_string()));
                         if r.exited_ts.is_some() {
                             ui.label(theme::dim("exited"));
+                        }
+                        if m.tree && v.below > 0 && !v.open {
+                            ui.label(theme::label(format!("{} below", v.below)));
                         }
                     });
                 }
@@ -1294,7 +1467,7 @@ fn detail_events(ui: &mut Ui, m: &Model, d: &DaemonMsg, acts: &mut Vec<Action>) 
                     line(
                         ui,
                         format!(
-                            "{}  {}{}  opened {}",
+                            "{}  {}{}  opened {} times",
                             m.shown(&safe(&f.path)),
                             if f.read { "r" } else { "-" },
                             if f.write { "w" } else { "-" },
@@ -1345,6 +1518,9 @@ fn detail_events(ui: &mut Ui, m: &Model, d: &DaemonMsg, acts: &mut Vec<Action>) 
             }
             Tab::Maps => match maps {
                 Some(rows) => {
+                    ui.label(theme::dim(
+                        "The memory regions this process has mapped: its program, the libraries it loaded, its stack and heap, and memory it allocated. Each line is an address range, the access rights (r read, w write, x execute, p private) and the file behind it, if any.",
+                    ));
                     for r in rows.iter().take(1000) {
                         line(
                             ui,
@@ -1359,7 +1535,24 @@ fn detail_events(ui: &mut Ui, m: &Model, d: &DaemonMsg, acts: &mut Vec<Action>) 
                     }
                 }
                 None => {
-                    ui.label(theme::dim("Loading memory maps..."));
+                    // The daemon sends memory maps only for your own
+                    // processes (or to root): the rule the kernel applies to
+                    // /proc/PID/maps. Anything else is refused, not slow.
+                    let mine = m
+                        .rows
+                        .iter()
+                        .find(|r| Some(r.key) == m.selected)
+                        .is_some_and(|r| Some(r.uid) == crate::model::my_uid());
+                    if mine {
+                        ui.label(theme::dim("Loading memory maps..."));
+                    } else {
+                        ui.label(theme::body(
+                            "Memory maps are shown only for your own processes.",
+                        ));
+                        ui.label(theme::dim(
+                            "This process belongs to another user. The kernel lets only that user and root read its memory layout (/proc/PID/maps), and Candor keeps the same rule.",
+                        ));
+                    }
                 }
             },
             _ => {
@@ -1391,7 +1584,7 @@ fn detail_events(ui: &mut Ui, m: &Model, d: &DaemonMsg, acts: &mut Vec<Action>) 
                     line(
                         ui,
                         format!(
-                            "#{:<7} pid {:<7} {}",
+                            "event #{:<7} pid {:<7} {}",
                             e.id,
                             e.proc.tgid,
                             m.shown(&safe_str(&candor_core::explain::describe(e)))
