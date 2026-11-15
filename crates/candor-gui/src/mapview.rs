@@ -85,6 +85,7 @@ pub fn show(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     {
         ui.horizontal(|ui| {
             ui.label(theme::label("Time"));
+            ui.spacing_mut().slider_width = space::SIDE_PANEL;
             let mut t = mp.time;
             let r = ui.add(
                 egui::Slider::new(&mut t, 0.0..=1.0)
@@ -154,18 +155,49 @@ fn canvas(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         egui::CornerRadius::same(theme::radius::CARD),
         color::SURFACE,
     );
-    // Fit the drawing into the canvas; the user's zoom multiplies that.
-    let fit = {
-        let pts: Vec<P> = g.nodes.iter().filter_map(|n| mp.pos(&n.id)).collect();
-        let ext = pts
-            .iter()
-            .fold(0.0_f32, |a, q| a.max(q.x.abs()).max(q.y.abs()))
-            .max(1.0);
-        let half = rect.width().min(rect.height()) / 2.0 - space::XXXL;
-        (half / ext).min(1.5)
+    // Fit the drawing's bounding box into the canvas and centre it; the
+    // user's zoom and pan apply on top of that.
+    let pts: Vec<P> = g.nodes.iter().filter_map(|n| mp.pos(&n.id)).collect();
+    let (lo, hi) = pts.iter().fold(
+        (
+            P {
+                x: f32::MAX,
+                y: f32::MAX,
+            },
+            P {
+                x: f32::MIN,
+                y: f32::MIN,
+            },
+        ),
+        |(lo, hi), q| {
+            (
+                P {
+                    x: lo.x.min(q.x),
+                    y: lo.y.min(q.y),
+                },
+                P {
+                    x: hi.x.max(q.x),
+                    y: hi.y.max(q.y),
+                },
+            )
+        },
+    );
+    let (mid, fit) = if pts.is_empty() {
+        (P::default(), 1.0)
+    } else {
+        let w = (hi.x - lo.x).max(1.0);
+        let h = (hi.y - lo.y).max(1.0);
+        let room = rect.shrink(space::XXXL);
+        (
+            P {
+                x: (lo.x + hi.x) / 2.0,
+                y: (lo.y + hi.y) / 2.0,
+            },
+            (room.width() / w).min(room.height() / h).min(1.5),
+        )
     };
     let zoom = fit * if mp.zoom > 0.0 { mp.zoom } else { 1.0 };
-    let origin = rect.center() + vec2(mp.pan.x, mp.pan.y);
+    let origin = rect.center() + vec2(mp.pan.x, mp.pan.y) - vec2(mid.x, mid.y) * zoom;
     let to_screen = |q: P| origin + vec2(q.x, q.y) * zoom;
     // Hit test.
     let pointer = resp.hover_pos();

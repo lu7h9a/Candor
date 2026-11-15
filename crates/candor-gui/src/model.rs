@@ -784,6 +784,11 @@ impl Model {
                 self.gh.report = Some(Box::new(report));
                 self.gh.show_start = false;
                 self.gh.open_run = None;
+                // A report means the run is over: go straight to it (spec 7.2)
+                // even if the final status message is still on its way.
+                if self.gh.running() {
+                    self.gh.state = Some(GhState::Finished);
+                }
             }
             DaemonMsg::Error { code, message } => {
                 if self.gh.running()
@@ -1077,9 +1082,23 @@ impl Model {
                 return;
             };
             let events = &r.timeline;
-            let Some(center) = events
-                .iter()
-                .find(|e| matches!(e.kind, candor_proto::EventKind::Exec { .. }))
+            // Centre on the program that was run (its exec names the
+            // sample), not on the sandbox launcher before it.
+            let sample = safe(&r.sample);
+            let sample_leaf = sample.rsplit('/').next().unwrap_or(&sample).to_string();
+            let execs = || {
+                events
+                    .iter()
+                    .filter(|e| matches!(e.kind, candor_proto::EventKind::Exec { .. }))
+            };
+            let Some(center) = execs()
+                .find(|e| match &e.kind {
+                    candor_proto::EventKind::Exec { exe, argv, .. } => {
+                        safe(exe).ends_with(&sample_leaf) || safe(argv).contains(&sample_leaf)
+                    }
+                    _ => false,
+                })
+                .or_else(|| execs().next_back())
                 .or(events.first())
                 .map(|e| e.proc)
             else {

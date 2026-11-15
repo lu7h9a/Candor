@@ -8,7 +8,8 @@
 //! Debug flags: --replay FILE [--pace recorded|max|MS], --screenshot PNG
 //! --after-frames N, --select PID, --tab NAME, --socket PATH, --paused,
 //! --shot-at SECONDS:FILE (repeatable; exits after the last one),
-//! --page processes|findings|glasshouse.
+//! --page processes|findings|glasshouse, --gh-map (Glasshouse report map),
+//! --size WIDTHxHEIGHT, --frame-stats (frame times printed at exit).
 #![forbid(unsafe_code)]
 
 use candor_gui::app::App;
@@ -50,6 +51,8 @@ fn main() {
     let mut after = 30u64;
     let mut initial = Vec::new();
     let mut timed: Vec<(f64, PathBuf)> = Vec::new();
+    let mut size = [1400.0_f32, 900.0];
+    let mut frame_stats = false;
     let mut sockets = vec![
         PathBuf::from("/run/candor-dev/candor.sock"),
         PathBuf::from("/run/candor/candor.sock"),
@@ -99,6 +102,18 @@ fn main() {
                     p.into(),
                 ));
             }
+            "--gh-map" => initial.push(Action::GhMap(true)),
+            "--frame-stats" => frame_stats = true,
+            "--size" => {
+                let v = val();
+                let (w, h) = v
+                    .split_once('x')
+                    .unwrap_or_else(|| fail("--size WIDTHxHEIGHT"));
+                size = [
+                    w.parse().unwrap_or_else(|_| fail("bad --size")),
+                    h.parse().unwrap_or_else(|_| fail("bad --size")),
+                ];
+            }
             "--version" => {
                 println!("candor-gui {}", env!("CARGO_PKG_VERSION"));
                 return;
@@ -110,10 +125,12 @@ fn main() {
         Some(p) => net::replay(p, pace),
         None => net::live(sockets),
     };
-    let app = App::new(source, shot.map(|p| (p, after)), initial).with_timed_shots(timed);
+    let app = App::new(source, shot.map(|p| (p, after)), initial)
+        .with_timed_shots(timed)
+        .with_frame_stats(frame_stats);
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1400.0, 900.0])
+            .with_inner_size(size)
             .with_title("Candor"),
         renderer: eframe::Renderer::Glow,
         ..Default::default()

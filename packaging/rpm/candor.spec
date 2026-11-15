@@ -61,6 +61,9 @@ fi
 /usr/share/man/man8/candord.8.gz
 /usr/share/man/man8/candor-glasshouse.8.gz
 %license /usr/share/doc/candor/LICENSE
+%dir /usr/share/doc/candor/fonts
+%license /usr/share/doc/candor/fonts/OFL-Inter.txt
+%license /usr/share/doc/candor/fonts/OFL-JetBrainsMono.txt
 %doc /usr/share/doc/candor/README.md
 %doc /usr/share/doc/candor/THREAT_MODEL.md
 %doc /usr/share/doc/candor/REAL_SAMPLES.md

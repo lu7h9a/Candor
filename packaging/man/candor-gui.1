@@ -5,12 +5,45 @@ candor-gui \- desktop client for the Candor process monitor
 .B candor-gui
 [\fB\-\-replay\fR \fIFILE.frames.jsonl\fR]
 .SH DESCRIPTION
-The Candor desktop app: the live process table and tree, per-process files,
-network, syscalls, children and memory maps, findings with their evidence,
-follow mode, and the Glasshouse sandbox page. It talks to
+The Candor desktop app. Three pages:
+.TP
+.B Processes
+CPU, memory and events per second (with the number of events not
+recorded), and every process with its CPU, memory, connections and score.
+Click a process for its detail: an overview (charts, what it did, its
+findings), an access map of everything it and its children touched, and
+the raw events, files, connections, syscalls, children and memory maps.
+.TP
+.B Findings
+Every finding, newest first, each with what happened, why it is flagged and
+a harmless explanation.
+.TP
+.B Glasshouse
+Run a program among decoy files and read a report of what it read,
+changed, deleted and tried to reach. \fBTry an example\fR runs a three-line
+demonstration script.
+.PP
+It talks to
 .BR candord (8)
 over its socket and needs membership in the \fBcandor\fR group. It refuses
-to run as root.
+to run as root. The fonts Inter and JetBrains Mono are compiled in (SIL Open
+Font License; see /usr/share/doc/candor/fonts).
+.SH KEYS
+.TP
+.B /
+Search processes.
+.TP
+.B Esc
+Back one level.
+.TP
+.BR Up ", " Down ", " Enter
+Move in the process table and open the selected process.
+.TP
+.B f
+Follow the selected process.
+.TP
+.BR Tab ", " Enter ", " + ", " \-
+In the access map: focus the next node, select it, zoom.
 .SH OPTIONS
 .TP
 .BI \-\-replay " FILE"

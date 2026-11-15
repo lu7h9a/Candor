@@ -85,6 +85,18 @@ pub fn counts(r: &GhReport) -> Counts {
 }
 
 /// The whole report as plain text, safe to print to a terminal.
+/// Files changed by the run: decoys modified or renamed (each counted
+/// once, even if both), plus new files.
+pub fn changed_count(r: &GhReport) -> usize {
+    r.decoys
+        .iter()
+        .filter(|d| {
+            d.states.contains(&DecoyState::Modified) || d.states.contains(&DecoyState::Renamed)
+        })
+        .count()
+        + r.created.len()
+}
+
 /// True for a decoy that stands for a secret (keys, tokens, passwords):
 /// a read of one is shown in the alert colour.
 pub fn is_secret(path: &str) -> bool {
@@ -147,7 +159,7 @@ pub fn summary_sentence(r: &GhReport) -> String {
     } else {
         didnt.push("read any decoy".to_string());
     }
-    let changed = c.modified + c.renamed;
+    let changed = changed_count(r) - c.created;
     if changed > 0 {
         did.push(format!(
             "changed {}",
@@ -484,13 +496,18 @@ mod summary_tests {
                     &[DecoyState::Read, DecoyState::Deleted],
                 ),
                 decoy("/home/u/Photos/c", &[DecoyState::Renamed]),
+                // Modified and renamed: one changed file, not two.
+                decoy(
+                    "/home/u/Photos/d",
+                    &[DecoyState::Modified, DecoyState::Renamed],
+                ),
             ],
             2,
             3,
         );
         assert_eq!(
             summary_sentence(&r),
-            "It read 2 decoy files, changed 2 decoy files, created 2 files, deleted one file and tried to reach the network 3 times."
+            "It read 2 decoy files, changed 3 decoy files, created 2 files, deleted one file and tried to reach the network 3 times."
         );
     }
 

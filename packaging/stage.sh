@@ -22,6 +22,10 @@ inst 0644 "$repo/packaging/desktop/candor.svg" /usr/share/icons/hicolor/scalable
 doc=/usr/share/doc/candor
 inst 0644 "$repo/README.md" "$doc/README.md"
 inst 0644 "$repo/LICENSE" "$doc/LICENSE"
+# Fonts compiled into candor-gui (SIL OFL 1.1): their licences ship too.
+for f in OFL-Inter.txt OFL-JetBrainsMono.txt; do
+    inst 0644 "$repo/crates/candor-gui/fonts/$f" "$doc/fonts/$f"
+done
 for f in THREAT_MODEL.md REAL_SAMPLES.md; do inst 0644 "$repo/docs/$f" "$doc/$f"; done
 inst 0644 "$repo/packaging/postinstall-message.txt" "$doc/postinstall-message.txt"
 for m in "$repo"/packaging/man/*.[18]; do

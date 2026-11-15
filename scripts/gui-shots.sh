@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # gui-shots.sh - renders the GUI headless (Xvfb + software GL) from the demo
-# recording in 6 states, plus the Glasshouse report page from a real VM run,
+# recording in every state of the redesigned window, plus the Glasshouse
+# report (and its map) from a real VM run, at 1400x900, 1280x720 and 1920x1080,
 # and checks every PNG is non-blank (>= 500 colours).
 # Output: target/shots/*.png (plan WP20, `make gui-shot`).
 set -euo pipefail
@@ -26,20 +27,30 @@ with open(dst, "w") as f:
         f.write(json.dumps(m) + "\n")
 PY
 export LIBGL_ALWAYS_SOFTWARE=1
-shot() { # name, args...
+shot() { # name, args...  (SIZE=WxH to change the screen)
     local name=$1; shift
-    timeout 90 xvfb-run -a -s "-screen 0 1400x900x24" "$GUI" "$@" \
-        --screenshot "$OUT/$name.png" --after-frames 60 2>/dev/null
+    local size=${SIZE:-1400x900}
+    timeout 90 xvfb-run -a -s "-screen 0 ${size}x24" "$GUI" --size "$size" "$@" \
+        --screenshot "$OUT/$name.png" --after-frames 120 2>/dev/null
     echo "shot: $OUT/$name.png"
 }
 shot system-wide --replay "$FRAMES" --pace max
-shot detail-files --replay "$FRAMES" --pace max --select 1100 --tab files
+shot detail-overview --replay "$FRAMES" --pace max --select 1600
 shot detail-findings --replay "$FRAMES" --pace max --select 1600 --tab findings
-shot following --replay "$OUT/follow.frames.jsonl" --pace max --select 1600
+shot detail-map --replay "$FRAMES" --pace max --select 1600 --tab map
+shot detail-events --replay "$FRAMES" --pace max --select 1600 --tab events
+shot detail-files --replay "$FRAMES" --pace max --select 1100 --tab files
+shot findings --replay "$FRAMES" --pace max --page findings
+shot following --replay "$OUT/follow.frames.jsonl" --pace max
 shot daemon-down --socket /run/candor-none/candor.sock
 shot paused --replay "$FRAMES" --pace 200 --paused
+shot glasshouse-start --replay "$FRAMES" --pace max --page glasshouse
 python3 scripts/gen_gh_fixture.py >/dev/null
 shot glasshouse-report --replay fixtures/gui/glasshouse.frames.jsonl --pace max --page glasshouse
-python3 scripts/png_colours.py 500 "$OUT"/system-wide.png "$OUT"/detail-files.png \
-    "$OUT"/detail-findings.png "$OUT"/following.png "$OUT"/daemon-down.png "$OUT"/paused.png \
-    "$OUT"/glasshouse-report.png
+shot glasshouse-map --replay fixtures/gui/glasshouse.frames.jsonl --pace max --page glasshouse --gh-map
+SIZE=1280x720 shot small-system-wide --replay "$FRAMES" --pace max
+SIZE=1280x720 shot small-detail-overview --replay "$FRAMES" --pace max --select 1600
+SIZE=1280x720 shot small-glasshouse-report --replay fixtures/gui/glasshouse.frames.jsonl --pace max --page glasshouse
+SIZE=1920x1080 shot large-system-wide --replay "$FRAMES" --pace max
+SIZE=1920x1080 shot large-detail-map --replay "$FRAMES" --pace max --select 1600 --tab map
+python3 scripts/png_colours.py 500 "$OUT"/*.png

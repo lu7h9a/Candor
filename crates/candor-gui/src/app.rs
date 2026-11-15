@@ -35,6 +35,8 @@ pub struct App {
     themed: bool,
     /// Last time the map's details were asked for again.
     map_refreshed: std::time::Instant,
+    /// --frame-stats: time spent in each frame (printed at exit).
+    frame_stats: Option<Vec<Duration>>,
 }
 
 impl App {
@@ -55,7 +57,14 @@ impl App {
             sys_watch_sent: false,
             themed: false,
             map_refreshed: std::time::Instant::now(),
+            frame_stats: None,
         }
+    }
+
+    /// Records how long each frame takes; printed when the window closes.
+    pub fn with_frame_stats(mut self, on: bool) -> App {
+        self.frame_stats = on.then(Vec::new);
+        self
     }
 
     /// Screenshots at fixed times after start (debug: daemon restart test).
@@ -429,6 +438,11 @@ impl App {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             return;
         }
+        if !self.requested {
+            // Keep drawing until the screenshot is taken (an idle window
+            // would otherwise redraw once a second).
+            ctx.request_repaint();
+        }
         if !self.requested && self.frames >= after {
             self.requested = true;
             let done = Arc::clone(&self.done);
@@ -454,9 +468,39 @@ pub fn write_png(path: &std::path::Path, img: &egui::ColorImage) -> Result<(), S
     writer.write_image_data(&bytes).map_err(|e| e.to_string())
 }
 
+impl Drop for App {
+    fn drop(&mut self) {
+        if let Some(t) = &mut self.frame_stats
+            && !t.is_empty()
+        {
+            t.sort();
+            let at = |q: f64| {
+                t.get(((t.len() - 1) as f64 * q) as usize)
+                    .copied()
+                    .unwrap_or_default()
+            };
+            let slow = t.iter().filter(|d| d.as_millis() >= 50).count();
+            eprintln!(
+                "frame stats: {} frames, p50 {:?}, p99 {:?}, max {:?}, {} over 50 ms",
+                t.len(),
+                at(0.5),
+                at(0.99),
+                at(1.0),
+                slow
+            );
+        }
+    }
+}
+
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let started = std::time::Instant::now();
         self.frame(ui);
+        if let Some(t) = &mut self.frame_stats
+            && t.len() < 1_000_000
+        {
+            t.push(started.elapsed());
+        }
         self.frames += 1;
         let ctx = ui.ctx().clone();
         self.handle_screenshot(&ctx);

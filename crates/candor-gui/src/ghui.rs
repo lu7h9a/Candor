@@ -11,7 +11,9 @@ use crate::model::{Action, ConnState, GH_TIMEOUTS, GhStage, GhView, Model};
 use crate::theme::{self, color, space};
 use crate::widgets::{self, Severity, tag};
 use candor_core::display::{safe, safe_str};
-use candor_core::ghreport::{LIMITATION, counts, is_secret, states_text, summary_sentence};
+use candor_core::ghreport::{
+    LIMITATION, changed_count, counts, is_secret, states_text, summary_sentence,
+};
 use candor_proto::{DecoyState, GhReport, GhState};
 use egui::{Role, Ui};
 
@@ -85,7 +87,7 @@ fn start(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             if let Some(col) = c.get_mut(i % cols) {
                 widgets::card(col, |ui| {
                     ui.spacing_mut().item_spacing.y = space::LABEL_GAP;
-                    ui.label(theme::mono(*n).color(color::ACCENT));
+                    ui.label(theme::mono_dim(*n));
                     ui.label(theme::name(*title));
                     ui.label(theme::dim(*text));
                 });
@@ -109,8 +111,11 @@ fn start(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                         .into()
                 })
             };
-            let r = ui.add(egui::Label::new(theme::body(why)).wrap());
-            tag(&r, Role::Label, "gh-unavailable");
+            let r = ui.add(egui::Label::new(theme::body(why.clone())).wrap());
+            // Read out with the reason itself (the test looks for it too).
+            r.widget_info(|| {
+                egui::WidgetInfo::labeled(Role::Label, true, format!("gh-unavailable: {why}"))
+            });
             ui.label(theme::dim(
                 "Candor does not change system settings to make it work.",
             ));
@@ -135,7 +140,7 @@ fn start(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         });
         if g.state == Some(GhState::Failed) {
             let r = ui.label(
-                theme::body(format!("The last run failed: {}", g.message)).color(color::ALERT),
+                theme::body(format!("The last run failed: {}", g.message)).color(color::CAUTION),
             );
             tag(&r, Role::Label, "gh-status");
         } else {
@@ -178,7 +183,7 @@ fn start(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                     ui.label(theme::dim(format!(
                         "{} read · {} changed · {} deleted · {} connections",
                         c.read,
-                        c.modified + c.renamed + c.created,
+                        changed_count(&h.report),
                         c.deleted,
                         c.connects
                     )));
@@ -588,20 +593,29 @@ fn before_after(ui: &mut Ui, r: &GhReport) {
                     };
                     ui.horizontal(|ui| {
                         ui.label(theme::mono(after).color(color::TEXT_STRONG));
+                        // Red only for a decoy secret; amber only for the
+                        // encryption warning; the rest is plain words.
                         let secret = is_secret(&safe(&d.path));
-                        let c = if secret { color::ALERT } else { color::CAUTION };
+                        let c = if secret {
+                            color::ALERT
+                        } else {
+                            color::TEXT_DIM
+                        };
                         let mut marks = states_text(d);
                         if let (Some(a), b) = (d.size_after, d.size_before)
                             && a != b
                         {
                             marks.push_str(&format!(" · {b} -> {a} bytes"));
                         }
+                        ui.label(theme::label(marks).color(c));
                         if let (Some(a), b) = (d.entropy_after, d.entropy_before)
                             && candor_core::ghreport::entropy_sentence(b, a).is_some()
                         {
-                            marks.push_str(" · now looks encrypted or compressed");
+                            ui.label(
+                                theme::label("now looks encrypted or compressed")
+                                    .color(color::CAUTION),
+                            );
                         }
-                        ui.label(theme::label(marks).color(c));
                     });
                     ui.end_row();
                 }
@@ -611,7 +625,7 @@ fn before_after(ui: &mut Ui, r: &GhReport) {
                         ui.label(theme::mono(safe(&f.path)).color(color::TEXT_STRONG));
                         ui.label(
                             theme::label(format!("new · {} · {} bytes", safe_str(&f.kind), f.size))
-                                .color(color::CAUTION),
+                                .color(color::TEXT_DIM),
                         );
                     });
                     ui.end_row();

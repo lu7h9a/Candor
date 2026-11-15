@@ -1,7 +1,8 @@
 # GUI redesign audit
 
 Written before the redesign (branch `gui-redesign`), against
-docs/design/GUI_REDESIGN_SPEC.md. Updated as deviations are found.
+docs/design/GUI_REDESIGN_SPEC.md, and updated at the end with every
+deviation found while building it.
 
 ## Toolkit
 
@@ -104,3 +105,38 @@ No assertion is removed or weakened:
   the R001 finding, and still checks that the click selects the process
   and shows its findings.
 - Sort headers keep the labels `sort-<column>`.
+
+## Deviations found while building
+
+10. **Live Glasshouse counters.** While a run is going the daemon sends
+    decoy states but no connection counts, so the running page shows Read,
+    Changed and Deleted live and "Connection attempts: counted in the
+    report". The "last few events" list shows the decoys touched so far
+    (the daemon does not stream the sandbox's raw events to clients).
+11. **Changed count.** "Changed" counts each decoy once even if it was
+    both modified and renamed, plus new files. The older report line
+    ("20 modified, 20 renamed") is kept under the summary sentence so the
+    exact counts stay visible.
+12. **Glasshouse limitation.** The spec's short caution line is shown with
+    an amber dot, and the full limitation statement (plan 6.4) follows it
+    in every state, unchanged. Nothing was shortened.
+13. **Findings in "What it did".** A flagged step's words are the finding's
+    title ("Credential file read") rather than a shorter paraphrase, so
+    the GUI never words a finding differently from the rule.
+14. **Detail views and the old tabs.** Overview holds the charts, the flow
+    and the findings; Events holds a second switch with Event list, Files,
+    Connections, Syscalls, Children and Memory maps.
+15. **Status and settings menu.** Daemon status, unavailable features and
+    "Hide personal details in paths" live in the menu at the top right. The
+    "Monitoring all users on this machine" notice stays on the Processes
+    page itself (plan 9.1): it is not a setting and must not be hidden.
+16. **Map performance numbers** are measured in the headless test harness
+    (layout and tessellation on the CPU; `tests/stress.rs`), plus a live
+    run on this machine under load (`--frame-stats`). GPU drawing time is
+    not part of those numbers.
+17. **Wayland.** The GUI is built with the Wayland backend, but no
+    Wayland compositor is installed on the build machine and installing
+    one writes outside the allowed paths, so Wayland is not verified.
+18. **Spec "Show 1 events"**: the button reads "Show 1 event behind this"
+    for one event (grammar).
+

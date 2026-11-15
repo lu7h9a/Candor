@@ -1149,10 +1149,25 @@ pub fn finding_card(ui: &mut Ui, m: &Model, f: &Finding, collapsed: bool, acts: 
             ui.label(theme::section(safe_str(&f.title)));
             ui.label(theme::mono_dim(safe_str(&f.rule)));
         });
-        let first = |v: &[String]| v.first().map(|s| safe_str(s)).unwrap_or_default();
-        let all = |v: &[String]| v.iter().map(|s| safe_str(s)).collect::<Vec<_>>().join(" ");
+        // Each reason is its own sentence: capitalised and ended with a full
+        // stop, so several of them never read as one run-on line.
+        let sentence = |s: &str| {
+            let s = safe_str(s);
+            let mut c = s.chars();
+            let mut out: String = c
+                .next()
+                .map(|f| f.to_uppercase().collect())
+                .unwrap_or_default();
+            out.push_str(c.as_str());
+            if !out.ends_with('.') {
+                out.push('.');
+            }
+            out
+        };
+        let first = |v: &[String]| v.first().map(|s| sentence(s)).unwrap_or_default();
+        let all = |v: &[String]| v.iter().map(|s| sentence(s)).collect::<Vec<_>>().join(" ");
         let cols3 = [
-            ("What happened", m.shown(&safe_str(&f.summary))),
+            ("What happened", sentence(&m.shown(&safe_str(&f.summary)))),
             (
                 "Why it is flagged",
                 if collapsed {

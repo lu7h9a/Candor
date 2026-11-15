@@ -23,3 +23,5 @@ candor-proto = { version = "0.0.1", path = "../candor-proto" }
 [dev-dependencies]
 egui = "0.37.0"
 egui_kittest = "0.37.0"
+crossbeam-channel = "0.5.17"
+serde_json = "1.0.154"
