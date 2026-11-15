@@ -171,4 +171,14 @@ where they differ.
     A tray icon ("minimise to the tray") needs a StatusNotifierItem library;
     the one that fits (ksni) is under the Unlicense, which deny.toml does
     not allow yet. Waiting for the owner's decision.
+24. **All columns shown, each hideable.** The owner asked for every column
+    from the start with a checkbox in its header to hide it (the spec had
+    five columns and a picker); the Columns menu restores hidden ones.
+25. **Folded sub-processes in the table.** A process whose parent runs the
+    same executable folds under the topmost one (Brave's renderers under
+    Brave), with an arrow and a count; other programs stay listed.
+26. **Command-line guide and join command** in the menu, with Copy
+    buttons. The menu text is left-aligned (it had been justified, which
+    stretched the words) and the checkboxes are drawn so they show on the
+    dark theme.
 

@@ -32,7 +32,14 @@ in the workspace `Cargo.toml`.
   them, connections on an outer ring; kinds and lines colour coded by what
   was done, with a legend; clicking a process or file shows its details
   (inode, opens, user, parent, CPU, memory and more).
-- Process tree collapsed by default, with arrows and Expand all.
+- Process tree collapsed by default, with arrows and Expand all. In the
+  table, a program's own sub-processes (a browser's many processes) fold
+  under it behind an arrow.
+- Every column is shown from the start; a checkbox in each header hides
+  it and the Columns menu brings it back.
+- Menu > Help > Command-line guide: every `candor` command with an
+  example to copy. The menu always shows the exact command to join
+  candor-act (`sudo usermod -aG candor-act USER-NAME`) with an example.
 - Menu: "Add me to candor-act" (the system asks for the password), "Open
   Candor when I log in", "Start minimised".
 - Plain explanations: what each kind of lost event means and which
