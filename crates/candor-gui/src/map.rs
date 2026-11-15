@@ -1415,6 +1415,69 @@ mod tests {
     }
 
     #[test]
+    fn hover_neighbourhood_filters_and_focus() {
+        let t = vec![
+            file(2, "/a", Act::Read, 5),
+            file(3, "/b", Act::Wrote, 1),
+            file(2, "/usr/lib/libc.so.6", Act::Read, 9),
+        ];
+        let mut m = MapState::default();
+        m.set_center(k(2));
+        let p = procs(&[
+            (1, None, "/bin/bash"),
+            (2, Some(1), "/tmp/try.sh"),
+            (3, Some(2), "/bin/cat"),
+        ]);
+        let build_now = |m: &mut MapState, sig| {
+            let t = t.clone();
+            let p = p.clone();
+            m.sync(sig, |o| build(k(2), &p, &t, &BTreeMap::new(), o, &plain));
+        };
+        build_now(&mut m, 1);
+        // Hover: the node and its direct neighbours stay bright.
+        let hood = m.neighbourhood(&NodeId::File("/a".into()));
+        assert_eq!(hood, [NodeId::Proc(k(2)), NodeId::File("/a".into())].into());
+        m.on_action(MapAction::Hover(Some(NodeId::File("/a".into()))));
+        assert_eq!(m.hover, Some(NodeId::File("/a".into())));
+        // Kind filter: files off leaves processes only.
+        m.on_action(MapAction::ToggleKind(Kind::File));
+        build_now(&mut m, 1);
+        assert_eq!(m.graph.count(Kind::File), 0);
+        m.on_action(MapAction::ToggleKind(Kind::File));
+        build_now(&mut m, 1);
+        assert!(m.graph.index(&NodeId::System).is_some());
+        // The system-files toggle shows the library itself.
+        m.on_action(MapAction::HideSystem);
+        build_now(&mut m, 1);
+        assert!(
+            m.graph
+                .index(&NodeId::File("/usr/lib/libc.so.6".into()))
+                .is_some()
+        );
+        // Tab cycles by activity; Enter selects; empty click clears.
+        m.on_action(MapAction::FocusNext);
+        let first = m.focus.clone().unwrap();
+        let top = m
+            .graph
+            .nodes
+            .iter()
+            .max_by_key(|n| n.count)
+            .unwrap()
+            .id
+            .clone();
+        assert_eq!(first, top);
+        m.on_action(MapAction::SelectFocused);
+        assert_eq!(m.selected, Some(first));
+        m.on_action(MapAction::ClickEmpty);
+        assert_eq!(m.selected, None);
+        // Zoom is bounded; reset restores it.
+        m.on_action(MapAction::Zoom(100.0));
+        assert!(m.zoom <= 4.0);
+        m.on_action(MapAction::ResetView);
+        assert_eq!(m.zoom, 1.0);
+    }
+
+    #[test]
     fn touches_from_a_glasshouse_timeline() {
         use candor_proto::{BStr, Family, SockType};
         let ev = |id, kind| Event {
