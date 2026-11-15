@@ -388,8 +388,10 @@ pub enum Action {
     Back,
     /// Move the table cursor up (-1) or down (+1).
     Cursor(i32),
-    /// Show or hide an optional column.
+    /// Show or hide a column.
     ToggleColumn(Column),
+    /// Table view: show or hide a program's own sub-processes.
+    ToggleGroup(ProcKey),
     /// Tree mode: show or hide a process's children.
     ToggleOpen(ProcKey),
     /// Tree mode: open every process (true) or close them all (false).
@@ -422,6 +424,8 @@ pub enum Action {
     GhMap(bool),
     /// Ask the system to add this user to a group (handled by the app).
     JoinGroup(&'static str),
+    /// Open or close the command-line guide.
+    ShowCliGuide(bool),
     /// Start at login on/off (handled by the app: writes the entry).
     SetAutostart(bool),
     /// Start minimised on/off (handled by the app: saves the settings).
@@ -507,8 +511,11 @@ pub struct Model {
     /// Tree mode: processes whose children are shown. Everything starts
     /// collapsed and stays the way the user left it across updates.
     pub tree_open: BTreeSet<ProcKey>,
-    /// Optional columns switched on (Threads, Opens, Children, User).
-    pub extra_cols: BTreeSet<ColumnId>,
+    /// Columns the user hid (all are shown at first).
+    pub hidden_cols: BTreeSet<ColumnId>,
+    /// Table view: programs whose own sub-processes are shown (folded
+    /// under them otherwise). Kept across updates.
+    pub group_open: BTreeSet<ProcKey>,
     /// Row order held while the pointer is over the table.
     pub hold: bool,
     held_order: Vec<ProcKey>,
@@ -544,6 +551,8 @@ pub struct Model {
     pub joining: bool,
     /// Start at login is on (the autostart entry exists).
     pub autostart: bool,
+    /// The command-line guide window is open.
+    pub cli_guide: bool,
     /// Window settings (start minimised).
     pub settings: crate::settings::Settings,
     /// Bumped when a detail reply arrives (the map rebuilds on change).
@@ -648,7 +657,8 @@ impl Model {
             act_paused: None,
             detail_open: false,
             tree_open: BTreeSet::new(),
-            extra_cols: BTreeSet::new(),
+            hidden_cols: BTreeSet::new(),
+            group_open: BTreeSet::new(),
             hold: false,
             held_order: Vec::new(),
             sys_cpu: VecDeque::new(),
@@ -670,6 +680,7 @@ impl Model {
             view_access: crate::access::GroupState::NoGroup,
             joining: false,
             autostart: false,
+            cli_guide: false,
             settings: crate::settings::Settings::default(),
             details_version: 0,
         }
@@ -878,6 +889,7 @@ impl Model {
                 | Action::Filter(_)
                 | Action::ToggleTree
                 | Action::ToggleOpen(_)
+                | Action::ToggleGroup(_)
                 | Action::OpenAll(_)
         );
         let out = self.on_action_inner(a);
@@ -1044,9 +1056,14 @@ impl Model {
                 self.tree_open = self.rows.iter().filter_map(|r| r.parent).collect();
             }
             Action::OpenAll(false) => self.tree_open.clear(),
+            Action::ToggleGroup(k) => {
+                if !self.group_open.remove(&k) {
+                    self.group_open.insert(k);
+                }
+            }
             Action::ToggleColumn(c) => {
-                if !self.extra_cols.remove(&c.id()) {
-                    self.extra_cols.insert(c.id());
+                if !self.hidden_cols.remove(&c.id()) {
+                    self.hidden_cols.insert(c.id());
                 }
             }
             Action::HoldOrder(h) => {
@@ -1095,6 +1112,7 @@ impl Model {
             }
             Action::ToggleMenu => self.menu_open = !self.menu_open,
             Action::JoinGroup(_) | Action::SetAutostart(_) | Action::SetStartMinimised(_) => {}
+            Action::ShowCliGuide(on) => self.cli_guide = on,
             Action::GhMap(on) => {
                 self.gh_map = on;
                 if on {
@@ -1468,9 +1486,7 @@ impl Model {
             .filter(|v| self.matches(&v.row, &v.name))
             .collect();
         if !self.tree {
-            let mut v = views;
-            v.sort_by(|a, b| self.cmp(a, b));
-            return v;
+            return self.grouped(views);
         }
         // Tree: roots are rows whose parent is missing (or filtered out).
         let present: BTreeSet<ProcKey> = views.iter().map(|v| v.row.key).collect();
@@ -1536,6 +1552,67 @@ impl Model {
                 }
             }
         }
+        out
+    }
+
+    /// Table view: a program's own sub-processes (children running the same
+    /// executable, like a browser's many processes) are folded under the
+    /// topmost one, which says how many it holds; opening it lists them
+    /// indented under it. Every other process is listed as before. While
+    /// searching nothing is folded, so every match shows.
+    fn grouped(&self, mut views: Vec<RowView>) -> Vec<RowView> {
+        views.sort_by(|a, b| self.cmp(a, b));
+        if !self.filter.is_empty() {
+            return views;
+        }
+        let exe: BTreeMap<ProcKey, &[u8]> = self
+            .rows
+            .iter()
+            .map(|r| (r.key, r.exe.as_bytes()))
+            .collect();
+        let parent: BTreeMap<ProcKey, ProcKey> = self
+            .rows
+            .iter()
+            .filter_map(|r| r.parent.filter(|p| *p != r.key).map(|p| (r.key, p)))
+            .collect();
+        // The head of a row's group: climb while the parent runs the same
+        // (non-empty) executable. Bounded against bad parent links.
+        let head = |k: ProcKey| {
+            let mut cur = k;
+            for _ in 0..64 {
+                match (parent.get(&cur), exe.get(&cur)) {
+                    (Some(p), Some(e)) if !e.is_empty() && exe.get(p) == Some(e) => cur = *p,
+                    _ => break,
+                }
+            }
+            cur
+        };
+        let mut members: BTreeMap<ProcKey, Vec<RowView>> = BTreeMap::new();
+        let mut tops = Vec::new();
+        for v in views {
+            let h = head(v.row.key);
+            if h == v.row.key {
+                tops.push(v);
+            } else {
+                members.entry(h).or_default().push(v);
+            }
+        }
+        let mut out = Vec::new();
+        for mut t in tops {
+            let kids = members.remove(&t.row.key).unwrap_or_default();
+            t.below = kids.len();
+            t.open = self.group_open.contains(&t.row.key);
+            let open = t.open;
+            out.push(t);
+            if open {
+                out.extend(kids.into_iter().map(|mut k| {
+                    k.depth = 1;
+                    k
+                }));
+            }
+        }
+        // Members whose head is not shown (filtered or gone) stay visible.
+        out.extend(members.into_values().flatten());
         out
     }
 
@@ -1831,6 +1908,48 @@ mod tests {
         m.apply(snap(3, rows));
         m.on_action(Action::OpenAll(true));
         assert_eq!(m.visible_rows().len(), 6);
+    }
+
+    #[test]
+    fn a_programs_own_subprocesses_fold_under_it() {
+        let mut m = Model::new();
+        let rows = vec![
+            row(1, None, "/usr/lib/systemd/systemd", 0.0, 0),
+            row(10, Some(1), "/opt/brave/brave", 9.0, 1000),
+            row(11, Some(10), "/opt/brave/brave", 3.0, 1000),
+            row(12, Some(11), "/opt/brave/brave", 2.0, 1000),
+            row(13, Some(10), "/opt/brave/chrome_crashpad", 1.0, 1000),
+            row(20, Some(1), "/usr/bin/bash", 0.5, 1000),
+        ];
+        m.apply(snap(1, rows.clone()));
+        // Folded: brave shows once, holding its two brave sub-processes;
+        // a different program it started (crashpad) stays in the list.
+        let got: Vec<(u32, usize)> = m
+            .visible_rows()
+            .iter()
+            .map(|r| (r.row.key.tgid, r.below))
+            .collect();
+        assert_eq!(got, vec![(10, 2), (13, 0), (20, 0), (1, 0)]);
+        // Opening brave lists its sub-processes under it, indented.
+        m.on_action(Action::ToggleGroup(key(10)));
+        let got: Vec<(u32, usize)> = m
+            .visible_rows()
+            .iter()
+            .map(|r| (r.row.key.tgid, r.depth))
+            .collect();
+        assert_eq!(
+            got,
+            vec![(10, 0), (11, 1), (12, 1), (13, 0), (20, 0), (1, 0)]
+        );
+        // Kept across updates.
+        m.apply(snap(2, rows));
+        assert_eq!(m.visible_rows().len(), 6);
+        // Searching folds nothing.
+        m.on_action(Action::ToggleGroup(key(10)));
+        m.on_action(Action::Filter("brave".into()));
+        // All four rows whose path contains "brave", none folded.
+        assert_eq!(m.visible_rows().len(), 4);
+        assert!(m.visible_rows().iter().all(|r| r.below == 0));
     }
 
     #[test]

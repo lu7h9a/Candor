@@ -475,3 +475,48 @@ pub fn disclosure(ui: &mut Ui, active: bool, open: bool) -> Response {
     }
     r
 }
+
+/// A checkbox that is easy to see on the dark theme: a raised box with a
+/// border, and a teal tick when on. Returns the response; the caller flips
+/// its own value when it is clicked.
+pub fn check(ui: &mut Ui, on: bool, text: &str) -> Response {
+    let r = ui
+        .horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = space::S;
+            let (rect, r) = ui.allocate_exact_size(Vec2::splat(space::CHECK), Sense::click());
+            let p = ui.painter();
+            let border = if r.hovered() {
+                color::TEXT_DIM
+            } else {
+                color::EDGE
+            };
+            p.rect_filled(
+                rect,
+                CornerRadius::same(radius::CHECK),
+                color::SURFACE_RAISED,
+            );
+            p.rect_stroke(
+                rect,
+                CornerRadius::same(radius::CHECK),
+                Stroke::new(space::HAIR, border),
+                egui::StrokeKind::Inside,
+            );
+            if on {
+                let a = rect.left_center() + vec2(space::TICK_INSET, 0.0);
+                let b = rect.center_bottom() - vec2(space::TICK_DROP, space::XS);
+                let c = rect.right_top() + vec2(-space::TICK_INSET, space::XS);
+                p.line(vec![a, b, c], Stroke::new(space::LINE, color::ACCENT));
+            }
+            if text.is_empty() {
+                r
+            } else {
+                let l = ui.add(egui::Label::new(theme::body(text)).sense(Sense::click()));
+                r | l
+            }
+        })
+        .inner;
+    let words = if on { "on" } else { "off" };
+    let label = format!("{text} ({words})");
+    r.widget_info(|| WidgetInfo::labeled(Role::CheckBox, true, label.clone()));
+    r
+}

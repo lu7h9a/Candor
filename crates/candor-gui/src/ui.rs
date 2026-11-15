@@ -62,6 +62,9 @@ pub fn draw(ui: &mut Ui, m: &Model) -> Vec<Action> {
     if let Some(k) = m.confirm_follow {
         confirm_follow(ui, m, k, &mut acts);
     }
+    if m.cli_guide {
+        cli_guide(ui, &mut acts);
+    }
     egui::CentralPanel::default()
         .frame(egui::Frame {
             inner_margin: egui::Margin {
@@ -249,54 +252,177 @@ fn menu(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         ui.painter().circle_filled(p, space::MENU_DOT_R, s.color());
     }
     egui::Popup::menu(&r).show(|ui| {
-        ui.set_min_width(space::SIDE_PANEL);
-        ui.spacing_mut().item_spacing.y = space::S;
-        ui.label(theme::section("Daemon"));
-        ui.label(theme::body(status));
-        if m.multi_user_now() {
-            ui.label(theme::dim("Monitoring all users on this machine"));
-        }
-        for n in &m.unavailable {
-            let r = ui.label(theme::dim(n.clone()));
-            tag(&r, Role::Label, "feature-unavailable");
-        }
-        widgets::hairline(ui);
-        ui.label(theme::section("Permissions"));
-        group_access(ui, m, acts);
-        widgets::hairline(ui);
-        ui.label(theme::section("Settings"));
-        let mut auto = m.autostart;
-        if ui
-            .checkbox(&mut auto, theme::body("Open Candor when I log in"))
-            .on_hover_text("Adds Candor to your desktop's startup programs (~/.config/autostart). The daemon itself starts at boot separately.")
-            .clicked()
-        {
-            acts.push(Action::SetAutostart(auto));
-        }
-        let mut min = m.settings.start_minimised;
-        if ui
-            .checkbox(&mut min, theme::body("Start minimised"))
-            .on_hover_text("When Candor opens at login, it starts minimised to the taskbar.")
-            .clicked()
-        {
-            acts.push(Action::SetStartMinimised(min));
-        }
-        let mut red = m.redact;
-        if ui
-            .checkbox(&mut red, theme::body("Hide personal details in paths"))
-            .on_hover_text("Home folder, user name and host name are replaced, as in exports.")
-            .clicked()
-        {
-            acts.push(Action::ToggleRedact);
-        }
-        widgets::hairline(ui);
-        ui.label(theme::section("About Candor"));
-        ui.add(egui::Label::new(theme::dim(STATEMENT)).wrap());
+        ui.set_min_width(space::MENU_W);
+        ui.set_max_width(space::MENU_W);
+        // Plain left-aligned text (a justified menu stretches the words),
+        // scrolling when it is taller than the window.
+        let max_h = ui.ctx().content_rect().height() - space::MESSAGE_TOP;
+        egui::ScrollArea::vertical().max_height(max_h).show(ui, |ui| {
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            ui.spacing_mut().item_spacing.y = space::S;
+            ui.label(theme::section("Daemon"));
+            ui.label(theme::body(status));
+            if m.multi_user_now() {
+                ui.label(theme::dim("Monitoring all users on this machine"));
+            }
+            for n in &m.unavailable {
+                let r = ui.add(egui::Label::new(theme::dim(n.clone())).wrap());
+                tag(&r, Role::Label, "feature-unavailable");
+            }
+            widgets::hairline(ui);
+            ui.label(theme::section("Permissions"));
+            group_access(ui, m, acts);
+            widgets::hairline(ui);
+            ui.label(theme::section("Settings"));
+            if widgets::check(ui, m.autostart, "Open Candor when I log in")
+                .on_hover_text("Adds Candor to your desktop's startup programs (~/.config/autostart). The daemon itself starts at boot separately.")
+                .clicked()
+            {
+                acts.push(Action::SetAutostart(!m.autostart));
+            }
+            if widgets::check(ui, m.settings.start_minimised, "Start minimised")
+                .on_hover_text("When Candor opens at login, it starts minimised to the taskbar.")
+                .clicked()
+            {
+                acts.push(Action::SetStartMinimised(!m.settings.start_minimised));
+            }
+            if widgets::check(ui, m.redact, "Hide personal details in paths")
+                .on_hover_text("Home folder, user name and host name are replaced, as in exports.")
+                .clicked()
+            {
+                acts.push(Action::ToggleRedact);
+            }
+            widgets::hairline(ui);
+            ui.label(theme::section("Help"));
+            let r = widgets::secondary(ui, "Command-line guide", true);
+            tag(&r, Role::Button, "cli-guide");
+            if r.clicked() {
+                acts.push(Action::ShowCliGuide(true));
+            }
+            widgets::hairline(ui);
+            ui.label(theme::section("About Candor"));
+            ui.add(egui::Label::new(theme::dim(STATEMENT)).wrap());
+        });
+        });
     });
 }
 
-/// Follow (and act) need the candor-act group: show where the user stands
-/// and offer to join. Joining asks the system for the password.
+/// The command-line guide: what each `candor` command does, with an
+/// example to copy. The same commands as `candor --help`.
+fn cli_guide(ui: &mut Ui, acts: &mut Vec<Action>) {
+    let mut open = true;
+    egui::Window::new(theme::section("Using Candor from the terminal"))
+        .open(&mut open)
+        .collapsible(false)
+        .resizable(true)
+        .default_width(space::GUIDE_W)
+        .anchor(egui::Align2::CENTER_CENTER, vec2(0.0, 0.0))
+        .show(ui.ctx(), |ui| {
+            egui::ScrollArea::vertical()
+                .max_height(space::MAP_H)
+                .show(ui, |ui| {
+                    ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+                        ui.spacing_mut().item_spacing.y = space::S;
+                        ui.add(
+                            egui::Label::new(theme::body(
+                                "The candor command shows the same things as this window. It needs the candor group (or sudo). Add --json to any command for machine-readable output, and --color=never for plain text.",
+                            ))
+                            .wrap(),
+                        );
+                        for (title, what, example) in CLI_GUIDE.iter().copied() {
+                            widgets::hairline(ui);
+                            ui.label(theme::name(title));
+                            ui.add(egui::Label::new(theme::dim(what)).wrap());
+                            command_box(ui, example);
+                        }
+                    });
+                });
+        });
+    if !open {
+        acts.push(Action::ShowCliGuide(false));
+    }
+}
+
+/// (command, what it does, example).
+const CLI_GUIDE: [(&str, &str, &str); 12] = [
+    (
+        "status",
+        "Is the daemon running, which mode it is in, how many processes it sees, and how many events were not recorded.",
+        "candor status",
+    ),
+    (
+        "top",
+        "The process table. Sort by cpu, mem or score; -n sets how many rows. Findings are marked with a red or amber dot.",
+        "candor top --sort score -n 10",
+    ),
+    (
+        "tree",
+        "Every process under the one that started it, with the highest score in each branch.",
+        "candor tree",
+    ),
+    (
+        "detail PID",
+        "Files, connections, system calls and findings of one process. Find the PID in top.",
+        "candor detail 1234",
+    ),
+    (
+        "findings",
+        "Every finding so far: what happened, why it is flagged, and a harmless explanation.",
+        "candor findings",
+    ),
+    (
+        "tail",
+        "Live events as they happen (Ctrl-C stops). --proc PID shows one process only; --count N stops after N.",
+        "candor tail --proc 1234 --count 50",
+    ),
+    (
+        "follow PID",
+        "Trace only this process and what it starts, in more detail; everything else is ignored until unfollow. Needs the candor-act group.",
+        "candor follow 1234",
+    ),
+    (
+        "unfollow",
+        "Back to watching every process.",
+        "candor unfollow",
+    ),
+    (
+        "export",
+        "Save what Candor sees, with personal details hidden by default. --raw keeps them; --redact-ips hides addresses too.",
+        "candor export --format json > snapshot.json",
+    ),
+    (
+        "glasshouse run FILE",
+        "Run a program among decoy files with no network and print what it read, changed, deleted and tried to reach. Not for real malware: use a virtual machine for that.",
+        "candor glasshouse run ./try.sh",
+    ),
+    (
+        "act pause|resume|kill PID",
+        "Experimental: signal one of your processes. Needs candor-act, and act mode switched on in the daemon.",
+        "candor act pause 1234",
+    ),
+    (
+        "replay FILE",
+        "Run a saved recording through the rules offline, without a daemon.",
+        "candor replay recording.events.jsonl",
+    ),
+];
+
+/// A command in a box with a Copy button (copies to the clipboard).
+fn command_box(ui: &mut Ui, cmd: &str) {
+    ui.horizontal(|ui| {
+        egui::Frame::new()
+            .fill(color::BG)
+            .corner_radius(egui::CornerRadius::same(theme::radius::CONTROL))
+            .inner_margin(egui::Margin::symmetric(space::M as i8, space::S as i8))
+            .show(ui, |ui| {
+                ui.add(egui::Label::new(theme::mono(cmd).color(color::TEXT_STRONG)).wrap());
+            });
+        if widgets::text_button(ui, "Copy").clicked() {
+            ui.ctx().copy_text(cmd.to_string());
+        }
+    });
+}
+
 fn group_access(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     use crate::access::GroupState;
     match m.act_access {
@@ -304,22 +430,31 @@ fn group_access(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             ui.label(theme::body("You may follow processes (group candor-act)."));
         }
         GroupState::NeedsRelogin => {
-            ui.label(theme::body(
-                "You are in candor-act. Log out and back in to start using it.",
-            ));
+            ui.add(
+                egui::Label::new(theme::body(
+                    "You are in candor-act. Log out and back in to start using it.",
+                ))
+                .wrap(),
+            );
         }
         GroupState::NotMember => {
-            ui.label(theme::body(
-                "Following a process needs the candor-act group.",
-            ));
-            let r = widgets::secondary(ui, "Add me to candor-act", !m.joining);
+            ui.add(
+                egui::Label::new(theme::body(
+                    "Following a process needs the candor-act group.",
+                ))
+                .wrap(),
+            );
+            let r = widgets::primary(ui, "Add me to candor-act", !m.joining);
             tag(&r, Role::Button, "join-act");
             if r.clicked() {
                 acts.push(Action::JoinGroup("candor-act"));
             }
-            ui.label(theme::dim(
-                "Your system asks for your password; Candor never sees it. Then log out and back in.",
-            ));
+            ui.add(
+                egui::Label::new(theme::dim(
+                    "Your system asks for your password; Candor never sees it.",
+                ))
+                .wrap(),
+            );
         }
         GroupState::NoGroup => {
             ui.label(theme::dim(
@@ -327,14 +462,32 @@ fn group_access(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
             ));
         }
     }
+    // The exact command, always shown, so any user can be added by hand.
+    ui.label(theme::label("To add a user in a terminal, the command is:"));
+    command_box(ui, "sudo usermod -aG candor-act USER-NAME");
+    let me = crate::access::me().unwrap_or_else(|| "your-user-name".into());
+    ui.label(theme::label("For example, for you:"));
+    command_box(ui, &format!("sudo usermod -aG candor-act {me}"));
+    ui.add(
+        egui::Label::new(theme::dim(
+            "Then log out and back in: a new group takes effect at the next login. Check with: id -nG",
+        ))
+        .wrap(),
+    );
     if crate::model::act_enabled(m) {
-        ui.label(theme::dim(
-            "Act mode (pause, resume, kill) is on in the daemon.",
-        ));
+        ui.add(
+            egui::Label::new(theme::dim(
+                "Act mode (pause, resume, kill) is on in the daemon.",
+            ))
+            .wrap(),
+        );
     } else {
-        ui.label(theme::dim(
-            "Act mode (pause, resume, kill) is off. Root turns it on with enable_act = true in /etc/candor/candord.toml.",
-        ));
+        ui.add(
+            egui::Label::new(theme::dim(
+                "Act mode (pause, resume, kill) is off. Root turns it on with enable_act = true in /etc/candor/candord.toml.",
+            ))
+            .wrap(),
+        );
     }
 }
 
@@ -701,23 +854,31 @@ fn overview(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     procs(ui, m, acts);
 }
 
-/// Optional columns (threads, files opened, children, user).
-const EXTRA: [(Column, &str); 4] = [
+/// Every column after Process, in order. All are shown at first; each
+/// header has a checkbox to hide it, and the Columns menu brings it back.
+const COLUMNS: [(Column, &str); 8] = [
+    (Column::Cpu, "CPU"),
+    (Column::Mem, "Memory"),
+    (Column::Conns, "Connections"),
     (Column::Threads, "Threads"),
     (Column::Opens, "Files opened"),
     (Column::Children, "Children"),
     (Column::User, "User"),
+    (Column::Score, "Score"),
 ];
 
 fn column_picker(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
     let r = widgets::secondary(ui, "Columns", true);
     egui::Popup::menu(&r).show(|ui| {
-        for (c, name) in EXTRA {
-            let mut on = m.extra_cols.contains(&c.id());
-            if ui.checkbox(&mut on, theme::body(name)).clicked() {
-                acts.push(Action::ToggleColumn(c));
+        ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
+            ui.label(theme::label("Columns shown"));
+            for (c, name) in COLUMNS {
+                let on = !m.hidden_cols.contains(&c.id());
+                if widgets::check(ui, on, name).clicked() {
+                    acts.push(Action::ToggleColumn(c));
+                }
             }
-        }
+        });
     });
 }
 
@@ -731,18 +892,12 @@ fn procs(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         }));
         return;
     }
-    let mut cols: Vec<(&str, Column)> = vec![
-        ("Process", Column::Exe),
-        ("CPU", Column::Cpu),
-        ("Memory", Column::Mem),
-        ("Connections", Column::Conns),
-    ];
-    for (c, name) in EXTRA {
-        if m.extra_cols.contains(&c.id()) {
+    let mut cols: Vec<(&str, Column)> = vec![("Process", Column::Exe)];
+    for (c, name) in COLUMNS {
+        if !m.hidden_cols.contains(&c.id()) {
             cols.push((name, c));
         }
     }
-    cols.push(("Score", Column::Score));
     let n = cols.len();
     let resp = ui.push_id("procs", |ui| {
         let mut t = egui_extras::TableBuilder::new(ui)
@@ -755,10 +910,13 @@ fn procs(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                 egui_extras::Column::remainder()
                     .at_least(space::NAME_COL_MIN)
                     .clip(true),
-            )
-            .column(egui_extras::Column::exact(space::CPU_COL_W));
-        for _ in 2..n {
-            t = t.column(egui_extras::Column::exact(space::COL_W));
+            );
+        for (_, c) in cols.iter().skip(1) {
+            t = t.column(egui_extras::Column::exact(if *c == Column::Cpu {
+                space::CPU_COL_W
+            } else {
+                space::NUM_COL_W
+            }));
         }
         t.header(space::HEADER, |mut h| {
             for (i, (name, col)) in cols.iter().enumerate() {
@@ -774,6 +932,23 @@ fn procs(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
                         egui::Layout::left_to_right(egui::Align::Center)
                     };
                     ui.with_layout(layout, |ui| {
+                        // A checkbox beside each column name hides it.
+                        if *col != Column::Exe {
+                            let c = widgets::check(ui, true, "");
+                            c.widget_info(|| {
+                                egui::WidgetInfo::labeled(
+                                    Role::CheckBox,
+                                    true,
+                                    format!("hide {name}"),
+                                )
+                            });
+                            let c = c.on_hover_text(format!(
+                                "Hide the {name} column (Columns brings it back)"
+                            ));
+                            if c.clicked() {
+                                acts.push(Action::ToggleColumn(*col));
+                            }
+                        }
                         let r = ui.add(
                             egui::Button::new(theme::label(format!("{name}{arrow}"))).frame(false),
                         );
@@ -871,14 +1046,19 @@ fn proc_cells(
                             ui.add_space(indent);
                         }
                         ui.spacing_mut().item_spacing.x = space::DOT_GAP;
-                        if m.tree {
-                            // The arrow opens or closes this branch; rows
-                            // without children keep the slot so names align.
+                        // The arrow opens or closes what is under this row:
+                        // its branch (tree) or its own sub-processes (table).
+                        // Rows without any keep the slot so names align.
+                        if v.depth == 0 || m.tree {
                             let r = widgets::disclosure(ui, v.below > 0, v.open);
                             if v.below > 0 {
                                 tag(&r, Role::Button, "tree-toggle");
                                 if r.clicked() {
-                                    acts.push(Action::ToggleOpen(v.row.key));
+                                    acts.push(if m.tree {
+                                        Action::ToggleOpen(v.row.key)
+                                    } else {
+                                        Action::ToggleGroup(v.row.key)
+                                    });
                                 }
                             }
                         }
@@ -897,8 +1077,14 @@ fn proc_cells(
                         if r.exited_ts.is_some() {
                             ui.label(theme::dim("exited"));
                         }
-                        if m.tree && v.below > 0 && !v.open {
-                            ui.label(theme::label(format!("{} below", v.below)));
+                        if v.below > 0 && !v.open {
+                            ui.label(theme::label(if m.tree {
+                                format!("{} below", v.below)
+                            } else if v.below == 1 {
+                                "1 sub-process".to_string()
+                            } else {
+                                format!("{} sub-processes", v.below)
+                            }));
                         }
                     });
                 }

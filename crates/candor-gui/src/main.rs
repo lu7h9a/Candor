@@ -106,6 +106,7 @@ fn main() {
             }
             "--gh-map" => initial.push(Action::GhMap(true)),
             "--tree" => initial.push(Action::ToggleTree),
+            "--cli-guide" => initial.push(Action::ShowCliGuide(true)),
             "--frame-stats" => frame_stats = true,
             "--minimised" | "--minimized" => minimised = true,
             "--size" => {

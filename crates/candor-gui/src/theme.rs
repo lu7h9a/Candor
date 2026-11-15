@@ -182,6 +182,18 @@ pub mod space {
     pub const MENU_DOT_R: f32 = 3.0;
     /// A numeric table column, and small text fields.
     pub const COL_W: f32 = 120.0;
+    /// A number column in the process table.
+    pub const NUM_COL_W: f32 = 96.0;
+    /// Checkbox box size.
+    pub const CHECK: f32 = 14.0;
+    /// Width of the command-line guide window.
+    pub const GUIDE_W: f32 = 680.0;
+    /// Width of the top-right menu.
+    pub const MENU_W: f32 = 380.0;
+    /// Inset of a checkbox tick from the box edge.
+    pub const TICK_INSET: f32 = 3.0;
+    /// Height of the tick's short stroke.
+    pub const TICK_DROP: f32 = 2.0;
     /// The CPU column (sparkline and value).
     pub const CPU_COL_W: f32 = 160.0;
     /// Narrowest the Process column gets.
@@ -216,6 +228,8 @@ pub mod radius {
     pub const CONTROL: u8 = 8;
     /// Segments inside a switch.
     pub const SEGMENT: u8 = 6;
+    /// Checkbox boxes.
+    pub const CHECK: u8 = 3;
     /// Chips (fully round).
     pub const CHIP: u8 = 255;
 }
