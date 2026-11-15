@@ -6,8 +6,8 @@ use super::{class_matches, vars};
 use crate::config::{PathClass, Rules};
 use crate::detect::Hit;
 use crate::state::State;
-use std::collections::BTreeSet;
 use candor_proto::{BStr, Event, EventKind};
+use std::collections::BTreeSet;
 
 fn hit(rule: &str, ev: &Event, subject: &str, confidence: f64, summary: String) -> Hit {
     Hit {

@@ -8,8 +8,8 @@ pub mod windows;
 
 use crate::glob;
 use crate::proc::Proc;
-use std::collections::BTreeMap;
 use candor_proto::BStr;
+use std::collections::BTreeMap;
 
 /// Expands a class pattern for one process: "~/" becomes the process's home
 /// directory, or, when that is unknown, any /home/<user> or /root.

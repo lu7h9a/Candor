@@ -10,10 +10,10 @@
     clippy::indexing_slicing
 )]
 
-use std::process::{Child, Command, Output, Stdio};
-use std::time::Duration;
 use candor_itest::{Client, Daemon, bin_dir};
 use candor_proto::{ActAction, ClientMsg, DaemonMsg, ProcKey};
+use std::process::{Child, Command, Output, Stdio};
+use std::time::Duration;
 
 const NOBODY: u32 = 65534;
 
@@ -182,8 +182,7 @@ fn non_root_needs_the_group_and_ownership() {
     settle();
     // The dev socket's group (SUDO_GID under sudo, else root) lets nobody
     // connect; without candor-act it is not authorised to act.
-    let sock =
-        std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
+    let sock = std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
     let o = cli(Some(&[sock]), &["act", "pause", &mine.id().to_string()]);
     assert!(err(&o).contains("not authorised"), "{}", err(&o));
     assert_ne!(state(mine.id()), 'T');
@@ -284,8 +283,7 @@ fn follow_needs_the_act_group() {
     let d = Daemon::start(&[]).unwrap();
     let mut s = sleeper(true);
     settle();
-    let sock =
-        std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
+    let sock = std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
     let pid = s.id().to_string();
     let o = cli(Some(&[sock]), &["follow", &pid]);
     assert!(!o.status.success(), "follow allowed without candor-act");

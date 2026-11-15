@@ -4,8 +4,8 @@
 //! feeds them to `State`. The same values, one JSON object per line, make up
 //! an events recording, so any run can be replayed exactly (invariant I7).
 
-use serde::{Deserialize, Serialize};
 use candor_proto::{BStr, Event, Loss, ProcKey, SysStat};
+use serde::{Deserialize, Serialize};
 
 /// One process as read from /proc by the sampler.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

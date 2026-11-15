@@ -9,10 +9,10 @@
     clippy::indexing_slicing
 )]
 
+use candor_proto::*;
 use proptest::collection::vec;
 use proptest::option;
 use proptest::prelude::*;
-use candor_proto::*;
 
 pub fn key(tgid: u32, start: u64) -> ProcKey {
     ProcKey {

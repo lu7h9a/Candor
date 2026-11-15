@@ -9,9 +9,9 @@
 use crate::abi::skel::CandorSkel;
 use crate::abi::{self, Cfg};
 use anyhow::{Context, Result};
+use candor_proto::ProcKey;
 use libbpf_rs::{MapCore, MapFlags};
 use std::collections::{BTreeMap, BTreeSet};
-use candor_proto::ProcKey;
 
 /// Parent pid from the text of /proc/<pid>/stat (field 4, after the last ')').
 pub fn ppid_from_stat(stat: &[u8]) -> Option<u32> {

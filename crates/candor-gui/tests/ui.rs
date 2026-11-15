@@ -9,13 +9,13 @@
     clippy::indexing_slicing
 )]
 
+use candor_gui::app::App;
+use candor_gui::model::{Column, Tab};
+use candor_gui::net::{self, Pace};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
-use candor_gui::app::App;
-use candor_gui::model::{Column, Tab};
-use candor_gui::net::{self, Pace};
 
 fn frames() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/gui/demo.frames.jsonl")

@@ -10,6 +10,11 @@ use crate::collector::{self, Collector, LoadOpts, PollerCmd, PollerMsg};
 use crate::hostinfo;
 use crate::server::{self, ClientCmd, ClientQueue, SocketSpec};
 use anyhow::{Context, Result, bail};
+use candor_core::config::{Rules, load_allow};
+use candor_core::{Engine, Input, ProcSample};
+use candor_proto::{
+    ClientMsg, DaemonMsg, EventKind, EventSub, EventSubMode, Mode, PROTO_VERSION, ProcKey, SysStat,
+};
 use crossbeam_channel::{Receiver, Sender, select};
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -18,11 +23,6 @@ use std::mem::MaybeUninit;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
-use candor_core::config::{Rules, load_allow};
-use candor_core::{Engine, Input, ProcSample};
-use candor_proto::{
-    ClientMsg, DaemonMsg, EventKind, EventSub, EventSubMode, Mode, PROTO_VERSION, ProcKey, SysStat,
-};
 
 /// /etc/candor/candord.toml.
 #[derive(Debug, Deserialize)]
@@ -67,10 +67,7 @@ pub fn load_config(
         None => read_optional("/etc/candor/rules.toml")?,
     };
     let rules = Rules::load(override_text.as_deref())?;
-    let allow = load_allow(
-        &rules,
-        read_optional("/etc/candor/allow.toml")?.as_deref(),
-    )?;
+    let allow = load_allow(&rules, read_optional("/etc/candor/allow.toml")?.as_deref())?;
     Ok((cfg, rules, allow))
 }
 

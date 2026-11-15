@@ -25,15 +25,15 @@
 #![forbid(unsafe_code)]
 
 use anyhow::{Context, Result, bail};
+use candor_glasshouse::{decoys, differ, report, seccomp};
+use candor_proto::helper::{GhJob, HelperIn, HelperOut};
+use candor_proto::{BStr, GhState};
 use std::io::Write;
 use std::os::unix::fs::{MetadataExt, PermissionsExt};
 use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, Instant};
-use candor_glasshouse::{decoys, differ, report, seccomp};
-use candor_proto::helper::{GhJob, HelperIn, HelperOut};
-use candor_proto::{BStr, GhState};
 
 const BOX_USER: &str = "candor-box";
 const RUNS: &str = "/var/lib/candor/glasshouse";
@@ -632,6 +632,8 @@ fn selinux_context(p: &Path) -> Option<String> {
 fn run_box(run_id: &str, job: &GhJob, sample: &Path, bridge: &mut dyn Bridge) -> Result<Outcome> {
     let run = PathBuf::from(RUNS).join(run_id);
     std::fs::create_dir_all(RUNS)?;
+    // The sandbox stage (candor-box) passes through RUNS to its run dir.
+    std::fs::set_permissions(RUNS, std::fs::Permissions::from_mode(0o711))?;
     std::fs::create_dir(&run).with_context(|| format!("creating {}", run.display()))?;
     let mut opts = String::from("size=512m,nodev,nosuid,mode=0750");
     // Under SELinux a tmpfs takes its label from whoever mounts it; started

@@ -75,8 +75,7 @@ fn flood_identity(extra: &[&str], neighbour_lossless: bool) {
     // so such a drop made the sum 200 002.
     const FLOOD_OTHER: u64 = 4;
     let target = manifest_id(&action(&flood, "flood")["file"]);
-    let mine: Vec<&candor_proto::Event> =
-        ev.iter().filter(|e| e.proc == wl_key(&flood)).collect();
+    let mine: Vec<&candor_proto::Event> = ev.iter().filter(|e| e.proc == wl_key(&flood)).collect();
     let flood_opens = mine
         .iter()
         .filter(|e| matches!(&e.kind, EventKind::Open { dev, ino, read: true, write: false, .. } if (*dev, *ino) == target))

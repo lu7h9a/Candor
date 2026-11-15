@@ -12,9 +12,9 @@ use crate::config::Rules;
 use crate::detect::Hit;
 use crate::limits;
 use crate::state::State;
+use candor_proto::{BStr, Event, EventKind, Family, ProcKey};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::net::IpAddr;
-use candor_proto::{BStr, Event, EventKind, Family, ProcKey};
 
 const SEC: u64 = 1_000_000_000;
 

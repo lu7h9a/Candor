@@ -11,8 +11,8 @@ use crate::input::Input;
 use crate::rules::files;
 use crate::rules::windows::WindowState;
 use crate::state::State;
-use std::collections::BTreeSet;
 use candor_proto::{DaemonMsg, Event, EventKind, Finding};
+use std::collections::BTreeSet;
 
 /// State + detector + decoy set.
 #[derive(Clone, Debug)]

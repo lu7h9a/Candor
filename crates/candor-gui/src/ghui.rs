@@ -8,10 +8,10 @@
 //! as well as a colour. Everything from the sandbox is escaped (I10).
 
 use crate::model::{Action, ConnState, GhView, Model};
-use egui::{Color32, Response, RichText, Role, Ui, WidgetInfo};
 use candor_core::display::{safe, safe_str};
 use candor_core::ghreport::{LIMITATION, counts, entropy_sentence, states_text};
 use candor_proto::{DecoyState, DecoyStatus, GhState};
+use egui::{Color32, Response, RichText, Role, Ui, WidgetInfo};
 
 /// Timeline lines shown (the export has them all).
 const TIMELINE_SHOWN: usize = 500;

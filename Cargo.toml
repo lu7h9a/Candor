@@ -21,6 +21,8 @@ publish = false
 
 [workspace.lints.rust]
 unsafe_code = "deny"
+# cargo-fuzz builds with --cfg fuzzing (fuzz/ includes crates/candord/src/abi.rs).
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fuzzing)"] }
 
 [workspace.lints.clippy]
 unwrap_used = "deny"

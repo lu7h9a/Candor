@@ -10,8 +10,8 @@
 
 mod common;
 
-use proptest::prelude::*;
 use candor_proto::*;
+use proptest::prelude::*;
 
 proptest! {
     #![proptest_config(ProptestConfig::with_cases(2000))]

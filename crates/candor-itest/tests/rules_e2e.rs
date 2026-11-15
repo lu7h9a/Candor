@@ -14,11 +14,11 @@
     clippy::indexing_slicing
 )]
 
+use candor_itest::{Client, Daemon, wl, wl_key};
+use candor_proto::{ClientMsg, DaemonMsg, EventSub, EventSubMode, Finding};
 use std::path::PathBuf;
 use std::process::Command;
 use std::time::{Duration, Instant};
-use candor_itest::{Client, Daemon, wl, wl_key};
-use candor_proto::{ClientMsg, DaemonMsg, EventSub, EventSubMode, Finding};
 
 fn sim_dir() -> PathBuf {
     std::env::var_os("CANDOR_SIM_DIR")
@@ -312,11 +312,7 @@ fn r001_is_not_silenced_by_a_fake_usr_bin_in_a_private_mount_namespace() {
     std::fs::create_dir_all(&fake).unwrap();
     // The file itself is root-owned and not writable by others (as a real
     // /usr/bin/ssh); only its directory is not root's.
-    std::fs::copy(
-        candor_itest::bin_dir().join("candor-wl"),
-        fake.join("ssh"),
-    )
-    .unwrap();
+    std::fs::copy(candor_itest::bin_dir().join("candor-wl"), fake.join("ssh")).unwrap();
     std::os::unix::fs::chown(&fake, Some(65534), Some(65534)).unwrap();
     std::fs::create_dir_all("/root/.ssh").unwrap();
     std::fs::write(

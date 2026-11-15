@@ -133,7 +133,8 @@ def start(mode):
     d = Daemon()
     if mode == "follow":
         d.sleeper = subprocess.Popen(["sleep", "100000"])
-        out = subprocess.run([os.path.join(REL, "candor"), "follow", str(d.sleeper.pid)],
+        # Follow needs root or the candor-act group (owner's Q6 answer B).
+        out = subprocess.run(["sudo", "-n", os.path.join(REL, "candor"), "follow", str(d.sleeper.pid)],
                              capture_output=True, text=True)
         if "following" not in out.stdout:
             raise SystemExit("follow failed: " + out.stdout + out.stderr)

@@ -7,9 +7,9 @@
     clippy::indexing_slicing
 )]
 
+use candor_itest::{Daemon, bin_dir, wl};
 use std::process::{Command, Output};
 use std::time::Duration;
-use candor_itest::{Daemon, bin_dir, wl};
 
 fn cli(args: &[&str]) -> Output {
     Command::new(bin_dir().join("candor"))

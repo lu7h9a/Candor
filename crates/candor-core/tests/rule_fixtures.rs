@@ -9,10 +9,10 @@
     clippy::indexing_slicing
 )]
 
-use std::path::PathBuf;
 use candor_core::Engine;
 use candor_core::replay::replay_engine;
 use candor_proto::DaemonMsg;
+use std::path::PathBuf;
 
 fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/rules")

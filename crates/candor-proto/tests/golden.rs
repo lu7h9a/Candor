@@ -12,8 +12,8 @@
 
 mod common;
 
-use std::path::PathBuf;
 use candor_proto::{PROTO_VERSION, decode_client, decode_daemon};
+use std::path::PathBuf;
 
 fn dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

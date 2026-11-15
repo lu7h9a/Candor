@@ -5,13 +5,13 @@
 //! distinct exit code, so scripts can tell "daemon not running" from
 //! "permission denied" from "protocol mismatch".
 
-use std::os::unix::net::UnixStream;
-use std::path::PathBuf;
-use std::time::Duration;
 use candor_proto::{
     ClientKind, ClientMsg, DaemonMsg, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME, PROTO_VERSION,
     decode_daemon, encode, read_frame, write_frame,
 };
+use std::os::unix::net::UnixStream;
+use std::path::PathBuf;
+use std::time::Duration;
 
 /// Why a command failed; each kind has its own exit code.
 #[derive(Debug, thiserror::Error)]

@@ -8,14 +8,14 @@
 //! one per line) instead, at the recorded pace or a fixed interval.
 
 use crate::model::{ConnState, Incoming};
-use crossbeam_channel::{Receiver, Sender, bounded};
-use std::os::unix::net::UnixStream;
-use std::path::PathBuf;
-use std::time::Duration;
 use candor_proto::{
     ClientKind, ClientMsg, DaemonMsg, EventSub, EventSubMode, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME,
     PROTO_VERSION, decode_daemon, encode, read_frame, write_frame,
 };
+use crossbeam_channel::{Receiver, Sender, bounded};
+use std::os::unix::net::UnixStream;
+use std::path::PathBuf;
+use std::time::Duration;
 
 /// Messages waiting for the UI before the reader thread blocks (bounded:
 /// 32 frames of at most 16 MiB each).

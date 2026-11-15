@@ -13,6 +13,11 @@
 //! box cgroup is also put into `followed_cgroup`, so a run is traced even
 //! while the user follows something else.
 
+use candor_proto::helper::{GhJob, HelperIn, HelperOut, MAX_HELPER_LINE};
+use candor_proto::{
+    BStr, ConnStat, DaemonMsg, DecoyState, DecoyStatus, Event, EventKind, Finding, GhReport,
+    GhState, Loss, ProcKey,
+};
 use crossbeam_channel::{Receiver, Sender, bounded};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
@@ -20,11 +25,6 @@ use std::os::unix::fs::OpenOptionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::time::{Duration, Instant};
-use candor_proto::helper::{GhJob, HelperIn, HelperOut, MAX_HELPER_LINE};
-use candor_proto::{
-    BStr, ConnStat, DaemonMsg, DecoyState, DecoyStatus, Event, EventKind, Finding, GhReport,
-    GhState, Loss, ProcKey,
-};
 
 /// Where uploads and run directories live.
 pub const RUNS: &str = "/var/lib/candor/glasshouse";
@@ -376,7 +376,7 @@ impl Glasshouse {
         }
         self.counter += 1;
         let run_id = format!("{}-{}", unix_secs(), self.counter);
-        if let Err(e) = std::fs::create_dir_all(RUNS) {
+        if let Err(e) = runs_dir() {
             return vec![err("glasshouse_failed", format!("creating {RUNS}: {e}"))];
         }
         let file = match std::fs::OpenOptions::new()
@@ -990,6 +990,25 @@ impl Glasshouse {
     }
 }
 
+/// Creates RUNS (and /var/lib/candor) as 0711: the sandbox stage runs as
+/// candor-box and must pass through them to its own run directory; others
+/// may not list them. The unit's UMask (0027) and StateDirectoryMode would
+/// otherwise make them 0750 root:root, and every Glasshouse run of an
+/// installed package failed (found by the README test in a clean VM, WP34).
+fn runs_dir() -> std::io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    std::fs::create_dir_all(RUNS)?;
+    for d in [
+        std::path::Path::new(RUNS),
+        std::path::Path::new(RUNS)
+            .parent()
+            .unwrap_or(std::path::Path::new(RUNS)),
+    ] {
+        std::fs::set_permissions(d, std::fs::Permissions::from_mode(0o711))?;
+    }
+    Ok(())
+}
+
 /// The helper runs as root through systemd: it must be a root-owned file
 /// that only root can change, in such a directory (a `--dev` daemon finds it
 /// next to itself, which may be a user's build directory; review 2
@@ -1052,6 +1071,15 @@ pub fn available() -> Result<(), String> {
 /// Saves a report as `REPORTS/<run_id>.json`, 0640 root:candor.
 pub fn save_report(r: &GhReport) -> std::io::Result<PathBuf> {
     std::fs::create_dir_all(REPORTS)?;
+    // The directory too is root:candor 0750 (the unit's UMask would leave it
+    // root-only, and group members could not open saved reports, WP34).
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(REPORTS, std::fs::Permissions::from_mode(0o750))?;
+        if let Some(gid) = group_id("candor") {
+            let _ = rustix::fs::chown(REPORTS, None, Some(rustix::fs::Gid::from_raw(gid)));
+        }
+    }
     let path = PathBuf::from(REPORTS).join(format!("{}.json", r.run_id));
     // Sample-chosen names may hold bidi or C1 characters: escaped (I10).
     let body = candor_core::display::json_safe(
@@ -1092,12 +1120,7 @@ fn rotate_reports(keep: usize) {
 /// run tmpfs mounts, run directories, uploads, job files, units.
 pub fn sweep() {
     let _ = Command::new("/usr/bin/systemctl")
-        .args([
-            "kill",
-            "--signal=SIGKILL",
-            "candor-gh-*",
-            "candor-ghh-*",
-        ])
+        .args(["kill", "--signal=SIGKILL", "candor-gh-*", "candor-ghh-*"])
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status();

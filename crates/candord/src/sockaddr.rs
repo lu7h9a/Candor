@@ -6,8 +6,8 @@
 //! "other". IPv4-mapped IPv6 addresses are shown as plain IPv4. Unix socket
 //! paths are escaped like every byte string (I10), abstract ones get "@".
 
-use std::net::{Ipv4Addr, Ipv6Addr};
 use candor_proto::{BStr, Family, SockType};
+use std::net::{Ipv4Addr, Ipv6Addr};
 
 const AF_UNIX: u16 = 1;
 const AF_INET: u16 = 2;

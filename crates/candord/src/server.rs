@@ -10,6 +10,10 @@
 //! and parsed into strict enums (they never become paths or commands, I12).
 
 use anyhow::{Context, Result, bail};
+use candor_proto::{
+    ClientMsg, DaemonMsg, Event, Finding, FrameError, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME,
+    decode_client, encode, read_frame, write_frame,
+};
 use crossbeam_channel::Sender;
 use std::collections::VecDeque;
 use std::io::Write;
@@ -19,10 +23,6 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::Duration;
-use candor_proto::{
-    ClientMsg, DaemonMsg, Event, Finding, FrameError, MAX_CLIENT_FRAME, MAX_DAEMON_FRAME,
-    decode_client, encode, read_frame, write_frame,
-};
 
 /// Maximum simultaneous clients (plan 4.2).
 pub const MAX_CLIENTS: usize = 8;
@@ -231,10 +231,7 @@ pub fn bind(spec: &SocketSpec) -> Result<UnixListener> {
     chmod(dir, Mode::from_raw_mode(0o750))?;
     if spec.path.exists() {
         if UnixStream::connect(&spec.path).is_ok() {
-            bail!(
-                "another candord is already serving {}",
-                spec.path.display()
-            );
+            bail!("another candord is already serving {}", spec.path.display());
         }
         std::fs::remove_file(&spec.path).context("removing stale socket")?;
     }

@@ -11,8 +11,8 @@ use crate::config::{AllowEntry, Rules};
 use crate::glob;
 use crate::limits;
 use crate::state::State;
-use std::collections::BTreeMap;
 use candor_proto::{Event, Finding, ProcKey, ProcRow};
+use std::collections::BTreeMap;
 
 /// A rule match before allowlisting and de-duplication.
 #[derive(Clone, Debug, PartialEq)]

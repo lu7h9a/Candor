@@ -8,12 +8,12 @@
     clippy::indexing_slicing
 )]
 
-use std::collections::BTreeMap;
 use candor_core::config::{Rules, load_allow};
 use candor_core::explain::{ExplainCtx, render};
 use candor_core::limits::MAX_FINDINGS;
 use candor_core::{Band, Detector, Hit, Input, State};
 use candor_proto::{BStr, Event, EventKind, ProcKey};
+use std::collections::BTreeMap;
 
 const SEC: u64 = 1_000_000_000;
 

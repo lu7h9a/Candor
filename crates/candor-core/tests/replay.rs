@@ -8,8 +8,8 @@
     clippy::indexing_slicing
 )]
 
-use std::path::PathBuf;
 use candor_core::replay::{ReplayError, replay};
+use std::path::PathBuf;
 
 fn fixtures() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../fixtures/core")

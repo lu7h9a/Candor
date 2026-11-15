@@ -4,12 +4,12 @@
 
 use crate::model::{Action, Model};
 use crate::net::Source;
+use candor_core::display::safe;
+use candor_core::redact::Redactor;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use candor_core::display::safe;
-use candor_core::redact::Redactor;
 
 /// Messages taken from the reader per frame (the rest wait for the next).
 const MAX_PER_FRAME: usize = 2000;

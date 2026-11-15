@@ -27,6 +27,7 @@ pub mod skel {
 /// 5.12+). Such events are neither emitted nor counted by the program
 /// itself; the daemon adds this to Loss.missed (I3, found in WP31). 0 if the
 /// kernel does not report it.
+#[cfg(not(fuzzing))] // the decoder fuzz target includes this file without libbpf
 pub fn recursion_misses(fd: std::os::fd::BorrowedFd<'_>) -> u64 {
     use libbpf_rs::libbpf_sys::{bpf_prog_get_info_by_fd, bpf_prog_info};
     use std::os::fd::AsRawFd;

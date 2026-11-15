@@ -11,10 +11,10 @@
     clippy::indexing_slicing
 )]
 
-use std::path::PathBuf;
 use candor_core::Engine;
 use candor_core::replay::replay_engine;
 use candor_proto::DaemonMsg;
+use std::path::PathBuf;
 
 #[test]
 fn benign_recordings_stay_within_the_false_positive_budget() {

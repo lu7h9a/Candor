@@ -5,11 +5,11 @@
 //! daemon sends back about the sample is escaped before it is printed.
 
 use crate::conn::{CliError, Conn};
-use std::io::Read;
-use std::time::{Duration, Instant};
 use candor_core::display::safe_str;
 use candor_core::ghreport::{LIMITATION, render_text};
 use candor_proto::{BStr, ClientMsg, DaemonMsg, GhState};
+use std::io::Read;
+use std::time::{Duration, Instant};
 
 /// Raw bytes per upload chunk (the protocol maximum).
 const CHUNK: usize = 64 * 1024;

@@ -8,10 +8,10 @@
 //! `detail-<tab>`, `alerts`). Scores are shown as words as well as colour.
 
 use crate::model::{Action, Column, ConnState, Model, Page, RowView, Tab};
-use egui::{Color32, Response, RichText, Role, Ui, WidgetInfo};
 use candor_core::display::{safe, safe_str};
 use candor_core::explain;
 use candor_proto::{DaemonMsg, Mode};
+use egui::{Color32, Response, RichText, Role, Ui, WidgetInfo};
 
 /// The 6.4 text, shown verbatim on the Glasshouse page (I13).
 pub const GLASSHOUSE_LIMITS: &str = candor_core::explain::GLASSHOUSE_LIMITATION;
@@ -472,9 +472,7 @@ fn detail(ui: &mut Ui, m: &Model, acts: &mut Vec<Action>) {
         return;
     };
     let row = m.rows.iter().find(|r| r.key == sel);
-    let name = row
-        .map(candor_core::display::exe_shown)
-        .unwrap_or_default();
+    let name = row.map(candor_core::display::exe_shown).unwrap_or_default();
     ui.heading(format!("{name} (pid {})", sel.tgid));
     ui.horizontal(|ui| {
         if matches!(m.mode, Mode::Follow { .. }) {

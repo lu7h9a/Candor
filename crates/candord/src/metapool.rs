@@ -9,11 +9,11 @@
 //! all of them are stuck, checks answer "not trusted" at once (bounded, I8).
 //! Review finding: a hung stat on the core thread stalled all detection.
 
+use candor_proto::{BStr, ProcKey};
 use crossbeam_channel::{Receiver, Sender, bounded};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
-use candor_proto::{BStr, ProcKey};
 
 /// Longest the core waits for one check.
 pub const META_TIMEOUT: Duration = Duration::from_millis(50);

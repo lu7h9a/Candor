@@ -6,10 +6,10 @@
 //! The executable is inspected through /proc/<pid>/exe, the kernel's own
 //! link to the running file, never through a path a client supplied (I12).
 
+use candor_proto::{BStr, ProcKey};
 use std::collections::BTreeMap;
 use std::os::unix::ffi::OsStrExt;
 use std::os::unix::fs::MetadataExt;
-use candor_proto::{BStr, ProcKey};
 
 /// Home directories by uid, from /etc/passwd (read at start and on SIGHUP).
 pub fn load_homes() -> BTreeMap<u32, Vec<u8>> {

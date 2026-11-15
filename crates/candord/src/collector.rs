@@ -12,6 +12,7 @@ use crate::convert;
 use crate::mounts::Mounts;
 use crate::syscalls::SysTotals;
 use anyhow::{Context, Result};
+use candor_proto::{Event, Loss, ProcKey};
 use crossbeam_channel::{Receiver, Sender};
 use libbpf_rs::skel::{OpenSkel, Skel, SkelBuilder};
 use libbpf_rs::{MapCore, MapFlags, RingBufferBuilder};
@@ -20,7 +21,6 @@ use std::collections::BTreeMap;
 use std::mem::MaybeUninit;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
-use candor_proto::{Event, Loss, ProcKey};
 
 /// Default per-tgid event budget (events per second) and burst (plan 4.3).
 pub const BUDGET_RATE: u32 = 2000;
@@ -398,9 +398,7 @@ pub fn run_poller(
                         &1u32.to_le_bytes(),
                         libbpf_rs::MapFlags::ANY,
                     ) {
-                        eprintln!(
-                            "candord: adding the Glasshouse cgroup to followed_cgroup: {e}"
-                        );
+                        eprintln!("candord: adding the Glasshouse cgroup to followed_cgroup: {e}");
                     }
                     col.set_cfg_flag(abi::CFG_HAS_CGROUPS, true);
                     let _ = tx.send(PollerMsg::GhReady);

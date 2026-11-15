@@ -8,10 +8,10 @@
     clippy::indexing_slicing
 )]
 
-use std::io::{Read, Write};
-use std::time::{Duration, Instant};
 use candor_itest::{Client, DEV_SOCKET, Daemon, PausedWl, wl, wl_key};
 use candor_proto::{ClientMsg, DaemonMsg, EventSub, EventSubMode, ProcKey};
+use std::io::{Read, Write};
+use std::time::{Duration, Instant};
 
 fn subscribe(c: &mut Client, events: EventSub) {
     c.send(&ClientMsg::Subscribe {
@@ -430,8 +430,7 @@ fn maps_only_of_the_requesters_own_processes() {
         .spawn()
         .unwrap();
     std::thread::sleep(Duration::from_millis(1500));
-    let sock =
-        std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
+    let sock = std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
     let maps_of = |pid: u32| -> serde_json::Value {
         let o = std::process::Command::new("setpriv")
             .args(["--reuid=65534", "--regid=65534"])
@@ -461,8 +460,7 @@ fn maps_only_of_the_requesters_own_processes() {
 #[test]
 fn one_user_cannot_take_every_client_slot() {
     let d = Daemon::start(&[]).unwrap();
-    let sock =
-        std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
+    let sock = std::os::unix::fs::MetadataExt::gid(&std::fs::metadata("/run/candor-dev").unwrap());
     // As nobody: open five connections, read the first reply of the fifth.
     let py = r#"
 import socket, struct, json, time

@@ -8,13 +8,13 @@
     clippy::indexing_slicing
 )]
 
-use egui_kittest::Harness;
-use std::io::Write;
-use std::time::{Duration, Instant};
 use candor_gui::app::App;
 use candor_gui::model::Action;
 use candor_gui::net::{self, Pace};
 use candor_proto::{BStr, DaemonMsg, Loss, Mode, ProcKey, ProcRow, SystemMode};
+use egui_kittest::Harness;
+use std::io::Write;
+use std::time::{Duration, Instant};
 
 /// Writes `snapshots` snapshots of `n` processes (a 4-level tree).
 pub fn write_stress_frames(path: &std::path::Path, n: u32, snapshots: u64) {
@@ -57,10 +57,8 @@ pub fn write_stress_frames(path: &std::path::Path, n: u32, snapshots: u64) {
 
 #[test]
 fn no_frame_over_50ms_with_2000_processes() {
-    let path = std::env::temp_dir().join(format!(
-        "candor-stress-{}.frames.jsonl",
-        std::process::id()
-    ));
+    let path =
+        std::env::temp_dir().join(format!("candor-stress-{}.frames.jsonl", std::process::id()));
     let n: u32 = std::env::var("STRESS_N")
         .ok()
         .and_then(|v| v.parse().ok())

@@ -8,10 +8,8 @@
 use crate::input::{Input, ProcSample};
 use crate::limits;
 use crate::proc::Proc;
+use candor_proto::{DaemonMsg, Event, EventKind, Loss, Mode, ProcKey, ProcRow, Series, SystemMode};
 use std::collections::{BTreeMap, HashMap, VecDeque};
-use candor_proto::{
-    DaemonMsg, Event, EventKind, Loss, Mode, ProcKey, ProcRow, Series, SystemMode,
-};
 
 /// Counters about the state itself, for tests and diagnostics.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]

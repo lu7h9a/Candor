@@ -11,11 +11,11 @@
 //! --page processes|glasshouse.
 #![forbid(unsafe_code)]
 
-use std::path::PathBuf;
-use std::time::Duration;
 use candor_gui::app::App;
 use candor_gui::model::{Action, Page, Tab};
 use candor_gui::net::{self, Pace};
+use std::path::PathBuf;
+use std::time::Duration;
 
 fn euid() -> Option<u32> {
     std::fs::read_to_string("/proc/self/status")

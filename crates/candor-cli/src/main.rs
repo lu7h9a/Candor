@@ -14,12 +14,12 @@ mod export;
 mod glasshouse;
 mod out;
 
-use conn::{CliError, Conn};
-use std::path::PathBuf;
-use std::time::{Duration, Instant};
 use candor_core::Engine;
 use candor_core::redact::Redactor;
 use candor_proto::{ClientMsg, DaemonMsg, EventSub, EventSubMode, Finding, ProcKey, ProcRow};
+use conn::{CliError, Conn};
+use std::path::PathBuf;
+use std::time::{Duration, Instant};
 
 const USAGE: &str = "usage: candor [--socket PATH] [--json] COMMAND
 commands:

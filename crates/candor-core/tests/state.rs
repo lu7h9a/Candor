@@ -7,11 +7,11 @@
     clippy::indexing_slicing
 )]
 
-use proptest::prelude::*;
-use std::collections::{HashMap, HashSet};
 use candor_core::limits::*;
 use candor_core::{Input, ProcSample, State};
 use candor_proto::{BStr, DaemonMsg, Event, EventKind, Family, ProcKey, SockType};
+use proptest::prelude::*;
+use std::collections::{HashMap, HashSet};
 
 const SEC: u64 = 1_000_000_000;
 

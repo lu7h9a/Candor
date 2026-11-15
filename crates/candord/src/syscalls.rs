@@ -6,9 +6,9 @@
 
 use crate::abi::skel::CandorSkel;
 use anyhow::{Context, Result};
+use candor_proto::ProcKey;
 use libbpf_rs::{MapCore, MapFlags};
 use std::collections::BTreeMap;
-use candor_proto::ProcKey;
 
 include!(concat!(env!("OUT_DIR"), "/syscall_names.rs"));
 

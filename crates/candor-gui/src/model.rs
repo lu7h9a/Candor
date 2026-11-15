@@ -7,11 +7,11 @@
 //! data, every behaviour (sorting, filtering, pausing, selection) is tested
 //! here without a window.
 
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use candor_core::display::{safe, safe_str};
 use candor_proto::{
     ClientMsg, DaemonMsg, DecoyStatus, Finding, GhReport, GhState, Loss, Mode, ProcKey, ProcRow,
 };
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 /// Alerts kept in the list (newest first).
 pub const MAX_ALERTS: usize = 256;

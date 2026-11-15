@@ -6,10 +6,10 @@
 //! summary is full, new distinct items are only counted as "other".
 
 use crate::limits;
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use candor_proto::{
     BStr, ConnStat, Event, EventKind, Family, FileStat, ProcKey, ProcRow, SockType, SysStat,
 };
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 /// Key of a connection summary: one destination of one process.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

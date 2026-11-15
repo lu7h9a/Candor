@@ -8,10 +8,10 @@
     clippy::indexing_slicing
 )]
 
-use std::collections::BTreeMap;
 use candor_core::{Input, State};
 use candor_itest::{Dump, action, wl, wl_key};
 use candor_proto::{EventKind, ProcKey};
+use std::collections::BTreeMap;
 
 fn samples(stats: &[serde_json::Value]) -> Vec<Input> {
     stats

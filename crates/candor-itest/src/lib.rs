@@ -10,12 +10,12 @@
 //! `target/release`) holds `candord` and `candor-wl`.
 #![forbid(unsafe_code)]
 
+use candor_proto::{Event, EventKind, ProcKey};
 use std::collections::HashSet;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
-use candor_proto::{Event, EventKind, ProcKey};
 
 /// What `wl` printed about itself and its actions.
 pub type Manifest = serde_json::Value;

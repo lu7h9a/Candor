@@ -14,6 +14,7 @@
 //! are "created". Other new entries are listed by type, never opened.
 
 use crate::decoys::{DecoyEntry, Manifest, entropy, sha256_hex};
+use candor_proto::{BStr, CreatedFile, DecoyState, DecoyStatus};
 use rustix::fd::OwnedFd;
 use rustix::fs::{AtFlags, Dir, FileType, Mode, OFlags};
 use serde::{Deserialize, Serialize};
@@ -21,7 +22,6 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 use std::io::Read;
 use std::time::{Duration, Instant};
-use candor_proto::{BStr, CreatedFile, DecoyState, DecoyStatus};
 
 /// A non-decoy file present before the run (e.g. a plain `.bashrc`).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
