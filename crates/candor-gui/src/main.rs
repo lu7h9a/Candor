@@ -8,7 +8,9 @@
 //! Debug flags: --replay FILE [--pace recorded|max|MS], --screenshot PNG
 //! --after-frames N, --select PID, --tab NAME, --socket PATH, --paused,
 //! --shot-at SECONDS:FILE (repeatable; exits after the last one),
-//! --page processes|glasshouse.
+//! --page processes|findings|glasshouse, --gh-map (Glasshouse report map),
+//! --size WIDTHxHEIGHT, --frame-stats (frame times printed at exit).
+//! --minimised starts the window minimised (used by start at login).
 #![forbid(unsafe_code)]
 
 use candor_gui::app::App;
@@ -50,6 +52,9 @@ fn main() {
     let mut after = 30u64;
     let mut initial = Vec::new();
     let mut timed: Vec<(f64, PathBuf)> = Vec::new();
+    let mut size = [1400.0_f32, 900.0];
+    let mut frame_stats = false;
+    let mut minimised = false;
     let mut sockets = vec![
         PathBuf::from("/run/candor-dev/candor.sock"),
         PathBuf::from("/run/candor/candor.sock"),
@@ -86,7 +91,8 @@ fn main() {
             "--page" => initial.push(Action::ShowPage(match val().as_str() {
                 "processes" => Page::Processes,
                 "glasshouse" => Page::Glasshouse,
-                _ => fail("--page processes|glasshouse"),
+                "findings" => Page::Findings,
+                _ => fail("--page processes|findings|glasshouse"),
             })),
             "--shot-at" => {
                 let v = val();
@@ -97,6 +103,21 @@ fn main() {
                     t.parse().unwrap_or_else(|_| fail("bad --shot-at time")),
                     p.into(),
                 ));
+            }
+            "--gh-map" => initial.push(Action::GhMap(true)),
+            "--tree" => initial.push(Action::ToggleTree),
+            "--cli-guide" => initial.push(Action::ShowCliGuide(true)),
+            "--frame-stats" => frame_stats = true,
+            "--minimised" | "--minimized" => minimised = true,
+            "--size" => {
+                let v = val();
+                let (w, h) = v
+                    .split_once('x')
+                    .unwrap_or_else(|| fail("--size WIDTHxHEIGHT"));
+                size = [
+                    w.parse().unwrap_or_else(|_| fail("bad --size")),
+                    h.parse().unwrap_or_else(|_| fail("bad --size")),
+                ];
             }
             "--version" => {
                 println!("candor-gui {}", env!("CARGO_PKG_VERSION"));
@@ -109,10 +130,14 @@ fn main() {
         Some(p) => net::replay(p, pace),
         None => net::live(sockets),
     };
-    let app = App::new(source, shot.map(|p| (p, after)), initial).with_timed_shots(timed);
+    let app = App::new(source, shot.map(|p| (p, after)), initial)
+        .with_timed_shots(timed)
+        .with_frame_stats(frame_stats)
+        .with_config(candor_gui::settings::config_home())
+        .minimised(minimised);
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([1400.0, 900.0])
+            .with_inner_size(size)
             .with_title("Candor"),
         renderer: eframe::Renderer::Glow,
         ..Default::default()

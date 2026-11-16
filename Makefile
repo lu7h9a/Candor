@@ -67,11 +67,11 @@ itest-bin: release wl
 # Unprivileged tests only. The root integration tests live in candor-itest and
 # run through `make test-root`; they are excluded here, not ignored.
 test: integrity sysroot
-	$(CARGO) test --workspace --exclude candor-itest -- --skip no_frame_over_50ms_with_2000_processes
+	$(CARGO) test --workspace --exclude candor-itest -- --skip no_frame_over_50ms_with_2000_processes --skip map_stays_at_60fps
 	@# The GUI frame-time budget (50 ms) is measured on the optimised build
 	@# users run, not the debug build (owner's choice H, WP32: on 2-CPU CI
 	@# runners the debug build drew a 56 ms frame).
-	$(CARGO) test --release -p candor-gui --test stress
+	$(CARGO) test --release -p candor-gui --test stress -- --nocapture
 
 test-root: release wl
 	@sudo -n true 2>/dev/null || { echo "make test-root: needs passwordless sudo"; exit 1; }
@@ -80,6 +80,7 @@ test-root: release wl
 
 lint: sysroot
 	scripts/check-claims.sh
+	scripts/check-theme.sh
 	$(CARGO) fmt --all -- --check
 	$(CARGO) clippy --workspace --all-targets -- -D warnings
 	@bpf_files=$$(find $(BPF_DIR) -name '*.c' -o -name '*.h' 2>/dev/null | grep -v '/vmlinux/' || true); \

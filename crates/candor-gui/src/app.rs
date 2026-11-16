@@ -31,6 +31,20 @@ pub struct App {
     timed_requested: usize,
     /// What the daemon was last told about the Syscalls view (WatchSyscalls).
     sys_watch_sent: bool,
+    /// Fonts and visuals installed (first frame).
+    themed: bool,
+    /// Last time the map's details were asked for again.
+    map_refreshed: std::time::Instant,
+    /// --frame-stats: time spent in each frame (printed at exit).
+    frame_stats: Option<Vec<Duration>>,
+    /// Result of a group join running in the background.
+    join_result: Arc<std::sync::Mutex<Option<String>>>,
+    /// Last time group membership was checked.
+    access_checked: Option<std::time::Instant>,
+    /// Minimise the window on the first frame (--minimised).
+    start_minimised: bool,
+    /// Where settings live ($XDG_CONFIG_HOME); None: settings not saved.
+    config: Option<PathBuf>,
 }
 
 impl App {
@@ -49,7 +63,61 @@ impl App {
             timed_done: Arc::new(std::sync::atomic::AtomicUsize::new(0)),
             timed_requested: 0,
             sys_watch_sent: false,
+            themed: false,
+            map_refreshed: std::time::Instant::now(),
+            frame_stats: None,
+            join_result: Arc::new(std::sync::Mutex::new(None)),
+            access_checked: None,
+            start_minimised: false,
+            config: None,
         }
+    }
+
+    /// Reads and keeps the user's settings from `config` (the window uses
+    /// `settings::config_home()`; tests pass a scratch directory or none).
+    pub fn with_config(mut self, config: Option<PathBuf>) -> App {
+        if let Some(base) = &config {
+            self.model.settings = crate::settings::load(base);
+            self.model.autostart = crate::settings::autostart_enabled(base);
+        }
+        self.config = config;
+        self
+    }
+
+    /// Minimise on the first frame (--minimised, used by start at login).
+    pub fn minimised(mut self, on: bool) -> App {
+        self.start_minimised = on;
+        self
+    }
+
+    fn set_autostart(&mut self, on: bool) {
+        let Some(base) = self.config.clone() else {
+            return;
+        };
+        self.model.notice = Some(
+            match crate::settings::set_autostart(&base, on, self.model.settings.start_minimised) {
+                Ok(()) if on => "Candor will open when you log in.".into(),
+                Ok(()) => "Candor will no longer open when you log in.".into(),
+                Err(e) => format!("Could not change start at login: {e}"),
+            },
+        );
+        self.model.autostart = crate::settings::autostart_enabled(&base);
+    }
+
+    fn set_start_minimised(&mut self, on: bool) {
+        let Some(base) = self.config.clone() else {
+            return;
+        };
+        self.model.settings.start_minimised = on;
+        if let Err(e) = crate::settings::save(&base, &self.model.settings) {
+            self.model.notice = Some(format!("Could not save the setting: {e}"));
+        }
+    }
+
+    /// Records how long each frame takes; printed when the window closes.
+    pub fn with_frame_stats(mut self, on: bool) -> App {
+        self.frame_stats = on.then(Vec::new);
+        self
     }
 
     /// Screenshots at fixed times after start (debug: daemon restart test).
@@ -134,6 +202,9 @@ impl App {
             Action::GhBrowse(dir) => return self.browse(dir),
             Action::GhRun => return self.gh_run(),
             Action::GhExport => return self.gh_export(),
+            Action::JoinGroup(g) => return self.join_group(g),
+            Action::SetAutostart(on) => return self.set_autostart(on),
+            Action::SetStartMinimised(on) => return self.set_start_minimised(on),
             _ => {}
         }
         for req in self.model.on_action(a) {
@@ -142,17 +213,113 @@ impl App {
     }
 
     fn send(&mut self, req: candor_proto::ClientMsg) {
-        if self.source.tx.try_send(req).is_err() {
+        // A replay has no daemon: requests go nowhere, and that is not news.
+        if self.source.tx.try_send(req).is_err()
+            && !matches!(self.model.conn, crate::model::ConnState::Replay(_))
+        {
             self.model.notice = Some("Too many requests waiting for the daemon; try again.".into());
         }
     }
 
     /// One frame: pump, draw, act.
     pub fn frame(&mut self, ui: &mut egui::Ui) {
+        if !self.themed {
+            self.themed = true;
+            crate::theme::install(ui.ctx());
+            if self.start_minimised {
+                ui.ctx()
+                    .send_viewport_cmd(egui::ViewportCommand::Minimized(true));
+            }
+        }
         self.pump();
+        self.refresh_access();
+        // Files dropped on the window go to the Glasshouse form.
+        let dropped: Vec<String> = ui.ctx().input(|i| {
+            i.raw
+                .dropped_files
+                .iter()
+                .map(|f| f.path().display().to_string())
+                .filter(|p| !p.is_empty())
+                .collect()
+        });
+        if let Some(p) = dropped.into_iter().next() {
+            self.act(Action::GhDropped(p));
+        }
+        // The map's layout runs here, a few bounded steps per frame.
+        self.model.map_tick();
+        if self.model.map_visible() {
+            self.refresh_map_details();
+            if self.model.map.moving() {
+                ui.ctx().request_repaint();
+            }
+        }
         for a in crate::ui::draw(ui, &self.model) {
             self.act(a);
         }
+    }
+
+    /// While a process map is open, asks again for the details of the
+    /// processes in it every 2 s, so new files and connections appear.
+    fn refresh_map_details(&mut self) {
+        if self.model.page != crate::model::Page::Processes {
+            return;
+        }
+        if self.map_refreshed.elapsed() < Duration::from_secs(2) {
+            return;
+        }
+        self.map_refreshed = std::time::Instant::now();
+        let Some(k) = self.model.selected else { return };
+        self.send(candor_proto::ClientMsg::GetDetail {
+            proc: k,
+            maps: false,
+        });
+        for req in self.model.map_requests() {
+            self.send(req);
+        }
+    }
+
+    /// Asks the system to add this user to `group` (pkexec shows its own
+    /// password dialog), in the background so the window stays responsive.
+    fn join_group(&mut self, group: &'static str) {
+        if self.model.joining {
+            return;
+        }
+        self.model.joining = true;
+        self.model.notice = Some(format!(
+            "Asking your system to add you to {group}: enter your password in the system's dialog."
+        ));
+        let out = Arc::clone(&self.join_result);
+        std::thread::spawn(move || {
+            let msg = match crate::access::join(group) {
+                Ok(()) => {
+                    format!("You are now in {group}. Log out and back in for it to take effect.")
+                }
+                Err(e) => format!("Could not add you to {group}: {e}"),
+            };
+            if let Ok(mut g) = out.lock() {
+                *g = Some(msg);
+            }
+        });
+    }
+
+    /// Group membership, checked every few seconds (cheap file reads).
+    fn refresh_access(&mut self) {
+        if let Ok(mut g) = self.join_result.lock()
+            && let Some(msg) = g.take()
+        {
+            self.model.notice = Some(msg);
+            self.model.joining = false;
+            self.access_checked = None;
+        }
+        if self
+            .access_checked
+            .is_some_and(|t| t.elapsed() < Duration::from_secs(5))
+        {
+            return;
+        }
+        self.access_checked = Some(std::time::Instant::now());
+        self.model.act_access = crate::access::state("candor-act");
+        self.model.view_access = crate::access::state("candor");
     }
 
     /// Lists a directory for the Glasshouse picker (names escaped,
@@ -188,6 +355,12 @@ impl App {
     /// GUI reads the file as the user; the daemon only gets bytes (D25).
     fn gh_run(&mut self) {
         use candor_proto::{BStr, ClientMsg, GhState};
+        if self.model.gh.example {
+            return self.gh_upload(
+                BStr::from(crate::model::GH_EXAMPLE_NAME),
+                crate::model::GH_EXAMPLE.to_vec(),
+            );
+        }
         let path = PathBuf::from(self.model.gh.path.trim());
         let meta = match std::fs::metadata(&path) {
             Ok(m) if m.is_file() && m.len() > 0 && m.len() <= 256 * 1024 * 1024 => m,
@@ -220,6 +393,9 @@ impl App {
         self.model.gh.message = format!("uploading {size} bytes");
         self.model.gh.report = None;
         self.model.gh.decoys.clear();
+        self.model.gh.run_started = Some(std::time::Instant::now());
+        self.model.gh.show_start = false;
+        self.model.gh_map = false;
         std::thread::spawn(move || {
             let send = |m: ClientMsg| tx.send_timeout(m, Duration::from_secs(30)).is_ok();
             let Ok(mut f) = std::fs::File::open(&path) else {
@@ -249,9 +425,49 @@ impl App {
         });
     }
 
+    /// Uploads bytes held in memory (the bundled example) and runs them.
+    fn gh_upload(&mut self, name: candor_proto::BStr, bytes: Vec<u8>) {
+        use candor_proto::{ClientMsg, GhState};
+        let args: Vec<candor_proto::BStr> = self
+            .model
+            .gh
+            .args
+            .split_whitespace()
+            .map(candor_proto::BStr::from)
+            .collect();
+        let timeout_s = self.model.gh.timeout_s;
+        self.model.gh.state = Some(GhState::Uploading);
+        self.model.gh.message = format!("uploading {} bytes", bytes.len());
+        self.model.gh.report = None;
+        self.model.gh.decoys.clear();
+        self.model.gh.run_started = Some(std::time::Instant::now());
+        self.model.gh.show_start = false;
+        self.model.gh_map = false;
+        let tx = self.source.tx.clone();
+        std::thread::spawn(move || {
+            let send = |m: ClientMsg| tx.send_timeout(m, Duration::from_secs(30)).is_ok();
+            if !send(ClientMsg::GhUploadBegin {
+                name,
+                size: bytes.len() as u64,
+            }) {
+                return;
+            }
+            for (seq, chunk) in bytes.chunks(64 * 1024).enumerate() {
+                let b64 = candor_proto::b64::encode(chunk);
+                if !send(ClientMsg::GhUploadChunk {
+                    seq: seq as u32,
+                    b64,
+                }) {
+                    return;
+                }
+            }
+            send(ClientMsg::GhRun { args, timeout_s });
+        });
+    }
+
     /// Writes the report as text and JSON into the home directory.
     fn gh_export(&mut self) {
-        let Some(r) = self.model.gh.report.as_deref() else {
+        let Some(r) = self.model.gh.shown_report() else {
             return;
         };
         let home = PathBuf::from(std::env::var("HOME").unwrap_or_default());
@@ -327,6 +543,11 @@ impl App {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             return;
         }
+        if !self.requested {
+            // Keep drawing until the screenshot is taken (an idle window
+            // would otherwise redraw once a second).
+            ctx.request_repaint();
+        }
         if !self.requested && self.frames >= after {
             self.requested = true;
             let done = Arc::clone(&self.done);
@@ -352,9 +573,39 @@ pub fn write_png(path: &std::path::Path, img: &egui::ColorImage) -> Result<(), S
     writer.write_image_data(&bytes).map_err(|e| e.to_string())
 }
 
+impl Drop for App {
+    fn drop(&mut self) {
+        if let Some(t) = &mut self.frame_stats
+            && !t.is_empty()
+        {
+            t.sort();
+            let at = |q: f64| {
+                t.get(((t.len() - 1) as f64 * q) as usize)
+                    .copied()
+                    .unwrap_or_default()
+            };
+            let slow = t.iter().filter(|d| d.as_millis() >= 50).count();
+            eprintln!(
+                "frame stats: {} frames, p50 {:?}, p99 {:?}, max {:?}, {} over 50 ms",
+                t.len(),
+                at(0.5),
+                at(0.99),
+                at(1.0),
+                slow
+            );
+        }
+    }
+}
+
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let started = std::time::Instant::now();
         self.frame(ui);
+        if let Some(t) = &mut self.frame_stats
+            && t.len() < 1_000_000
+        {
+            t.push(started.elapsed());
+        }
         self.frames += 1;
         let ctx = ui.ctx().clone();
         self.handle_screenshot(&ctx);

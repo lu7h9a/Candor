@@ -3,7 +3,7 @@
 candor \- command-line client for the Candor process monitor
 .SH SYNOPSIS
 .B candor
-[\fB\-\-socket\fR \fIPATH\fR] [\fB\-\-json\fR] \fICOMMAND\fR [\fIARGS\fR]
+[\fB\-\-socket\fR \fIPATH\fR] [\fB\-\-json\fR] [\fB\-\-color=\fR\fIWHEN\fR] \fICOMMAND\fR [\fIARGS\fR]
 .SH DESCRIPTION
 .B candor
 shows what programs on the computer are doing, as seen by the
@@ -64,6 +64,13 @@ Machine-readable output.
 .TP
 .BR \-V ", " \-\-version
 Version, git commit and protocol version.
+.TP
+.BI \-\-color= WHEN
+Colour the output: \fBauto\fR (the default: only when standard output is a
+terminal), \fBalways\fR or \fBnever\fR. A red \(bu marks a finding, an amber
+one a process worth a look; the followed process is teal. Piped output never
+contains escape codes, and the \fBNO_COLOR\fR environment variable turns
+colour off whatever this option says.
 .SH EXIT STATUS
 0 ok, 1 error, 2 usage, 3 daemon not running, 4 permission denied, 5 daemon error.
 .SH SEE ALSO

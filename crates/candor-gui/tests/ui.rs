@@ -54,14 +54,48 @@ fn every_required_element_has_its_label() {
             "missing element {label:?}"
         );
     }
-    // Detail tabs appear once a process is selected.
+    // The detail page opens once a process is selected. Its three views
+    // (redesign spec 5.2) and the findings section are on the page itself.
     h.state_mut()
         .act(candor_gui::model::Action::SelectPid(1600));
     h.run_steps(3);
+    for label in [
+        "detail-overview",
+        "detail-map",
+        "detail-events",
+        "detail-findings",
+        "back",
+    ] {
+        assert!(h.query_by_label(label).is_some(), "missing {label}");
+    }
+    // The older lists (files, network, syscalls, children, memory maps)
+    // live in the Events view.
+    h.get_by_label("detail-events").click();
+    h.run_steps(3);
     for t in Tab::all() {
-        let label = format!("detail-{}", t.name());
+        if matches!(t, Tab::Overview | Tab::Findings | Tab::Map) {
+            continue; // checked above
+        }
+        let label = if t == Tab::Events {
+            "detail-list".to_string()
+        } else {
+            format!("detail-{}", t.name())
+        };
         assert!(h.query_by_label(&label).is_some(), "missing {label}");
     }
+    // The map view draws its canvas.
+    h.get_by_label("detail-map").click();
+    h.run_steps(5);
+    assert!(
+        h.query_by_label("access-map").is_some(),
+        "missing access-map"
+    );
+    assert_eq!(h.state().model.map.center.map(|k| k.tgid), Some(1600));
+    assert!(!h.state().model.map.graph.nodes.is_empty());
+    // Esc goes back to the list.
+    h.key_press(egui::Key::Escape);
+    h.run_steps(2);
+    assert!(!h.state().model.detail_open);
 }
 
 #[test]
@@ -82,10 +116,13 @@ fn search_sort_pause_tab_and_alert_click_change_the_model() {
     h.get_by_label("pause").click();
     h.run_steps(2);
     assert!(h.state().model.paused);
-    // Alert click selects the process and opens Findings.
+    // Alert click selects the process and opens Findings. Alerts are on
+    // the Findings page (redesign spec 8).
     h.state_mut().model.filter.clear();
     h.run_steps(1);
     let first_alert = h.state().model.alerts[0].proc;
+    h.get_by_label("alerts").click();
+    h.run_steps(2);
     h.get_by_label_contains("R001 Credential file read").click();
     h.run_steps(2);
     let alert_proc = h
@@ -102,7 +139,10 @@ fn search_sort_pause_tab_and_alert_click_change_the_model() {
         "first alert was {first_alert:?}"
     );
     assert_eq!(h.state().model.tab, Tab::Findings);
-    // Tab switch.
+    assert!(h.state().model.detail_open);
+    // Tab switch (the files list is in the Events view).
+    h.get_by_label("detail-events").click();
+    h.run_steps(2);
     h.get_by_label("detail-files").click();
     h.run_steps(2);
     assert_eq!(h.state().model.tab, Tab::Files);
@@ -136,18 +176,16 @@ fn glasshouse_page_shows_the_report() {
     h.get_by_label("Glasshouse").click();
     h.run_steps(3);
     assert_eq!(h.state().model.page, candor_gui::model::Page::Glasshouse);
+    // The report state (redesign spec 7.3).
     for label in [
-        "gh-path",
-        "gh-browse",
-        "gh-args",
-        "gh-timeout",
-        "gh-run",
-        "gh-cancel",
         "gh-status",
         "gh-decoys",
         "gh-report",
         "gh-timeline",
         "gh-export",
+        "gh-run-again",
+        "gh-map",
+        "gh-loss",
     ] {
         assert!(
             h.query_by_label(label).is_some(),
@@ -174,7 +212,45 @@ fn glasshouse_page_shows_the_report() {
         .filter(|d| d.states != vec![candor_proto::DecoyState::Untouched])
         .count();
     assert_eq!((touched, h.state().model.gh.decoys.len()), (32, 42));
+    // "Run again" shows the start form (spec 7.1), with the limitation.
+    h.get_by_label("gh-run-again").click();
+    h.run_steps(3);
+    for label in [
+        "gh-path",
+        "gh-browse",
+        "gh-args",
+        "gh-timeout",
+        "gh-run",
+        "gh-example",
+        "gh-status",
+    ] {
+        assert!(
+            h.query_by_label(label).is_some(),
+            "missing element {label:?}"
+        );
+    }
+    assert!(
+        h.query_by_label_contains("gh-unavailable: Glasshouse needs a running daemon")
+            .is_some()
+    );
+    assert!(
+        h.query_by_label_contains("not a malware containment system")
+            .is_some()
+    );
+    // "Try an example" fills the form with the bundled script.
+    h.get_by_label("gh-example").click();
+    h.run_steps(2);
+    assert!(h.state().model.gh.example);
+    assert_eq!(h.state().model.gh.path, "try.sh");
+    // While running, the form is replaced by Stop and the live counters.
+    h.state_mut().model.gh.state = Some(candor_proto::GhState::Running);
+    h.run_steps(2);
+    assert!(h.query_by_label("gh-cancel").is_some(), "missing gh-cancel");
+    h.state_mut().model.gh.state = Some(candor_proto::GhState::Finished);
+    h.state_mut().model.gh.show_start = true;
+    h.run_steps(2);
     // A replay has no daemon: running is not offered.
+    h.state_mut().model.gh.example = false;
     h.state_mut().model.gh.path = "/bin/true".into();
     h.run_steps(2);
     h.get_by_label("gh-run").click();
@@ -183,4 +259,153 @@ fn glasshouse_page_shows_the_report() {
         h.state().model.gh.state,
         Some(candor_proto::GhState::Finished)
     );
+}
+
+/// A source the test drives: it plays the daemon.
+fn fake_source() -> (
+    net::Source,
+    crossbeam_channel::Sender<candor_gui::model::Incoming>,
+    crossbeam_channel::Receiver<candor_proto::ClientMsg>,
+) {
+    let (in_tx, in_rx) = crossbeam_channel::bounded(64);
+    let (req_tx, req_rx) = crossbeam_channel::bounded(256);
+    let src = net::Source {
+        rx: in_rx,
+        tx: req_tx,
+        waker: Default::default(),
+    };
+    (src, in_tx, req_rx)
+}
+
+fn welcome(
+    features: &[&str],
+    unavailable: Vec<candor_proto::FeatureNote>,
+) -> candor_gui::model::Incoming {
+    candor_gui::model::Incoming::Msg(Box::new(candor_proto::DaemonMsg::Welcome {
+        proto: candor_proto::PROTO_VERSION,
+        daemon_version: "test".into(),
+        kernel: "6.19".into(),
+        boot_to_wall_ns: 0,
+        features: features.iter().map(|f| f.to_string()).collect(),
+        unavailable,
+        act_enabled: false,
+    }))
+}
+
+#[test]
+fn glasshouse_example_runs_in_one_click_and_reaches_the_report() {
+    use candor_proto::{ClientMsg, DaemonMsg, GhState};
+    let (src, daemon, requests) = fake_source();
+    daemon.send(welcome(&["glasshouse"], vec![])).unwrap();
+    let app = App::new(src, None, Vec::new());
+    let mut h = Harness::builder()
+        .with_size(egui::vec2(1400.0, 900.0))
+        .build_ui_state(|ui, app: &mut App| app.frame(ui), app);
+    h.run_steps(3);
+    h.get_by_label("Glasshouse").click();
+    h.run_steps(3);
+    // One click fills the form; Run is then enabled and sends the bytes.
+    h.get_by_label("gh-example").click();
+    h.run_steps(2);
+    h.get_by_label("gh-run").click();
+    h.run_steps(2);
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let mut got = Vec::new();
+    while Instant::now() < deadline && !matches!(got.last(), Some(ClientMsg::GhRun { .. })) {
+        if let Ok(m) = requests.recv_timeout(Duration::from_millis(100)) {
+            got.push(m);
+        }
+    }
+    let example = candor_gui::model::GH_EXAMPLE;
+    assert!(
+        matches!(&got[0], ClientMsg::GhUploadBegin { name, size }
+        if name.as_bytes() == b"try.sh" && *size == example.len() as u64),
+        "{got:?}"
+    );
+    assert!(matches!(&got[1], ClientMsg::GhUploadChunk { seq: 0, b64 }
+        if *b64 == candor_proto::b64::encode(example)));
+    assert!(matches!(
+        got.last(),
+        Some(ClientMsg::GhRun { timeout_s: 30, .. })
+    ));
+    assert_eq!(
+        h.state().model.gh.stage(),
+        candor_gui::model::GhStage::Running
+    );
+    // The daemon reports progress, then the report: the page shows it.
+    daemon
+        .send(candor_gui::model::Incoming::Msg(Box::new(
+            DaemonMsg::GhStatus {
+                state: GhState::Running,
+                run_id: "r1".into(),
+                message: String::new(),
+                decoys: vec![],
+            },
+        )))
+        .unwrap();
+    h.run_steps(3);
+    assert!(h.query_by_label("gh-cancel").is_some());
+    let fixture = std::fs::read_to_string(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../fixtures/gui/glasshouse.frames.jsonl"),
+    )
+    .unwrap();
+    let report = fixture
+        .lines()
+        .filter_map(|l| serde_json::from_str::<DaemonMsg>(l).ok())
+        .find(|m| matches!(m, DaemonMsg::GhReport { .. }))
+        .unwrap();
+    daemon
+        .send(candor_gui::model::Incoming::Msg(Box::new(report)))
+        .unwrap();
+    h.run_steps(5);
+    assert_eq!(
+        h.state().model.gh.stage(),
+        candor_gui::model::GhStage::Report
+    );
+    assert!(h.query_by_label("gh-report").is_some());
+    let r = h.state().model.gh.report.clone().unwrap();
+    let sentence = candor_core::ghreport::summary_sentence(&r);
+    assert!(
+        h.query_by_label_contains(&sentence).is_some(),
+        "summary {sentence:?} not shown"
+    );
+    // Its map opens from the report.
+    h.get_by_label("gh-map").click();
+    h.run_steps(5);
+    assert!(h.query_by_label("access-map").is_some());
+    assert!(!h.state().model.map.graph.nodes.is_empty());
+}
+
+#[test]
+fn glasshouse_unavailable_shows_the_daemons_reason() {
+    let (src, daemon, _requests) = fake_source();
+    let reason = "bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted";
+    daemon
+        .send(welcome(
+            &["exec"],
+            vec![candor_proto::FeatureNote {
+                feature: "glasshouse".into(),
+                kernel: false,
+                reason: reason.into(),
+            }],
+        ))
+        .unwrap();
+    let app = App::new(src, None, Vec::new());
+    let mut h = Harness::builder()
+        .with_size(egui::vec2(1280.0, 720.0))
+        .build_ui_state(|ui, app: &mut App| app.frame(ui), app);
+    h.run_steps(3);
+    h.get_by_label("Glasshouse").click();
+    h.run_steps(3);
+    assert!(
+        h.query_by_label_contains(&format!("gh-unavailable: {reason}"))
+            .is_some()
+    );
+    // The form is there but Run stays off.
+    h.state_mut().model.gh.path = "/bin/true".into();
+    h.run_steps(2);
+    h.get_by_label("gh-run").click();
+    h.run_steps(2);
+    assert_eq!(h.state().model.gh.state, None);
 }
