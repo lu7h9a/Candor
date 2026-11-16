@@ -9,8 +9,10 @@ in the workspace `Cargo.toml`.
 
 ## [0.0.1] - 2026-11-16
 
-The first release, a pre-release. Packages are not signed yet: check
-them against SHA256SUMS.
+The first release. The packages are signed: `SHA256SUMS.asc` and the
+`.rpm` carry signatures from the Candor release key (fingerprint
+1B08 0BBA 9A1A AE40 C90F 9B3C 13C9 4138 5125 80A5); see "Verify your
+download" in the README.
 
 ### Changed (desktop app redesign)
 - A calm, minimal look: one dark theme, Inter and JetBrains Mono bundled

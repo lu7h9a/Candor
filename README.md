@@ -56,6 +56,28 @@ makepkg -si                                               # Arch, with the PKGBU
 tar xf candor-0.0.1-x86_64.tar.gz && sudo ./candor-0.0.1-x86_64/install.sh   # anything else
 ```
 
+## Verify your download
+
+The packages are signed by the Candor release key:
+
+```text
+lu7h9a (Candor release signing) <213833031+lu7h9a@users.noreply.github.com>
+Fingerprint: 1B08 0BBA 9A1A AE40 C90F  9B3C 13C9 4138 5125 80A5
+```
+
+Download `SHA256SUMS`, `SHA256SUMS.asc` and `candor-signing-key.asc` from
+the release next to the package, then:
+
+```text
+gpg --import candor-signing-key.asc
+gpg --verify SHA256SUMS.asc SHA256SUMS      # must say "Good signature" with the fingerprint above
+sha256sum -c --ignore-missing SHA256SUMS    # the package you downloaded must say OK
+```
+
+The `.rpm` also carries the signature itself: `sudo rpm --import
+candor-signing-key.asc`, then `rpm -K candor-*.rpm` says "digests
+signatures OK".
+
 ## Try it
 
 See what a program does in the Glasshouse sandbox:

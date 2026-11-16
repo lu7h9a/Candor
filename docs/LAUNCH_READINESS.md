@@ -10,7 +10,7 @@ first release. Everything below was run, not assumed; logs are under
 Released privately as v0.0.1 (2026-11-16, built and checked by the
 release workflow; installed from the release .deb on the owner's machine
 and checked there). Before a public launch the owner still has: the
-benchmark consistency result, package signing and the name check. Nothing
+benchmark consistency result and the name check. Nothing
 known is broken.
 
 ## What works (measured)
@@ -43,8 +43,9 @@ follow mode within noise. Idle daemon 1.97 % of one core, 80 MiB RSS.
    `make bench` on an idle machine, or decide to change the spread rule
    (that is a threshold change and goes in docs/DEVIATIONS.md).
 2. ~~Host groups~~: done 2026-11-16; the act itests pass on the host.
-3. **Package signing** with your key (v0.0.1 is unsigned; the release
-   notes point to SHA256SUMS).
+3. ~~Package signing~~: done 2026-11-16. The `.rpm` and `SHA256SUMS`
+   are signed with the owner's key (fingerprint 1B08 0BBA 9A1A AE40
+   C90F 9B3C 13C9 4138 5125 80A5); checked from a clean download.
 4. **Name check** for "Candor" (trademark, package-name collisions) before
    going public.
 5. ~~One minute on a real desktop~~: done; the owner has used the GUI.
@@ -62,7 +63,7 @@ unprivileged uid against kernel bugs.
 
 ## Launch checklist
 
-- [ ] Open items 1, 3, 4, 6, 7 above
+- [ ] Open items 1, 4, 6, 7 above
 - [x] `git tag v0.0.1 && git push --tags` (release workflow built the draft)
 - [x] Draft checked (SHA256SUMS, contents, version) and published, 2026-11-16
 - [ ] Make the repository public only when you decide to
