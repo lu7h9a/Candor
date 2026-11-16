@@ -7,14 +7,17 @@ in the workspace `Cargo.toml`.
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-11-16
+
+The first release, a pre-release. Packages are not signed yet: check
+them against SHA256SUMS.
+
 ### Changed (desktop app redesign)
 - A calm, minimal look: one dark theme, Inter and JetBrains Mono bundled
   (SIL OFL, licences in /usr/share/doc/candor/fonts), colour only for
   selection (teal), findings (red) and caution (amber).
-- Three pages: Processes, Findings, Glasshouse. The process table shows
-  five columns by default (process, CPU, memory, connections, score); the
-  others are in a column picker. Stat cards show CPU, memory, events per
-  second and the number of events not recorded.
+- Three pages: Processes, Findings, Glasshouse. Stat cards show CPU,
+  memory, events per second and the number of events not recorded.
 - Process detail: Overview (charts, "What it did", finding cards with the
   events behind them), Map, and Events.
 - Glasshouse is one page in three states (start, running, report) with
@@ -67,11 +70,7 @@ in the workspace `Cargo.toml`.
 - Glasshouse refuses runs when it was reported unavailable at start, and
   checks the helper again before each run.
 
-## [0.0.1] - 2026-11-15
-
-The first build to have packages. This is a pre-release.
-
-### Added
+### Added (core, first build)
 - **candord**, a root daemon that watches processes with CO-RE eBPF:
   - programs started, forks and exits;
   - files opened, renamed and deleted;
